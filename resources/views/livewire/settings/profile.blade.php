@@ -1,0 +1,150 @@
+<?php
+
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
+use Livewire\Volt\Component;
+use Livewire\WithFileUploads;
+
+new class extends Component {
+    use WithFileUploads;
+
+    public string $name = '';
+    public string $email = '';
+    public string $gender = '';
+    public string $delivery_address = '';
+    public string $nif = '';
+    public string $payment_details = '';
+    public $profile_photo = null;
+
+    public function mount(): void
+    {
+        $user = Auth::user();
+        $this->name = $user->name;
+        $this->email = $user->email;
+        $this->gender = $user->gender ?? '';
+        $this->delivery_address = $user->delivery_address ?? '';
+        $this->nif = $user->nif ?? '';
+        $this->payment_details = $user->payment_details ?? '';
+    }
+
+    public function updateProfileInformation(): void
+    {
+        $user = Auth::user();
+
+        $validated = $this->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique(User::class)->ignore($user->id),
+            ],
+             'gender' => ['nullable', 'in:F,M,O'],
+            'delivery_address' => ['nullable', 'string', 'max:255'],
+            'nif' => ['nullable', 'string', 'max:20'],
+            'payment_details' => ['nullable', 'string', 'max:255'],
+            'profile_photo' => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        $user->fill([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'gender' => $validated['gender'],
+            'delivery_address' => $validated['delivery_address'],
+            'nif' => $validated['nif'],
+            'payment_details' => $validated['payment_details'],
+        ]);
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        if ($this->profile_photo) {
+            $path = $this->profile_photo->store('profile-photos', 'public');
+            $user->profile_photo = $path;
+        }
+
+        $user->save();
+
+        $this->dispatch('profile-updated', name: $user->name);
+    }
+
+    public function resendVerificationNotification(): void
+    {
+        $user = Auth::user();
+
+        if ($user->hasVerifiedEmail()) {
+            $this->redirectIntended(default: route('dashboard', absolute: false));
+            return;
+        }
+
+        $user->sendEmailVerificationNotification();
+        Session::flash('status', 'verification-link-sent');
+    }
+};
+?>
+
+<section class="w-full">
+    @include('partials.settings-heading')
+
+    <x-settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
+        <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
+            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
+
+            <div>
+                <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
+
+                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
+                    <div>
+                        <flux:text class="mt-4">
+                            {{ __('Your email address is unverified.') }}
+
+                            <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
+                                {{ __('Click here to re-send the verification email.') }}
+                            </flux:link>
+                        </flux:text>
+
+                        @if (session('status') === 'verification-link-sent')
+                            <flux:text class="mt-2 font-medium !dark:text-green-400 !text-green-600">
+                                {{ __('A new verification link has been sent to your email address.') }}
+                            </flux:text>
+                        @endif
+                    </div>
+                @endif
+            </div>
+
+        <flux:select wire:model="gender" :label="__('Gender')">
+            <option value="">-- {{ __('Select Gender') }} --</option>
+            <option value="F">{{ __('Female') }}</option>
+            <option value="M">{{ __('Male') }}</option>
+            <option value="O">{{ __('Other') }}</option>
+        </flux:select>
+
+
+            <flux:input wire:model="delivery_address" :label="__('Delivery Address')" type="text" autocomplete="street-address" />
+
+            <flux:input wire:model="nif" :label="__('NIF Number')" type="text" />
+
+            <flux:input wire:model="payment_details" :label="__('Payment Information')" type="text" />
+
+            <flux:input wire:model="profile_photo" :label="__('Profile Photo')" type="file" accept="image/*"/>
+
+
+            <div class="flex items-center gap-4">
+                <div class="flex items-center justify-end">
+                    <flux:button variant="primary" type="submit" class="w-full">{{ __('Save') }}</flux:button>
+                </div>
+
+                <x-action-message class="me-3" on="profile-updated">
+                    {{ __('Saved.') }}
+                </x-action-message>
+            </div>
+        </form>
+
+        <livewire:settings.delete-user-form />
+    </x-settings.layout>
+</section>
