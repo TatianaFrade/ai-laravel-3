@@ -9,6 +9,7 @@ use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
+use App\Models\Card;
 
 new #[Layout('components.layouts.auth')] class extends Component {
     use WithFileUploads;
@@ -18,6 +19,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $password = '';
     public string $password_confirmation = '';
     public string $gender = '';
+  
     public ?string $delivery_address = null;
     public ?string $nif = null;
     public ?string $payment_details = null;
@@ -44,7 +46,11 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         event(new Registered(($user = User::create($validated))));
 
+        
+
         Auth::login($user);
+
+        Card::createForUser($user);
 
         //$this->redirectIntended(route('profile.edit', absolute: false), navigate: true);
         $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
@@ -94,7 +100,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             required
             autocomplete="new-password"
             :placeholder="__('Confirm password')"
-            viewable
+            viewable    
         />
 
         <flux:select wire:model="gender" :label="__('Gender')" required>

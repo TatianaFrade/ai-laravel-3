@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
-use Illuminate\Contracts\Auth\MustVerifyEmail; 
+
 
 class User extends Authenticatable implements MustVerifyEmail 
 {
@@ -23,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'type',
         'gender',
         'delivery_address',
         'nif',
@@ -64,9 +65,26 @@ class User extends Authenticatable implements MustVerifyEmail
             ->implode('');
     }
 
-    public function virtual_card()
+     public function isEmployee(): bool
     {
-        return $this->hasOne(VirtualCard::class);
+        return $this->type === 'employee';
+    }
+
+    public function isRegular(): bool
+    {
+        return $this->type === 'member';
+    }
+
+    public function isBoard(): bool
+    {
+        return $this->type === 'board';
+    }
+
+  
+
+    public function card()
+    {
+        return $this->hasOne(Card::class);
     }
 
 }

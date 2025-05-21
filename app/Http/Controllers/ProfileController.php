@@ -28,10 +28,10 @@ class ProfileController extends Controller
             return redirect()->route('profile.edit')->with('error','Por favor, confirme o seu email antes de pagar.');
         }
 
-         if (!$user->virtual_card) {
+         if (!$user->card) {
             $virtualCard = $this->createVirtualCardForUser($user);
         } else {
-            $virtualCard = $user->virtual_card;
+            $virtualCard = $user->card;
         }
 
         return view('membership.payment', compact('virtualCard'));
@@ -56,7 +56,7 @@ class ProfileController extends Controller
 
     private function createVirtualCardForUser($user)
     {
-        return VirtualCard::create([
+        return Card::create([
             'user_id' => $user->id,
             'card_number' => 'VIRT' . strtoupper(\Illuminate\Support\Str::random(12)),
             'expiration_date' => now()->addYear(),

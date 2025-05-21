@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CourseFormRequest extends FormRequest
+class UserFormRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,23 +23,21 @@ class CourseFormRequest extends FormRequest
     {
         $rules = [
             'name' => 'required|string|max:255',
-            'name_pt' => 'required|string|max:255',
-            'type' => 'required|in:Degree,Master,TESP',
-            'gender' => 'required|integer|between:1,10',
-            'delivery_address' => 'required|integer|min:1',
-            'nif' => 'required|integer|min:0',
-            'payment_details' => 'required|email',
-            'profile_photo' => 'required|string',
-            'objectives_pt' => 'required|string',
-
+            'email' => 'required|string|max:255',
+            'password' => 'required|string|max:255',
+            'type' => 'required|in:member,board,employee',
+            'gender' => 'required|in:F,M,O',
+            'delivery_address' => 'required|string|min:1',
+            'nif' => ['nullable', 'integer'],
+            
+            // 'profile_photo' => ['nullable', 'image', 'max:2048'],
     
         ];
+
         if (strtolower($this->getMethod()) == 'post') {
             // This will merge 2 arrays:
             // (adds the "abbreviation" rule to the $rules array)
-            $rules = array_merge($rules, [
-                'abbreviation' => 'required|string|max:20|unique:courses,abbreviation',
-            ]);
+          
         }
         return $rules;
     }
@@ -47,9 +45,7 @@ class CourseFormRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'ECTS.required' => 'ECTS is required',
-            'ECTS.integer' => 'ECTS must be an integer',
-            'ECTS.min' => 'ECTS must be equal or greater that 1',
+           
         ];
     }
 }
