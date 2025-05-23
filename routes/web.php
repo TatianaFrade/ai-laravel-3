@@ -1,53 +1,66 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\CourseController;
-use App\Http\Controllers\DisciplineController;
-use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\ProfileController; 
-use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CategoryController;
+use App\Models\Product;
+use App\Models\Category;
+use App\Models\User;
+use App\Models\Course;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
 
-    Route::middleware(['auth'])->group(function () {
-        Route::redirect('settings', 'settings/profile');
 
-        Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
-        Volt::route('settings/password', 'settings.password')->name('settings.password');
-        Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+/* ----- PUBLIC ROUTES ----- */
+Route::get('/', function () {return view('welcome');})->name('home');
 
-        
+Route::get('products/showcase', [ProductController::class, 'showCase'])->name('products.showcase')
+    ->can('viewShowCase', Product::class);
+
+
+/* ----- VERIFIED USERS ONLY ----- */
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::view('dashboard', 'dashboard')->name('dashboard');
+
+    Route::redirect('settings', 'settings/profile');
+    Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
+    Volt::route('settings/password', 'settings.password')->name('settings.password');
+    Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
-   
-
-
-    
-Route::get('courses/showcase', [CourseController::class, 'showCase'])->name('courses.showcase');
-
-// Route::get('users/index', [UserController::class, 'index'])->name('users.index');
-// Route::get('users/create', [UserController::class, 'create'])->name('users.create');
-// Route::get('users/show', [UserController::class, 'show'])->name('users.show');
-// Route::get('users/update', [UserController::class, 'update'])->name('users.update');
-// Route::get('users/edit', action: [UserController::class, 'edit'])->name('users.edit');
-// Route::get('users/destroy', action: [UserController::class, 'destroy'])->name('users.destroy');
 
 
 
+/* ----- AUTHENTICATED USERS (verificados ou não) ----- */
+Route::middleware(['auth'])->group(function () {
+    Route::resource('courses', CourseController::class);
+    Route::resource('users', UserController::class);
+    Route::resource('categories', CategoryController::class);
+    Route::resource('products', ProductController::class);
 
-Route::resource('courses', CourseController::class);
 
-Route::resource('users', UserController::class);
+    Route::patch('/users/{user}/toggle-blocked', [UserController::class, 'toggleBlocked'])->name('users.toggleBlocked');
+    Route::delete('/users/{user}/force', [UserController::class, 'forceDestroy'])->name('users.forceDestroy');
+    Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
+
+    Route::delete('/category/{category}/force', [UserController::class, 'forceDestroy'])->name('categories.forceDestroy');
+     Route::delete('/product/{product}/force', [UserController::class, 'forceDestroy'])->name('products.forceDestroy');
+
+});
 
 
 
-require __DIR__.'/auth.php';
+/* ----- NON-VERIFIED USERS ----- */
+Route::middleware(['auth'])->group(function () {
+    Route::resource('products', ProductController::class)->only(['index', 'show']);
+    Route::resource('categories', CategoryController::class)->only(['index', 'show']);
+});
+
+
+require __DIR__ . '/auth.php';
+
 

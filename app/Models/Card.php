@@ -22,16 +22,27 @@ class Card extends Model
      * @param  \App\Models\User  $user
      * @return \App\Models\Card
      */
-    public static function createForUser($user)
+  public static function createForUser($user)
     {
+        $cardNumber = self::generateUniqueCardNumber();
+
         return self::create([
             'id' => $user->id,
-            'card_number' => $user->id,
+            'card_number' => $cardNumber,
             'balance' => 0.0,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
             'deleted_at' => $user->deleted_at,
-            
         ]);
     }
+
+    private static function generateUniqueCardNumber()
+    {
+        do {
+            $number = random_int(100000, 999999);
+        } while (self::where('card_number', $number)->exists());
+
+        return $number;
+    }
+
 }

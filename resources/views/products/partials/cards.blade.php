@@ -17,7 +17,12 @@
                             text-base space-x-6 text-gray-700 dark:text-gray-300">
                     <div>{{ $user->email }} email</div>
                     <div>{{ $user->type }} type</div>
-               
+                    <flux:radio.group name="type" label="Type of course" :disabled="$readonly" class="ps-8 py-2">
+                        <flux:radio value="Degree" label="Degree" :checked="old('type', $course->type) == 'Degree'" />
+                        <flux:radio value="Master" label="Master" :checked="old('type', $course->type) == 'Master'" />
+                        <flux:radio value="TESP" label="TESP" :checked="old('type', $course->type) == 'TESP'" />
+                        <flux:error name="type" />
+                    </flux:radio.group>
                     <div>{{ $user->nif }} nif</div>
                     
                 </div>

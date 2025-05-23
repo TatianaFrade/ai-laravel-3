@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class ProductFormRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true; // sem policies, todos podem submeter
+    }
+
+    public function rules(): array
+    {
+        return [
+            'category_id'        => 'required|integer|exists:categories,id',
+            'name'               => 'required|string|max:255',
+            'price'              => 'required|numeric|min:0',
+            'stock'              => 'required|integer|min:0',
+            'description'        => 'nullable|string',
+            'photo'              => 'nullable|string|max:255', // ou file|image se fores fazer upload
+            'stock_lower_limit'  => 'nullable|integer|min:0',
+            'stock_upper_limit'  => 'nullable|integer|min:0',
+        ];
+    }
+}

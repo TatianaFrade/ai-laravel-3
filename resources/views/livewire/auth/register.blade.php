@@ -10,6 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
 use App\Models\Card;
+use Illuminate\Validation\Rule;
 
 new #[Layout('components.layouts.auth')] class extends Component {
     use WithFileUploads;
@@ -23,25 +24,25 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public ?string $delivery_address = null;
     public ?string $nif = null;
     public ?string $payment_details = null;
-    public $profile_photo = null; 
+    public $photo = null; 
 
     public function register(): void
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')],  
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
             'gender' => ['required', 'string', 'max:255'],
             'delivery_address' => ['nullable', 'string', 'max:255'],
             'nif' => ['nullable', 'string', 'max:255'],
             'payment_details' => ['nullable', 'string', 'max:255'],
-            'profile_photo' => ['nullable', 'image', 'max:2048'], // até 2MB
+            'photo' => ['nullable', 'image', 'max:2048'], // até 2MB
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
 
-        if ($this->profile_photo) {
-            $validated['profile_photo'] = $this->profile_photo->store('profile-photos', 'public');
+        if ($this->photo) {
+            $validated['photo'] = $this->photo->store('profile-photos', 'public');
         }
 
         event(new Registered(($user = User::create($validated))));
@@ -73,6 +74,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             autocomplete="name"
             :placeholder="__('Full name')"
         />
+        
 
         <flux:input
             wire:model="email"
@@ -82,6 +84,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
             autocomplete="email"
             placeholder="email@example.com"
         />
+        @error('email')
+            <div class="text-red-500 text-sm">{{ $message }}</div>
+        @enderror
 
         <flux:input
             wire:model="password"
@@ -136,7 +141,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
   
         <flux:input
-            wire:model="profile_photo"
+            wire:model="photo"
             :label="__('Profile Photo')"
             type="file"
             accept="image/*"
@@ -145,7 +150,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
       
 
             {{-- tirar depois --}}
-        @error('profile_photo') 
+        @error('photo') 
             <div class="text-red-500 text-sm">{{ $message }}</div>
         @enderror
 

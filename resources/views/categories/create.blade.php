@@ -1,10 +1,10 @@
-<x-layouts.main-content title="New Employee"
-                        heading="Create a Employee"
+<x-layouts.main-content title="New category"
+                        heading="Create a category"
                         subheading='Click on "Save" button to store the information.'>
     <div class="flex flex-col space-y-6">
         <div class="max-full">
             <section>
-                <form method="POST" action="{{ route('users.store') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('category.store') }}" enctype="multipart/form-data">
                     @csrf
 
                     @if ($errors->any())
@@ -18,7 +18,7 @@
                     @endif  
 
                     <div class="mt-6 space-y-4">
-                        @include('users.partials.fields', ['mode' => 'create'])
+                        @include('category.partials.fields', ['mode' => 'create'])
                     </div>
 
                     <div class="flex mt-6">
