@@ -30,6 +30,11 @@
 
                     <flux:navlist.item icon="academic-cap" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>Products</flux:navlist.item>
 
+                    <flux:navlist.item icon="academic-cap" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>Membership fees</flux:navlist.item>
+
+                    <flux:navlist.item icon="academic-cap" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>Shipping costs</flux:navlist.item>
+
+
                 </flux:navlist.group>
             </flux:navlist>
 

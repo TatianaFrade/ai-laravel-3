@@ -19,7 +19,8 @@ class ProductFormRequest extends FormRequest
             'price'              => 'required|numeric|min:0',
             'stock'              => 'required|integer|min:0',
             'description'        => 'nullable|string',
-            'photo'              => 'nullable|string|max:255', // ou file|image se fores fazer upload
+            'photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+
             'stock_lower_limit'  => 'nullable|integer|min:0',
             'stock_upper_limit'  => 'nullable|integer|min:0',
         ];

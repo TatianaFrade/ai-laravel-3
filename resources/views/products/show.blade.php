@@ -4,7 +4,7 @@
 <div class="max-full">
 <section>
 <div class="mt-6 space-y-4">
-    @include('product.partials.fields', ['mode' => 'show'])
+    @include('products.partials.fields', ['mode' => 'show'])
 </div>
 </form>
 </section>

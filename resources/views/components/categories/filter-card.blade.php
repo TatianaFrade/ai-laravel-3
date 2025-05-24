@@ -2,48 +2,47 @@
     <form method="GET" action="{{ route('categories.index') }}">
         <div class="flex justify-between space-x-3">
 
-            {{-- <!-- Input nome ou email -->
+            
             <div class="grow flex flex-col space-y-2">
-                <label for="name" class="block text-sm font-medium text-gray-300">Nome ou Email</label>
+                <label for="name" class="block text-sm font-medium text-gray-300">Nome</label>
                 <input 
                     type="text" 
                     name="name" 
                     id="name"
                     value="{{ old('name', $filterByName ?? '') }}" 
-                    placeholder="Pesquisar por nome ou email"
+                    placeholder="Pesquisar por nome"
                     class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
             </div>
 
-            <!-- Dropdown gênero -->
+           <!-- Dropdown ordenação alfabética -->
             <div class="w-48 flex flex-col space-y-2">
-                <label for="gender" class="block text-sm font-medium text-gray-300">Género</label>
+                <label for="order" class="block text-sm font-medium text-gray-300">Ordenar por Nome</label>
                 <select 
-                    name="gender" 
-                    id="gender" 
+                    name="order" 
+                    id="order" 
                     class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                    <option value="" @selected(empty($filterByGender)) class="bg-gray-800 text-gray-100">Todos</option>
-                    <option value="F" @selected(($filterByGender ?? '') === 'F') class="bg-gray-800 text-gray-100">Feminino</option>
-                    <option value="M" @selected(($filterByGender ?? '') === 'M') class="bg-gray-800 text-gray-100">Masculino</option>
-                    <option value="O" @selected(($filterByGender ?? '') === 'O') class="bg-gray-800 text-gray-100">Outro</option>
+                    <option value="" @selected(empty($order))>Padrão</option>
+                    <option value="name_asc" @selected(($order ?? '') === 'name_asc')>A → Z</option>
+                    <option value="name_desc" @selected(($order ?? '') === 'name_desc')>Z → A</option>
                 </select>
             </div>
 
-            <!-- Dropdown tipo -->
+            <!-- Dropdown ordenação por número de produtos -->
             <div class="w-48 flex flex-col space-y-2">
-                <label for="type" class="block text-sm font-medium text-gray-300">Tipo de Utilizador</label>
+                <label for="order_products" class="block text-sm font-medium text-gray-300">Ordenar por Nº de Produtos</label>
                 <select 
-                    name="type" 
-                    id="type" 
+                    name="order_products" 
+                    id="order_products" 
                     class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                    <option value="" @selected(empty($filterByType)) class="bg-gray-800 text-gray-100">Todos</option>
-                    <option value="board" @selected(($filterByType ?? '') === 'board') class="bg-gray-800 text-gray-100">Board</option>
-                    <option value="member" @selected(($filterByType ?? '') === 'member') class="bg-gray-800 text-gray-100">Member</option>
-                    <option value="employee" @selected(($filterByType ?? '') === 'employee') class="bg-gray-800 text-gray-100">Employee</option>
+                    <option value="" @selected(empty($orderProducts))>Padrão</option>
+                    <option value="most" @selected(($orderProducts ?? '') === 'most')>Mais produtos</option>
+                    <option value="least" @selected(($orderProducts ?? '') === 'least')>Menos produtos</option>
                 </select>
             </div>
+
 
             <!-- Botões -->
             <div class="grow-0 flex flex-col space-y-3 justify-start pt-6">
@@ -56,7 +55,7 @@
                     Cancelar
                 </button>
             </div>
-             --}}
+             
         </div>
     </form>
 </div>

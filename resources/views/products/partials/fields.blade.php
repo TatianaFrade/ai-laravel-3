@@ -1,71 +1,84 @@
 @php
     $mode = $mode ?? 'edit';
-    $readonly = $mode == 'show';
+    $readonly = $mode === 'show';
+
+    $disableName = $readonly;
+    $disableImage = $readonly;
 @endphp
 
-<div class="w-full sm:w-96">
-    <flux:input name="name" label="Name" value="{{ old('name', $user->name) }}" :disabled="$readonly" :placeholder="__('Required')" />
-</div>
-
-<div class="flex flex-row sm:flex-row sm space-x-4">
-    <div class="w-full">
-        <flux:input name="email" label="Email" value="{{ old('email', $user->email) }}" :disabled="$readonly" :placeholder="__('Required')" />
-    </div>
-    <div class="w-full">
-        @if ($mode === 'create')
-            <input name="type" value="employee" readonly>
-        @else
-            <flux:select wire:model="type" :label="__('Type of user')" required>
-                <option value="Member" {{ old('type', $user->type) == 'member' ? 'selected' : '' }}>Member</option>
-                <option value="Board" {{ old('type', $user->type) == 'board' ? 'selected' : '' }}>Board</option>
-                <option value="Employee" {{ old('type', $user->type) == 'employee' ? 'selected' : '' }}>Employee</option>
-            </flux:select>
-        @endif
-    </div>
-
-    <div class="w-full">
-       <flux:select name="gender" label="{{ __('Gender') }}" :disabled="$readonly" required>
-            <option value="">-- {{ __('Select Gender') }} --</option>
-            <option value="F" {{ old('gender', $user->gender) == 'F' ? 'selected' : '' }}>Feminino</option>
-            <option value="M" {{ old('gender', $user->gender) == 'M' ? 'selected' : '' }}>Masculine</option>
-            <option value="O" {{ old('gender', $user->gender) == 'O' ? 'selected' : '' }}>Other</option>
-        </flux:select>
-    </div>
-</div>
-
-<flux:input
-    wire:model="password"
-    :label="__('Password')"
-    type="password"
-    :required="$mode === 'create'"
-    autocomplete="new-password"
-    :placeholder="$mode === 'create' ? __('Required') : __('Leave empty to keep current password')"
-    viewable
+{{-- Nome do Produto --}}
+<flux:input 
+    name="name" 
+    label="{{ __('Name') }}" 
+    value="{{ old('name', $product->name ?? '') }}" 
+    :disabled="$readonly" 
+    :placeholder="__('Required')" 
 />
 
-<flux:input
-    wire:model="password_confirmation"
-    :label="__('Confirm password')"
-    type="password"
-    :required="$mode === 'create'"
-    autocomplete="new-password"
-    :placeholder="$mode === 'create' ? __('Required') : __('Leave empty to keep current password')"
-    viewable
+{{-- Categoria (select com categorias existentes) --}}
+<flux:select 
+    name="category_id" 
+    label="{{ __('Category') }}" 
+    :disabled="$readonly" 
+    required
+>
+    <option value="">-- {{ __('Select Category') }} --</option>
+    @foreach ($categories as $category)
+        <option 
+            value="{{ $category->id }}" 
+            {{ old('category_id', $product->category_id ?? '') == $category->id ? 'selected' : '' }}
+        >
+            {{ $category->name }}
+        </option>
+    @endforeach
+</flux:select>
+
+{{-- Preço --}}
+<flux:input 
+    name="price" 
+    label="{{ __('Price') }}" 
+    value="{{ old('price', $product->price ?? '') }}" 
+    :disabled="$readonly" 
+    :placeholder="__('Required')" 
+    type="number"
+    step="0.01"
 />
 
-
-
-<flux:input name="delivery_address" label="Personal address" value="{{ old('delivery_address', $user->delivery_address) }}" :disabled="$readonly" />
-
-<flux:input name="nif" label="Nif" value="{{ old('nif', $user->nif) }}" :disabled="$readonly" />
-
-<flux:input name="payment_details" label="Payment details" value="{{ old('payment_details', $user->payment_details) }}" :disabled="$readonly" />
-
-<img src="{{ asset('storage/photos/' . $user->photo) }}" alt="User photo">
-
+{{-- Descrição --}}
+<flux:textarea 
+    name="description" 
+    label="{{ __('Description') }}" 
+    :disabled="$readonly" 
+>
+    {{ old('description', $product->description_translated ?? '') }}
+</flux:textarea>
 
 
 
 
-<flux:error name="objectives" />
+<flux:input 
+    name="stock" 
+    label="{{ __('Stock Quantity') }}" 
+    value="{{ old('stock', $product->stock ?? '') }}" 
+    :disabled="$readonly" 
+    :placeholder="__('Required')" 
+    type="number"
+    step="0.01"
+/>
 
+@if(isset($product) && isset($product->photo) && $product->photo)
+    <img src="{{ asset('storage/products/' . $product->photo) }}" 
+         alt="Product image" 
+         class="h-24 w-24 object-cover rounded-full mb-4" />
+@endif
+
+<flux:input
+    name="photo"
+    label="{{ __('Product Photo') }}"
+    type="file"
+    accept="image/*"
+    :disabled="$disableImage"
+/>
+@if ($disableImage)
+    <input type="hidden" name="photo" value="{{ old('photo', $product->photo ?? '') }}">
+@endif

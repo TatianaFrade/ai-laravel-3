@@ -48,7 +48,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
 
     Route::delete('/category/{category}/force', [UserController::class, 'forceDestroy'])->name('categories.forceDestroy');
-     Route::delete('/product/{product}/force', [UserController::class, 'forceDestroy'])->name('products.forceDestroy');
+    Route::delete('/product/{product}/force', [UserController::class, 'forceDestroy'])->name('products.forceDestroy');
 
 });
 
@@ -57,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
 /* ----- NON-VERIFIED USERS ----- */
 Route::middleware(['auth'])->group(function () {
     Route::resource('products', ProductController::class)->only(['index', 'show']);
-    Route::resource('categories', CategoryController::class)->only(['index', 'show']);
+
 });
 
 

@@ -4,7 +4,7 @@
     <div class="flex flex-col space-y-6">
         <div class="max-full">
             <section>
-                <form method="POST" action="{{ route('category.store') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('categories.store') }}" enctype="multipart/form-data">
                     @csrf
 
                     @if ($errors->any())
@@ -18,7 +18,7 @@
                     @endif  
 
                     <div class="mt-6 space-y-4">
-                        @include('category.partials.fields', ['mode' => 'create'])
+                        @include('categories.partials.fields', ['mode' => 'create'])
                     </div>
 
                     <div class="flex mt-6">
