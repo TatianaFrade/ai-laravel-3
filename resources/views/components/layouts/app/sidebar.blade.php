@@ -67,6 +67,9 @@
                 <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')"
                     :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
 
+                <flux:navlist.item icon="academic-cap" :href="route('orders.index')"
+                    :current="request()->routeIs('orders.index')" wire:navigate>Orders</flux:navlist.item>
+
             </flux:navlist.group>
         </flux:navlist>
 
