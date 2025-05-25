@@ -27,7 +27,7 @@ Route::get('/', function () {
 
 Route::get('products/showcase', [ProductController::class, 'showCase'])->name('products.showcase')
     ->can('viewShowCase', Product::class);
- Route::get('cart', [CartController::class, 'show'])->name('cart.show');
+Route::get('cart', [CartController::class, 'show'])->name('cart.show');
 Route::post('cart/{product}', [CartController::class, 'addToCart'])->name('cart.add');
 Route::delete('cart/{product}', [CartController::class, 'removeFromCart'])->name('cart.remove');
 Route::post('cart', [CartController::class, 'confirm'])->name('cart.confirm');
