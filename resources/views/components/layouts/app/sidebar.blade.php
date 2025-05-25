@@ -5,11 +5,9 @@
     @include('partials.head')
 </head>
 
-            <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Services')" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    
-                  
+<body class="min-h-screen bg-white dark:bg-zinc-800">
+    <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
         <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
             <x-app-logo />
@@ -17,6 +15,14 @@
 
         @if(session('cart'))
             <flux:navlist variant="outline">
+<<<<<<< HEAD
+                <flux:navlist.group :heading="__('Services')" class="grid">
+                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    
+                  
+
+                </flux:navlist.group>
+
                 <div class="relative inline-flex items-center mr-4">
                     <div class="-top-0.5 absolute left-6 z-10">
                         <p class="flex p-3 h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs text-white">
@@ -27,6 +33,7 @@
                         :current="request()->routeIs('cart.show')" wire:navigate><span class="pl-2">Shopping Cart</span>
                     </flux:navlist.item>
                 </div>
+
             </flux:navlist>
         @endif
 
@@ -38,12 +45,20 @@
                 <flux:navlist.item icon="academic-cap" :href="route('products.index')"
                     :current="request()->routeIs('products.index')" wire:navigate>Product catalog</flux:navlist.item>
 
+            </flux:navlist.group>
+        </flux:navlist>
+
+
                     <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')" :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
 
                     <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
 
+        <flux:navlist variant="outline">
+            <flux:navlist.group :heading="__('Managing')" class="grid">
+
                 <flux:navlist.item icon="academic-cap" :href="route('users.index')"
                     :current="request()->routeIs('users.index')" wire:navigate>Users</flux:navlist.item>
+
 
                 <flux:navlist.item icon="academic-cap" :href="route('categories.index')"
                     :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
@@ -51,11 +66,11 @@
                 <flux:navlist.item icon="academic-cap" :href="route('products.index')"
                     :current="request()->routeIs('products.index')" wire:navigate>Products</flux:navlist.item>
 
-                <flux:navlist.item icon="academic-cap" :href="route('products.index')"
-                    :current="request()->routeIs('products.index')" wire:navigate>Membership fees</flux:navlist.item>
+                <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')"
+                    :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
 
-                <flux:navlist.item icon="academic-cap" :href="route('products.index')"
-                    :current="request()->routeIs('products.index')" wire:navigate>Shipping costs</flux:navlist.item>
+                <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')"
+                    :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
 
             </flux:navlist.group>
         </flux:navlist>
@@ -163,9 +178,11 @@
         </flux:dropdown>
     </flux:header>
 
-    {{ $slot }}
+  
+</body>
+
+  {{ $slot }}
 
     @fluxScripts
-</body>
 
 </html>
