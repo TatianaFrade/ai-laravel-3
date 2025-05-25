@@ -158,7 +158,7 @@ new class extends Component {
         </form>
 
         @unless(auth()->user()->isEmployee())
-            <livewire:settings.delete-user-form.blade.php />
+            <livewire:settings.delete-user-form />
         @endunless
     </x-settings.layout>
 </section>

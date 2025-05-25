@@ -80,20 +80,10 @@ class ShippingCostController extends Controller
 
     public function update(Request $request, ShippingCost $shippingcost)
     {
-        // Validação dos dados (exemplo)
-        $data = $request->validate([
-            'min_value_threshold' => 'required|numeric',
-            'max_value_threshold' => 'required|numeric',
-            'shipping_cost' => 'required|numeric',
-            // outros campos conforme tabela
-        ]);
+        $shippingcost->update($request->validated());
 
-        // Atualizar os dados
-        $shippingcost->update($data);
-
-        // Redirecionar para a listagem ou página desejada com mensagem
         return redirect()->route('shippingcosts.index')
-                        ->with('success', 'Shipping cost updated successfully.');
+                     ->with('success', 'Shipping cost updated successfully.');
     }
 
 

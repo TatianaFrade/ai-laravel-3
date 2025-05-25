@@ -24,20 +24,20 @@ class Operation extends Model
         return $this->belongsTo(User::class);
     }
 
-    public static function create($card,$operationDate,$type,$creditType,$value,$payment_type,$payment_reference,$order)
-    {
-        return self::create([
-            'card_id' => $card->id,
-            'type' => $type,
-            'value' => $value,
-            'date' => $operationDate->toDateString(),
-            'debit_type' => $type == 'debit' ? 'order' : null,
-            'credit_type' => $creditType,
-            'payment_type' => $payment_type,
-            'payment_reference' => $payment_reference,
-            'order_id' => $order->id,
-            'created_at' => $operationDate,
-            'updated_at' => $operationDate,
-        ]);
-    }
+    // public static function create($card,$operationDate,$type,$creditType,$value,$payment_type,$payment_reference,$order)
+    // {
+    //     return self::create([
+    //         'card_id' => $card->id,
+    //         'type' => $type,
+    //         'value' => $value,
+    //         'date' => $operationDate->toDateString(),
+    //         'debit_type' => $type == 'debit' ? 'order' : null,
+    //         'credit_type' => $creditType,
+    //         'payment_type' => $payment_type,
+    //         'payment_reference' => $payment_reference,
+    //         'order_id' => $order->id,
+    //         'created_at' => $operationDate,
+    //         'updated_at' => $operationDate,
+    //     ]);
+    // }
 }
