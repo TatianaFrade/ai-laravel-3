@@ -1,12 +1,14 @@
 <?php
 
 
+use App\Http\Controllers\ShippingCostController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\MembershipFeeController;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\User;
@@ -41,6 +43,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
+    Route::resource('shippingcosts', ShippingCostController::class);
 
 
     Route::patch('/users/{user}/toggle-blocked', [UserController::class, 'toggleBlocked'])->name('users.toggleBlocked');
@@ -50,6 +53,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/category/{category}/force', [UserController::class, 'forceDestroy'])->name('categories.forceDestroy');
     Route::delete('/product/{product}/force', [UserController::class, 'forceDestroy'])->name('products.forceDestroy');
 
+
+    Route::get('/membershipfees', [MembershipFeeController::class, 'index'])->name('membershipfees.index');
 });
 
 

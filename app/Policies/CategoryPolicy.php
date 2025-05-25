@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Policies;
 
 use App\Models\User;
@@ -8,43 +7,43 @@ use App\Models\Category;
 class CategoryPolicy
 {
     /**
-     * Todos os utilizadores podem ver a lista de produtos.
+     * Apenas utilizadores 'board' podem ver a lista de categorias.
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->type === 'board';
     }
 
     /**
-     * Todos os utilizadores podem ver um produto.
+     * Apenas utilizadores 'board' podem ver uma categoria.
      */
     public function view(User $user, Category $category): bool
     {
-        return true;
+        return $user->type === 'board';
     }
 
     /**
-     * Só utilizadores 'Board' podem criar produtos.
+     * Apenas utilizadores 'board' podem criar categorias.
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->type === 'board';
     }
 
     /**
-     * Só utilizadores 'Board' podem atualizar produtos.
+     * Apenas utilizadores 'board' podem atualizar categorias.
      */
     public function update(User $user, Category $category): bool
     {
-        return true;
+        return $user->type === 'board';
     }
 
     /**
-     * Só utilizadores 'Board' podem apagar produtos.
+     * Apenas utilizadores 'board' podem eliminar categorias.
      */
     public function delete(User $user, Category $category): bool
     {
-        return true;
+        return $user->type === 'board';
     }
 
     /**
@@ -63,3 +62,5 @@ class CategoryPolicy
         return false;
     }
 }
+
+

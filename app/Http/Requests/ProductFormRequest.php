@@ -23,6 +23,8 @@ class ProductFormRequest extends FormRequest
 
             'stock_lower_limit'  => 'nullable|integer|min:0',
             'stock_upper_limit'  => 'nullable|integer|min:0',
+            'discount_min_qty' => 'nullable|integer|min:0',
+            'discount' => 'nullable|numeric|min:0',
         ];
     }
 }

@@ -55,16 +55,37 @@
 
 
 
-
 <flux:input 
+    id="stock" 
     name="stock" 
     label="{{ __('Stock Quantity') }}" 
     value="{{ old('stock', $product->stock ?? '') }}" 
     :disabled="$readonly" 
     :placeholder="__('Required')" 
     type="number"
+    step="1"
+/>
+
+<flux:input 
+    id="discount_min_qty" 
+    name="discount_min_qty" 
+    label="{{ __('Minimum quantity for discount') }}" 
+    value="{{ old('discount_min_qty', $product->discount_min_qty ?? '') }}" 
+    type="number" 
+    step="1" 
+    min="0" 
+/>
+
+<flux:input 
+    id="discount" 
+    name="discount" 
+    label="{{ __('Discount') }}" 
+    value="{{ old('discount', $product->discount ?? '') }}" 
+    :disabled="$readonly"  
+    type="number"
     step="0.01"
 />
+
 
 @if(isset($product) && isset($product->photo) && $product->photo)
     <img src="{{ asset('storage/products/' . $product->photo) }}" 

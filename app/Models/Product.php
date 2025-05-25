@@ -26,6 +26,10 @@ class Product extends Model
         'photo',
         'stock_lower_limit',
         'stock_upper_limit',
+        'discount_min_qty', 
+        'discount',
+
+
     ];
 
     /**

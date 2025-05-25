@@ -4,7 +4,7 @@
     <div class="flex flex-col space-y-6">
         <div class="max-full">
             <section>
-                <form method="POST" action="{{ route('products.update', ['product' => $product]) }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('products.update', ['product' => $product]) }}" enctype="multipart/form-data" id="product-form">
                     @csrf
                     @method('PUT')
 
@@ -31,5 +31,26 @@
         </div>
     </div>
 
-  
+    {{-- JS para validar que desconto só pode se stock >= quantidade mínima --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('product-form');
+            const stockInput = document.getElementById('stock');
+            const minQtyInput = document.getElementById('discount_min_qty');
+            const discountInput = document.getElementById('discount');
+
+            form.addEventListener('submit', function(e) {
+                const stock = parseInt(stockInput.value) || 0;
+                const minQty = parseInt(minQtyInput.value) || 0;
+                const discount = discountInput.value;
+
+                if (discount && stock < minQty) {
+                    alert('Desconto só pode ser aplicado se o stock for maior ou igual à quantidade mínima para desconto.');
+                    e.preventDefault();
+                    discountInput.focus();
+                }
+            });
+        });
+    </script>
+
 </x-layouts.main-content>
