@@ -12,9 +12,10 @@ class Card extends Model
 
     protected $dates = ['created_at','updated_at','expiration_date'];
 
-    public function user()
+   public function user()
     {
-        return $this->belongsTo(User::class, 'id'); 
+        return $this->belongsTo(User::class, 'id', 'id');
+        // card.id (chave primária e estrangeira) = user.id
     }
 
     /**

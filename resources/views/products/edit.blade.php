@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    {{-- JS para validar que desconto só pode se stock >= quantidade mínima --}}
+    {{-- validar que desconto só pode se stock >= quantidade mínima --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('product-form');

@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+use Illuminate\Support\Str;
+
+class SupplyOrder extends Model
+{
+    use HasFactory;
+
+    // Indica explicitamente a tabela, já que o nome não segue a convenção
+    protected $table = 'supply_orders';
+
+    /**
+     * Os atributos que podem ser preenchidos em massa.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'product_id',
+        'registered_by_user_id',
+        'status',
+        'quantity',
+
+    ];
+
+
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'registered_by_user_id', 'id');
+        
+    }
+
+
+}

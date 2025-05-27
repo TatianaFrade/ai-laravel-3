@@ -7,9 +7,6 @@ use App\Models\Product;
 
 class ProductPolicy
 {
-    /**
-     * Todos os utilizadores podem ver a lista de produtos.
-     */
     public function viewAny(User $user): bool
     {
         return true;
@@ -28,7 +25,7 @@ class ProductPolicy
      */
     public function create(User $user): bool
     {
-        return $user->type === 'Board';
+        return $user->type === 'board';
     }
 
     /**
@@ -36,15 +33,21 @@ class ProductPolicy
      */
     public function update(User $user, Product $product): bool
     {
-        return $user->type === 'Board';
+        return $user->type === 'board';
     }
+
+    public function updateStock(User $user, Product $product): bool
+    {
+        return in_array($user->type, ['employee', 'board']);
+    }
+
 
     /**
      * Só utilizadores 'Board' podem apagar produtos.
      */
     public function delete(User $user, Product $product): bool
     {
-        return $user->type === 'Board';
+        return $user->type === 'board';
     }
 
     /**

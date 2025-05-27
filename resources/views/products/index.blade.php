@@ -1,14 +1,19 @@
 <x-layouts.main-content :title="__('Products')" heading="List of Products">
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
     
-    <div class="flex items-center gap-4 mb-4">
+    <div class="flex justify-between items-center mb-4">
       @if($userType === 'board')
         <flux:button variant="primary" href="{{ route('products.create') }}">
           Create a new product
         </flux:button>
+      @else
+        <div></div> {{-- espaço vazio para manter alinhamento quando o botão da esquerda não aparece --}}
       @endif
+        <flux:button variant="primary" href="{{ route('stockadjustments.index') }}">
+          Inventory records
+        </flux:button>
+       
     </div>
-
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
 
@@ -26,7 +31,7 @@
                 <th class="px-2 py-2 text-left">Name</th>
                 <th class="px-2 py-2 text-left">Category</th>
                 
-                @if($userType === 'board')
+                @if($userType === 'board' || $userType === 'employee')
                   <th class="px-2 py-2 text-left">Price</th>
                   <th class="px-2 py-2 text-left hidden sm:table-cell">Stock</th>
                   <th class="px-2 py-2 text-left hidden sm:table-cell">Description</th>
@@ -39,7 +44,7 @@
 
                 <th class="px-2 py-2 text-left"></th>
 
-                @if($userType === 'board')
+                @if($userType === 'board' || $userType === 'employee')
                   <th class="px-2 py-2 text-left"></th>
                   <th class="px-2 py-2 text-left"></th>
                 @endif
@@ -82,7 +87,7 @@
                   <td class="px-2 py-2 text-left">{{ $product->category->name ?? '—' }}</td>
 
                   {{-- Price --}}
-                  @if ($userType === 'board')
+                  @if ($userType === 'board' )
                     <td class="px-2 py-2 text-left">{{ number_format($product->price, 2) }}€</td>
                   @else
                     <td class="px-2 py-2 text-left {{ $hasDiscount ? 'text-green-700 font-semibold' : '' }}">
@@ -90,9 +95,8 @@
                     </td>
                   @endif
 
-                  {{-- Board-only fields --}}
-                  @if($userType === 'board')
-                    {{-- Stock --}}
+                 
+                  @if($userType === 'board' || $userType === 'employee')
                     <td class="px-2 py-2 text-left hidden sm:table-cell">
                       <div class="flex items-center gap-1">
                         {{ $product->stock }}
@@ -108,32 +112,31 @@
                       </div>
                     </td>
 
-                    {{-- Description --}}
+              
                     <td class="px-2 py-2 text-left hidden sm:table-cell">
                       {{ $product->description_translated }}
                     </td>
 
-                    {{-- Discount --}}
                     <td class="px-2 py-2 text-left hidden sm:table-cell">
-                      {{ $product->discount ? $product->discount . '%' : '—' }}
+                      {{ $product->discount ? $product->discount . '€' : '—' }}
                     </td>
                   @else
-                    {{-- Discount (normal users) --}}
+                 
                     <td class="px-2 py-2 text-left {{ $hasDiscount ? 'text-green-700 font-semibold' : '' }}">
                       {{ $hasDiscount ? $product->discount . '€' : '—' }}
                     </td>
 
-                    {{-- Description --}}
+              
                     <td class="px-2 py-2 text-left hidden sm:table-cell">
                       {{ $product->description_translated }}
                     </td>
                   @endif
 
-                  {{-- Placeholder --}}
+           
                   <td class="px-2 py-2 text-left"></td>
 
                   {{-- Actions for board --}}
-                  @if($userType === 'board')
+                  @if($userType === 'board' || $userType === 'employee')
                     <td class="px-2 py-2 text-center">
                       <a href="{{ route('products.edit', ['product' => $product]) }}" title="Edit">
                         <flux:icon.pencil-square class="size-5 hover:text-blue-600" />

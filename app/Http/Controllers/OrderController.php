@@ -132,8 +132,9 @@ class OrderController extends Controller
         ]);
     }
 
-   public function update(OrderFormRequest $request, Order $order)
+    public function update(OrderFormRequest $request, Order $order)
     {
+        //dd('Entrou no update');
         $order->load(['items.product', 'user']);
 
         $data = $request->validated();
@@ -143,11 +144,13 @@ class OrderController extends Controller
         $currentStatus = $order->status;
         $newStatus = $data['status'] ?? $currentStatus;
 
+        //dd(compact('user', 'data', 'order'));
         // Validação para cancelar encomenda
-        if ($newStatus === 'cancelled') {
-            if ($user->role !== 'board') {
+        if ($newStatus === 'canceled') {
+            if ($user->type !== 'board') {
                 return back()->withErrors(['status' => 'Apenas membros do tipo board podem cancelar encomendas.']);
             }
+
 
             if ($currentStatus !== 'pending') {
                 return back()->withErrors(['status' => 'Só é possível cancelar encomendas com status "pending".']);
@@ -159,13 +162,14 @@ class OrderController extends Controller
 
             $order->cancel_reason = $data['cancel_reason'];
 
-        
-            $card = Card::where('user_id', $order->user_id)->first();
+            $card = $order->user->card;
+            //dd($order->user, $order->user->card);
+
             if ($card) {
                 $card->balance += $order->total;
                 $card->save();
             } else {
-                \Log::warning('Cartão não encontrado para user_id: ' . $order->user_id);
+                \Log::warning('Cartão não encontrado para user_id: ' . $order->user->id);
             }
         } else {
             $order->cancel_reason = null;
@@ -228,8 +232,8 @@ class OrderController extends Controller
             $order->save();
         }
 
-    return redirect()->route('orders.index')->with('success', 'Order updated successfully.');
-}
+        return redirect()->route('orders.index')->with('success', 'Order updated successfully.');
+    }
 
 
 

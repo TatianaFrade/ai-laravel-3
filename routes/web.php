@@ -10,6 +10,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\SupplyOrderController;
+use App\Http\Controllers\StockAdjustmentController;
 
 use App\Http\Controllers\MembershipFeeController;
 
@@ -57,17 +59,24 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('products', ProductController::class);
     Route::resource('shippingcosts', ShippingCostController::class);
     Route::resource('orders', OrderController::class);
+    Route::resource('supplyorders', SupplyOrderController::class);
+
 
 
     Route::patch('/users/{user}/toggle-blocked', [UserController::class, 'toggleBlocked'])->name('users.toggleBlocked');
-    Route::delete('/users/{user}/force', [UserController::class, 'forceDestroy'])->name('users.forceDestroy');
+   
     Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
+    Route::patch('/products/{product}/stock', [ProductController::class, 'updateStock'])
+     ->name('products.updateStock');
 
+
+    Route::delete('/users/{user}/force', [UserController::class, 'forceDestroy'])->name('users.forceDestroy');
     Route::delete('/category/{category}/force', [UserController::class, 'forceDestroy'])->name('categories.forceDestroy');
     Route::delete('/product/{product}/force', [UserController::class, 'forceDestroy'])->name('products.forceDestroy');
 
 
     Route::get('/membershipfees', [MembershipFeeController::class, 'index'])->name('membershipfees.index');
+    Route::get('/stockadjustments', [StockAdjustmentController::class, 'index'])->name('stockadjustments.index');
 });
 
 

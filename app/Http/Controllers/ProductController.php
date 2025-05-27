@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\ProductFormRequest;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 use App\Models\Category;
+use App\Models\SupplyOrder;
 
 
 
@@ -53,10 +54,6 @@ class ProductController extends Controller
 
 
 
-    public function showCase(): View
-    {
-        return view('products.showcase');
-    }
 
     public function show(Product $product): View
     {
@@ -107,59 +104,109 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
-
     public function edit(Product $product): View
     {
-
         $categories = Category::orderBy('name')->get();
 
         $tr = new GoogleTranslate('en'); 
         $product->description_translated = $tr->translate($product->description);
 
+        // Obter o tipo do utilizador autenticado
+        $userType = auth()->check() ? auth()->user()->type : 'guest'; // ou outro valor padrão
+
         return view('products.edit', [
             'product' => $product,
             'categories' => $categories,
-            'mode' => 'edit'
+            'mode' => 'edit',
+            'userType' => $userType, // passa o userType para a view
         ]);
-
     }
-
-
-
 
     public function update(ProductFormRequest $request, Product $product): RedirectResponse
     {
+        $userType = auth()->user()->type;
         $data = $request->validated();
 
-        if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
-            $data['discount'] = null; // desativa desconto se estoque insuficiente
-        }
+        // Guardar o stock antigo para comparar depois
+        $oldStock = $product->stock;
 
-        // Se o campo discount estiver vazio ou não enviado, definir como null
-        if (!$request->filled('discount')) {
-            $data['discount'] = null;
-        }
+        if ($userType === "board") {
+            // Board/Administrator pode atualizar tudo
 
-        if ($request->hasFile('photo')) {
-            $file = $request->file('photo');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('storage/products'), $filename);
-
-            // Apaga foto antiga se existir
-            if ($product->photo && file_exists(public_path('storage/products/' . $product->photo))) {
-                unlink(public_path('storage/products/' . $product->photo));
+            if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
+                $data['discount'] = null; // desativa desconto se estoque insuficiente
             }
 
-            $data['photo'] = $filename;
+            if (!$request->filled('discount')) {
+                $data['discount'] = null;
+            }
+
+            if ($request->hasFile('photo')) {
+                $file = $request->file('photo');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('storage/products'), $filename);
+
+                if ($product->photo && file_exists(public_path('storage/products/' . $product->photo))) {
+                    unlink(public_path('storage/products/' . $product->photo));
+                }
+
+                $data['photo'] = $filename;
+            } else {
+                $data['photo'] = $product->photo;
+            }
+
+            $product->update($data);
+
+        } elseif ($userType === 'employee') {
+            // Employee só pode alterar o stock
+            $validatedStock = $request->validate([
+                'stock' => 'required|integer|min:0',
+            ]);
+
+            $product->stock = $validatedStock['stock'];
+            $product->save();
+
         } else {
-            // Mantém a foto antiga
-            $data['photo'] = $product->photo;
+            abort(403, 'Acesso não autorizado.');
         }
 
-        $product->update($data);
+        // Verificar se houve alteração no stock e registrar no stock_adjustments
+        $newStock = $product->stock;
+        $stockChanged = $newStock - $oldStock;
 
-        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+        if ($stockChanged !== 0) {
+            \App\Models\StockAdjustment::create([
+                'product_id' => $product->id,
+                'registered_by_user_id' => auth()->id(),
+                'quantity_changed' => $stockChanged,
+            ]);
+        }
+
+        // Criar supply order se necessário, sempre após atualizar o stock
+        if ($product->stock <= $product->stock_lower_limit) {
+            $existingOrder = \App\Models\SupplyOrder::where('product_id', $product->id)
+                ->where('status', 'requested')
+                ->exists();
+
+            if (!$existingOrder) {
+                $quantityToOrder = $product->stock_upper_limit - $product->stock;
+
+                if ($quantityToOrder > 0) {
+                    \App\Models\SupplyOrder::create([
+                        'product_id' => $product->id,
+                        'quantity' => $quantityToOrder,
+                        'status' => 'requested',
+                        'registered_by_user_id' => auth()->id() ?? 1,
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('products.index')->with('success', 'Product updated successfully and supply order created if necessary.');
     }
+
+
+
 
     public function destroy(Product $product): RedirectResponse
     {

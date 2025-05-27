@@ -50,4 +50,16 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function supplyorders()
+    {
+        return $this->hasMany(SupplyOrder::class, 'product_id', 'id');
+    }
+
+    public function stockAdjustments()
+    {
+        return $this->hasMany(StockAdjustment::class);
+    }
+
+
 }

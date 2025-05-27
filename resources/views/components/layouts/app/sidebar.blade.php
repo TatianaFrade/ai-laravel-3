@@ -70,6 +70,10 @@
                 <flux:navlist.item icon="academic-cap" :href="route('orders.index')"
                     :current="request()->routeIs('orders.index')" wire:navigate>Orders</flux:navlist.item>
 
+                    
+                <flux:navlist.item icon="academic-cap" :href="route('supplyorders.index')"
+                    :current="request()->routeIs('supplyorders.index')" wire:navigate>Supply orders</flux:navlist.item>
+
             </flux:navlist.group>
         </flux:navlist>
 

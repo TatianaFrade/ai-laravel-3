@@ -30,7 +30,7 @@
             </div>
 
             @auth
-                @if(Auth::user()->role === 'board')
+                @if(Auth::user()->type === 'board')
                     <!-- Dropdown ordenação por stock (apenas para board) -->
                     <div class="w-48 flex flex-col space-y-2">
                         <label for="order_stock" class="block text-sm font-medium text-gray-300">Order by stock</label>
