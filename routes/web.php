@@ -32,6 +32,8 @@ Route::post('cart/{product}', [CartController::class, 'addToCart'])->name('cart.
 Route::delete('cart/{product}', [CartController::class, 'removeFromCart'])->name('cart.remove');
 Route::post('cart', [CartController::class, 'confirm'])->name('cart.confirm');
 Route::delete('cart', [CartController::class, 'destroy'])->name('cart.destroy');
+Route::post('cart/{product}/increase', [CartController::class, 'increaseQuantity'])->name('cart.increase');
+Route::post('cart/{product}/decrease', [CartController::class, 'decreaseQuantity'])->name('cart.decrease');
 
 /* ----- VERIFIED USERS ONLY ----- */
 Route::middleware(['auth', 'verified'])->group(function () {

@@ -8,10 +8,13 @@
                 <th class="px-2 py-2 text-left">Photo</th>
                 <th class="px-2 py-2 text-left">Name</th>
                 <th class="px-2 py-2 text-left  hidden md:table-cell">Category</th>
-                <th class="px-2 py-2 text-left hidden sm:table-cell">Price</th>
+                <th class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">Price</th>
                 <th class="px-2 py-2 text-left hidden sm:table-cell">Discount</th>
-                <th class="px-2 py-2 text-left hidden sm:table-cell">Stock</th>
-                <th class="px-2 py-2 text-left hidden sm:table-cell">Description</th>
+                <td class="px-2 py-2 text-left hidden sm:table-cell">{{ $isCart ? 'Quantity' : 'Stock' }}</td>
+                {{-- Description --}}
+                @if (!$isCart)
+                    <th class="px-2 py-2 text-left hidden sm:table-cell">Description</th>
+                @endif
                 @if($showView)
                     <th></th>
                 @endif
@@ -19,6 +22,10 @@
                     <th></th>
                 @endif
                 @if($showDelete)
+                    <th></th>
+                @endif
+                @if ($isCart)
+                    <th></th>
                     <th></th>
                 @endif
                 @if($showAddToCart)
@@ -67,9 +74,10 @@
 
                     {{-- Price --}}
                     @if ($userType === 'board')
-                        <td class="px-2 py-2 text-left">{{ number_format($product->price, 2) }}€</td>
+                        <td class="px-2 py-2 text-left whitespace-nowrap">{{ number_format($product->price, 2) }}€</td>
                     @else
-                        <td class="px-2 py-2 text-left {{ $hasDiscount ? 'text-green-700 font-semibold' : '' }}">
+                        <td
+                            class="px-2 py-2 text-left whitespace-nowrap {{ $hasDiscount ? 'text-green-700 font-semibold' : '' }}">
                             {{ number_format($priceAfterDiscount, 2) }} €
                         </td>
                     @endif
@@ -86,18 +94,25 @@
                     @endif
 
                     {{-- Stock --}}
-                    @if ($userType === 'board')
-                        <td class="px-2 py-2 text-left hidden sm:table-cell">{{ $product->stock }}</td>
+                    @if ($isCart)
+                        <td class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">{{ $product->quantity }}</td>
                     @else
+                        @if ($userType === 'board')
+                            <td class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">{{ $product->stock }}</td>
+                        @else
+                            <td class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">
+                                {{ $product->stock > 0 ? 'In stock' : 'Out of stock' }}
+                            </td>
+                        @endif
+                    @endif
+
+                    {{-- Description --}}
+                    @if (!$isCart)
                         <td class="px-2 py-2 text-left hidden sm:table-cell">
-                            {{ $product->stock > 0 ? 'In stock' : 'Out of stock' }}
+                            {{ $product->description_translated }}
                         </td>
                     @endif
 
-
-                    <td class="px-2 py-2 text-left hidden sm:table-cell">
-                        {{ $product->description_translated }}
-                    </td>
 
                     @if($showView)
                         <td class="ps-2 px-0.5">
@@ -127,6 +142,26 @@
                         </td>
                     @endif
 
+                    @if($isCart)
+                        <td class="pl-4">
+                            <form method="POST" action="{{ route('cart.increase', ['product' => $product]) }}"
+                                class="flex items-center">
+                                @csrf
+                                <button type="submit">
+                                    <flux:icon.plus-circle class="size-5 hover:text-green-600" />
+                                </button>
+                            </form>
+                        </td>
+                        <td class="pl-4">
+                            <form method="POST" action="{{ route('cart.decrease', ['product' => $product]) }}"
+                                class="flex items-center">
+                                @csrf
+                                <button type="submit">
+                                    <flux:icon.minus-circle class="size-5 hover:text-green-600" />
+                                </button>
+                            </form>
+                        </td>
+                    @endif
 
                     @if($showAddToCart)
                         <td class="pl-4">
@@ -142,12 +177,12 @@
                     @if($showRemoveFromCart)
                         <td class="pl-4">
                             <form method="POST" action="{{ route('cart.remove', ['product' => $product]) }}"
-                                class="flex items-center"></form>
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit">
-                                <flux:icon.minus-circle class="size-5 hover:text-red-600" />
-                            </button>
+                                class="flex items-center">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit">
+                                    <flux:icon.trash class="size-5 hover:text-red-600" />
+                                </button>
                             </form>
                         </td>
                     @endif

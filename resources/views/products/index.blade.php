@@ -24,6 +24,7 @@
                     :showDelete="$userType === 'board'"
                     :showAddToCart="$userType !== 'board'"
                     :showRemoveFromCart="false"
+                    :isCart="false"
                     />
 
                 </div>
