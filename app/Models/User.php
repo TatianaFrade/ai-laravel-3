@@ -12,14 +12,11 @@ use Illuminate\Support\Str;
 
 class User extends Authenticatable implements MustVerifyEmail 
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    use HasFactory;
+    use Notifiable;
+    use SoftDeletes;
+
     protected $fillable = [
         'name',
         'email',
@@ -34,21 +31,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'deleted_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+  
     protected function casts(): array
     {
         return [
@@ -57,9 +45,7 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    /**
-     * Get the user's initials
-     */
+
     public function initials(): string
     {
         return Str::of($this->name)
@@ -67,6 +53,35 @@ class User extends Authenticatable implements MustVerifyEmail
             ->map(fn (string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
+
+    public function firstLastName()
+    {
+        // Exemplo: retorna "Primeiro Último"
+        $names = explode(' ', $this->name);
+        $first = $names[0] ?? '';
+        $last = end($names);
+        return trim("$first $last");
+    }
+
+    public function firstLastInitial()
+    {
+       
+        $names = explode(' ', $this->name);
+        $firstInitial = strtoupper(substr($names[0] ?? '', 0, 1));
+        $lastInitial = strtoupper(substr(end($names), 0, 1));
+        return $firstInitial . $lastInitial;
+    }
+
+    public function getPhotoFullUrlAttribute()
+    {
+        if ($this->photo) {
+            return asset('storage/users/' . $this->photo);
+        }
+        return asset('images/default-user.png');
+    }
+
+
+
 
      public function isEmployee(): bool
     {
@@ -89,7 +104,6 @@ class User extends Authenticatable implements MustVerifyEmail
   public function card()
     {
         return $this->hasOne(Card::class, 'id', 'id');
-        // card.id (chave primária do cartão) = user.id (chave primária do user)
     }
 
 

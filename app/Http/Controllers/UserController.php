@@ -10,17 +10,22 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\UserFormRequest;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
+
 
 class UserController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct() 
+    { 
+        $this->authorizeResource(User::class, 'user');
+    }
+
    public function index(Request $request): View
     {
-        // Verifica se o utilizador autenticado tem permissão
         $this->authorize('viewAny', User::class);
 
-        // Para incluir deletados:
+
         $usersQuery = User::withTrashed();
 
         $filterByName = $request->name;
@@ -70,10 +75,6 @@ class UserController extends Controller
     ));
     }
 
-    public function showCase(): View
-    {
-        return view('users.showcase');
-    }
 
     public function show(User $user): View
     {
@@ -83,6 +84,7 @@ class UserController extends Controller
 
     public function create(): View
     {
+        $this->authorize('create', User::class);
         $newUser = new User();
         return view('users.create')->with('user', $newUser);
     }
@@ -91,10 +93,10 @@ class UserController extends Controller
  
     public function store(UserFormRequest $request)
     {
+        $this->authorize('create', User::class);
+
         $data = $request->validated();
-
         $data['password'] = Hash::make($data['password']);
-
         $data['deleted_at'] = null;
 
     
@@ -105,74 +107,43 @@ class UserController extends Controller
 
 
 
-   public function edit(User $user): View
+    public function edit(User $user): View
     {
         $this->authorize('update', $user);
         return view('users.edit')->with('user', $user);
     }
 
 
-  public function update(UserFormRequest $request, User $user): RedirectResponse
-{
-    $authUser = auth()->user();
+    public function update(UserFormRequest $request, User $user): RedirectResponse
+    {
+        $this->authorize('update', $user);
 
-    // Impede o board ou member de editar a si próprio
-    if (($authUser->type === 'board' || $authUser->type === 'member') && $authUser->id === $user->id) {
-        return redirect()->back()->withErrors(['error' => 'You cannot edit your own profile.']);
-    }
+        $data = $request->validated();
 
-    $data = $request->validated();
-
-    // Se for board ou member, só pode alterar o 'type'
-    if (in_array($authUser->type, ['board', 'member'])) {
-        $data = array_intersect_key($data, ['type' => true]);
-
-        if (!isset($data['type'])) {
-            return redirect()->back()->withErrors(['error' => 'No type provided for update.']);
-        }
-
-        // Regras adicionais apenas para board
-        if ($authUser->type === 'board') {
-            if ($user->type === 'member' && $data['type'] !== 'board') {
-                return redirect()->back()->withErrors(['error' => 'Board members can only promote members to board.']);
-            }
-
-            if ($user->type === 'board' && !in_array($data['type'], ['employee', 'member'])) {
-                return redirect()->back()->withErrors(['error' => 'Board members can only demote board users to member or employee.']);
-            }
-        } else {
-            // Member não pode fazer alterações a type de ninguém
-            return redirect()->back()->withErrors(['error' => 'Members are not allowed to update other users.']);
-        }
-    } else {
-        // Se não for board nem member (por exemplo, admin), pode alterar tudo
-        // Hash da password, se fornecida
         if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
             unset($data['password']);
         }
+
+        $user->update($data);
+
+        $url = route('users.show', ['user' => $user]);
+        $htmlMessage = "User <a href='$url'><strong>{$user->name}</strong></a> has been updated successfully!";
+
+        return redirect()->route('users.index')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', $htmlMessage);
+        
+
+   
     }
-
-    $user->update($data);
-
-    $url = route('users.show', ['user' => $user]);
-    $htmlMessage = "User <a href='$url'><strong>{$user->name}</strong></a> has been updated successfully!";
-
-    return redirect()->route('users.index')
-        ->with('alert-type', 'success')
-        ->with('alert-msg', $htmlMessage);
-}
 
 
 
     public function destroy(User $user): RedirectResponse
     {
-        if (auth()->user()->id === $user->id) {
-            return back()->withErrors(['error' => 'You cannot delete yourself.']);
-        }
-
-        $this->authorize('delete', $user);
+       $this->authorize('delete', $user);
 
         try {
             $user->delete();
@@ -193,11 +164,12 @@ class UserController extends Controller
                 ->with('alert-type', 'danger')
                 ->with('alert-msg', $alertMsg);
         }
-
         
     }
     public function toggleBlocked(User $user)
     {
+        $this->authorize('update', $user);
+
         if ($user->type === 'member') {
             $user->blocked = !$user->blocked;
             $user->save();
@@ -206,23 +178,21 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Blocked status updated.');
     }
 
-    public function forceDestroy($id)
+    public function forceDestroy(User $user)
     {
-        $user = User::withTrashed()->findOrFail($id);
-        $user->forceDelete();
+       $this->authorize('forceDelete', $user);
 
-        $url = route('users.index', ['user' => $user]);
+         $user->forceDelete();
 
-        $htmlMessage = "user <a href='$url'><strong>{$user->name}</strong></a> deleted successfully!";
-
-        return redirect()->back()
-                ->with('alert-type', 'danger')
-                ->with('alert-msg', $htmlMessage);
+        return redirect()->route('users.index')
+            ->with('success', 'User deleted permanently.');
     }
 
 
     public function restore(User $user)
     {
+        $this->authorize('restore', $user);
+
         $user = User::withTrashed()->findOrFail($user->id);
         $user->restore();
 

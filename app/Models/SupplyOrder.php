@@ -11,14 +11,7 @@ class SupplyOrder extends Model
 {
     use HasFactory;
 
-    // Indica explicitamente a tabela, já que o nome não segue a convenção
-    protected $table = 'supply_orders';
 
-    /**
-     * Os atributos que podem ser preenchidos em massa.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'product_id',
         'registered_by_user_id',
@@ -26,7 +19,6 @@ class SupplyOrder extends Model
         'quantity',
 
     ];
-
 
 
     public function product()
@@ -40,6 +32,5 @@ class SupplyOrder extends Model
         return $this->belongsTo(User::class, 'registered_by_user_id', 'id');
         
     }
-
 
 }

@@ -3,27 +3,16 @@
                         subheading="Manage the orders">
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
     <div class="flex items-center gap-4 mb-4">
-        @if($userType === 'board' || $userType === 'employee')
+        
             <flux:button variant="primary" href="{{ route('supplyorders.create') }}">
             Create a new supply order
             </flux:button>
-        @endif
+       
     </div>
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
 
-        {{-- MENSAGENS DE SUCESSO E ERRO --}}
-        @if (session('error'))
-            <div class="mb-4 rounded-lg bg-red-100 px-4 py-3 text-red-800 dark:bg-red-200 dark:text-red-900">
-                {{ session('error') }}
-            </div>
-        @endif
-
-        @if (session('success'))
-            <div class="mb-4 rounded-lg bg-green-100 px-4 py-3 text-green-800 dark:bg-green-200 dark:text-green-900">
-                {{ session('success') }}
-            </div>
-        @endif
+    
 
         <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
           <table class="table w-full border-collapse">

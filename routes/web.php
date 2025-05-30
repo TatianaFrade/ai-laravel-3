@@ -60,6 +60,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('shippingcosts', ShippingCostController::class);
     Route::resource('orders', OrderController::class);
     Route::resource('supplyorders', SupplyOrderController::class);
+  Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
+
+
 
 
 
@@ -75,7 +78,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/product/{product}/force', [UserController::class, 'forceDestroy'])->name('products.forceDestroy');
 
 
-    Route::get('/membershipfees', [MembershipFeeController::class, 'index'])->name('membershipfees.index');
+    
     Route::get('/stockadjustments', [StockAdjustmentController::class, 'index'])->name('stockadjustments.index');
 });
 

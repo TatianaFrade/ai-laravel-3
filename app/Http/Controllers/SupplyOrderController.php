@@ -3,36 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Models\SupplyOrder;
-use App\Models\Product;
-use App\Models\User;
 use App\Http\Requests\SupplyOrderFormRequest;
-use Illuminate\Support\Facades\Auth;
-
-
+use App\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 
 class SupplyOrderController extends Controller
 {
+
+    use AuthorizesRequests;
     public string $email = '';
-    public function index()
-    {
 
-        $userType = auth()->check() ? auth()->user()->type : 'guest';
-        $allSupplyorders = SupplyOrder::with('product')->paginate(10);
-        return view('supplyorders.index', compact('allSupplyorders', 'userType'));
-
-
-
-
+    public function __construct() 
+    { 
+        $this->authorizeResource(SupplyOrder::class, 'supplyorder');
     }
 
 
-    
+    public function index()
+    {
+         $allSupplyorders = SupplyOrder::with('product')->paginate(10);
+        return view('supplyorders.index')->with('allSupplyorders', $allSupplyorders);
+
+    }
 
     public function create()
     {
-        $userType = auth()->check() ? auth()->user()->type : 'guest';
-        return view('supplyorders.create', compact( 'userType'));
+        $userType = auth()->user()->type ?? null;
+        return view('supplyorders.create')->with('userType', $userType);
     }
 
 
@@ -40,46 +38,37 @@ class SupplyOrderController extends Controller
     {
         $data = $request->validated();
 
-        // Você pode definir o user autenticado como registered_by_user_id, caso não venha no form
         if (!isset($data['registered_by_user_id'])) {
             $data['registered_by_user_id'] = auth()->id();
         }
 
         SupplyOrder::create($data);
 
-        return redirect()->route('supplyorders.index')->with('success', 'SupplyOrder created successfully.');
+        return redirect()->route('supplyorders.index')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', 'Supply Order created successfully.');
     }
 
 
 
 
-   public function destroy($id)
+  public function destroy(SupplyOrder $supplyorder)
     {
-        
-        try {
-            
-            $supplyorder = SupplyOrder::findOrFail($id);
+        $this->authorize('delete', $supplyorder);
 
-            if ($supplyorder->status !== 'requested') {
-                return redirect()->route('supplyorders.index')
-                    ->with('error', 'Only supply orders with status "requested" can be deleted.');
-            }
-
-            $supplyorder->delete(); // apagar normalmente
-
+        if ($supplyorder->status !== 'requested') {
             return redirect()->route('supplyorders.index')
-            ->with('success', 'Supply order deleted successfully.');
-            
-
-        } catch (\Exception $e) {
-             return redirect()->route('supplyorders.index')
-            ->with('error', 'Only supply orders with status "requested" can be deleted.');
+                ->with('alert-type', 'error')
+                ->with('alert-msg', 'Only supply orders with status "requested" can be deleted.');
         }
 
-       
+        $supplyorder->delete();
 
-
+        return redirect()->route('supplyorders.index')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', 'Supply order deleted successfully.');
     }
+
 
 
     public function show(SupplyOrder $supplyorder)
@@ -87,17 +76,30 @@ class SupplyOrderController extends Controller
         return view('supplyorders.show', ['supplyorder' => $supplyorder]);
     }
 
+
+
     public function edit(SupplyOrder $supplyorder)
     {
-        $user = Auth::user(); // pega o utilizador autenticado
+        if ($supplyorder->status !== 'requested') {
+        return redirect()->route('supplyorders.index')
+            ->with('alert-type', 'error')
+            ->with('alert-msg', 'Only supply orders with status "requested" can be edited.');
+        }
+
+        $user = auth()->user();
         return view('supplyorders.edit', [
             'supplyorder' => $supplyorder,
             'user' => $user,
         ]);
     }
 
-   public function update(SupplyOrderFormRequest $request, SupplyOrder $supplyorder)
+    public function update(SupplyOrderFormRequest $request, SupplyOrder $supplyorder)
     {
+        if ($supplyorder->status !== 'requested') {
+            return redirect()->route('supplyorders.index')
+                ->with('error', 'Only supply orders with status "requested" can be updated.');
+        }
+
         $data = $request->validated();
 
         $currentStatus = $supplyorder->status;
@@ -106,22 +108,20 @@ class SupplyOrderController extends Controller
         $statusChangedToCompleted = $currentStatus === 'requested' && $newStatus === 'completed';
 
         if ($statusChangedToCompleted) {
-            $product = Product::find($supplyorder->product_id);
+            $product = SupplyOrder::find($supplyorder->product_id);
 
             if ($product) {
                 $product->stock += $supplyorder->quantity;
                 $product->save();
-            } else {
-                \Log::warning('Produto não encontrado para supply order ID: ' . $supplyorder->id);
             }
         }
 
         $supplyorder->update($data);
 
-        return redirect()->route('supplyorders.index')->with('success', 'Supply order updated successfully.');
+        return redirect()->route('supplyorders.index')
+        ->with('alert-type', 'success')
+        ->with('alert-msg', 'Supply order updated successfully.');
     }
-
-
 
 
 }

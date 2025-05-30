@@ -10,17 +10,23 @@
               <tr class="border-b-2 border-b-gray-400 dark:border-b-gray-500 bg-gray-100 dark:bg-gray-800">
                 <th class="px-3 py-2 text-left">ID</th>
                 <th class="px-3 py-2 text-left">Membership Fee</th>
-                <th class="px-3 py-2 text-center"></th>
+                <th class="px-3 py-2 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
-              @foreach ($fees as $fee)
+              @foreach ($membershipfees as $membershipfee)
                 <tr>
-                  <td class="px-3 py-2">{{ $fee->id ?? '—' }}</td>
-                  <td class="px-3 py-2">{{ $fee->membership_fee ?? '0' }}</td>
+                  <td class="px-3 py-2">{{ $membershipfee->id ?? '—' }}</td>
+                  <td class="px-3 py-2">{{ $membershipfee->membership_fee ?? '0' }}</td>
+                  <td class="px-2 py-2 text-center">
+                    <div class="flex gap-2 justify-center">
+                      <a href="{{ route('membershipfees.edit', $membershipfee) }}" title="Edit">
+                        <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
+                      </a>
+                    </div>
+                  </td>
                 </tr>
               @endforeach
-
             </tbody>
           </table>
         </div>

@@ -4,14 +4,18 @@
     $isCreate = $mode === 'create';
     $isEdit = $mode === 'edit';
 
+    $userType = $user->type ?? null;
+    $canEdit = in_array($userType, ['employee', 'board']); 
+
+    $forceReadonly = $readonly || ($isEdit && !$canEdit);
+
+    $registeredUserIdReadonly = $isCreate || $isEdit || $forceReadonly;
+
     $dateValue = old('date', $supplyorder->date ?? now()->format('Y-m-d'));
     $registeredUserId = old('registered_by_user_id', auth()->id());
-
-    // Para readonly forçado nos campos que só devem ser visualizados
-    $forceReadonly = $isEdit || $readonly;
 @endphp
 
-{{-- Product ID --}}
+
 <div class="w-full sm:w-96">
     <flux:input 
         name="product_id" 
@@ -25,20 +29,18 @@
     @endif
 </div>
 
-{{-- Registered By User ID --}}
+
 <div class="w-full sm:w-96">
     <flux:input 
         name="registered_by_user_id" 
         label="Member number" 
         value="{{ $registeredUserId }}" 
-        :readonly="$forceReadonly" 
+        :readonly="$registeredUserIdReadonly" 
     />
-    @if ($forceReadonly)
-        <input type="hidden" name="registered_by_user_id" value="{{ $registeredUserId }}">
-    @endif
+    <input type="hidden" name="registered_by_user_id" value="{{ $registeredUserId }}">
 </div>
 
-{{-- Status --}}
+
 @if ($isCreate || $readonly)
     <flux:input 
         name="status" 
@@ -54,7 +56,7 @@
     </flux:select>
 @endif
 
-{{-- Quantity --}}
+
 <div class="w-full sm:w-96">
     <flux:input 
         name="quantity" 

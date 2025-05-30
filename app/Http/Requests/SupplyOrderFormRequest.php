@@ -2,13 +2,24 @@
 
 namespace App\Http\Requests;
 
+use App\Models\SupplyOrder;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SupplyOrderFormRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // sem policies, todos podem submeter
+        $supplyorder = $this->route('supplyorder');
+
+        if ($this->isMethod('post')) {
+            return $this->user()?->can('create', SupplyOrder::class);
+        }
+
+        if ($supplyorder) {
+            return $this->user()?->can('update', $supplyorder);
+        }
+
+        return false;
     }
 
     public function rules(): array
@@ -18,9 +29,6 @@ class SupplyOrderFormRequest extends FormRequest
             'registered_by_user_id' => 'nullable|numeric|min:0',
             'status'                => 'required|in:completed,requested',
             'quantity'              => 'required|numeric|min:0',
-
-      
-      
         ];
     }
 }

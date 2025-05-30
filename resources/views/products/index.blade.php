@@ -1,19 +1,24 @@
 <x-layouts.main-content :title="__('Products')" heading="List of Products">
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
     
-    <div class="flex justify-between items-center mb-4">
-      @if($userType === 'board')
-        <flux:button variant="primary" href="{{ route('products.create') }}">
-          Create a new product
-        </flux:button>
-      @else
-        <div></div> {{-- espaço vazio para manter alinhamento quando o botão da esquerda não aparece --}}
-      @endif
-        <flux:button variant="primary" href="{{ route('stockadjustments.index') }}">
-          Inventory records
-        </flux:button>
-       
-    </div>
+   <div class="flex justify-between items-center mb-4">
+
+    @can('create', App\Models\Product::class)
+      <flux:button variant="primary" href="{{ route('products.create') }}">
+        Create a new product
+      </flux:button>
+    @else
+      <div></div> 
+    @endcan
+
+    @can('viewAny', App\Models\StockAdjustment::class)
+      <flux:button variant="primary" href="{{ route('stockadjustments.index') }}">
+        Inventory records
+      </flux:button>
+    @endcan
+
+  </div>
+
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
 

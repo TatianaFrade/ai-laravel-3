@@ -2,9 +2,12 @@
                         heading="List of Users"
                         subheading="Manage the users offered by the institution">
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl ">
+    @can('create', App\Models\User::class)
     <div class="flex items-center gap-4 mb-4">
       <flux:button variant="primary" href="{{ route('users.create') }}">Create a new employee</flux:button>
     </div>
+  @endcan
+ 
     <div class="flex justify-start ">
       <div class="my-4 p-6 w-full">
         <x-users.filter-card 
@@ -21,8 +24,10 @@
                 <th class="px-2 py-2 text-left">Email</th>
                 <th class="px-2 py-2 text-left">Type</th>
                 <th class="px-2 py-2 text-left">Gender</th>
-                <th class="px-2 py-2 text-left">Blocked</th>
-                
+                  @can('viewBlockedStatus', auth()->user())
+                    <th class="px-2 py-2 text-left">Blocked</th>
+                  @endcan
+
                 <th></th>
                 <th></th>
                 <th></th>
@@ -46,57 +51,68 @@
                 <td class="px-2 py-2 text-left">{{ $user->type }}</td>
                 <td class="px-2 py-2 text-left">{{ $user->gender }}</td>
 
-                <td class="px-2 py-2 text-left">
-                  @if ($user->type === 'member')
-                    <form action="{{ route('users.toggleBlocked', $user->id) }}" method="POST">
-                      @csrf
-                      @method('PATCH')
-                      <button 
-                        type="submit" 
-                        title="{{ $user->blocked ? 'Desbloquear utilizador' : 'Bloquear utilizador' }}"
-                        class="text-sm text-white px-3 py-1 rounded 
-                              {{ $user->blocked ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
-                        {{ $user->blocked ? 'Blocked' : 'Unblocked' }}
-                      </button>
-                    </form>
-                  @else
-                    {{-- Mostrar hífen alinhado no lugar do botão --}}
-                    <div class="text-left text-gray-500">-</div>
-                  @endif
-                </td>
+                @can('update', $user)
+                  <td class="px-2 py-2 text-left">
+                    @if ($user->type === 'member')
+                      <form action="{{ route('users.toggleBlocked', $user->id) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <button 
+                          type="submit" 
+                          title="{{ $user->blocked ? 'Desbloquear utilizador' : 'Bloquear utilizador' }}"
+                          class="text-sm text-white px-3 py-1 rounded 
+                                {{ $user->blocked ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
+                          {{ $user->blocked ? 'Blocked' : 'Unblocked' }}
+                        </button>
+                      </form>
+                    @else
+                      {{-- Mostrar hífen alinhado no lugar do botão --}}
+                      <div class="text-left text-gray-500">-</div>
+                    @endif
+                  </td>
+                @endcan
 
                 <td class="ps-2 px-0.5">
                   <a href="{{ route('users.show', ['user' => $user]) }}" class="hover:text-gray-600" title="View">
                     <flux:icon.eye class="size-5" />
                   </a>
                 </td>
-                <td class="px-0.5">
-                  <a href="{{ route('users.edit', ['user' => $user]) }}" title="Edit">
-                    <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
-                  </a>
-                </td>
-                <td class="px-0.5">
-                  @if (!$user->trashed())
-                    <form method="POST" action="{{ route('users.destroy', parameters: ['user' => $user]) }}" class="flex items-center">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" title="Cancel membership">
-                        <flux:icon.cube class="size-5 hover:text-red-600" />
-                      </button>
-                    </form>
-                  @endif
-                </td>
-                <td class="px-0.5">
-                  @if ($user->type === 'employee')
-                    <form method="POST" action="{{ route('users.forceDestroy', parameters: ['user' => $user]) }}" class="flex items-center">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" title="Delete user">
-                        <flux:icon.trash class="size-5 hover:text-red-600" />
-                      </button>
-                    </form>
-                  @endif
-                </td>
+                
+            @can('update', $user)
+              <td class="px-0.5">
+                <a href="{{ route('users.edit', ['user' => $user]) }}" title="Edit">
+                  <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
+                </a>
+              </td>
+            @endcan
+
+            @can('delete', $user)
+              <td class="px-0.5">
+                @if (!$user->trashed())
+                  <form method="POST" action="{{ route('users.destroy', ['user' => $user]) }}" class="flex items-center">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" title="Cancel membership">
+                      <flux:icon.cube class="size-5 hover:text-red-600" />
+                    </button>
+                  </form>
+                @endif
+              </td>
+            @endcan
+
+            @can('forceDelete', $user)
+              <td class="px-0.5">
+                <form method="POST" action="{{ route('users.forceDestroy', ['user' => $user]) }}" class="flex items-center">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" title="Delete user">
+                    <flux:icon.trash class="size-5 hover:text-red-600" />
+                  </button>
+                </form>
+              </td>
+            @endcan
+
+
               </tr>
               @endforeach
             </tbody>

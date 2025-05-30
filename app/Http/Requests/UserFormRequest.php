@@ -4,22 +4,26 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Models\User;
 
 class UserFormRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true;
+       $user = $this->route('user');
+
+        if ($this->isMethod('post')) {
+            return $this->user()?->can('create', User::class);
+        }
+
+        if ($user) {
+            return $this->user()?->can('update', $user);
+        }
+
+        return false;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+ 
    public function rules(): array
     {
         $rules = [
@@ -42,21 +46,12 @@ class UserFormRequest extends FormRequest
         ];
 
         if ($this->isMethod('post')) {
-            // Criação: password obrigatória
             $rules['password'] = 'required|string|max:255|min:8|confirmed';
         } elseif ($this->isMethod('put') || $this->isMethod('patch')) {
-            // Atualização: password opcional
             $rules['password'] = 'nullable|string|max:255|min:8|confirmed';
         }
 
         return $rules;
     }
 
-
-    public function messages(): array
-    {
-        return [
-           
-        ];
-    }
 }

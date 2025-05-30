@@ -3,12 +3,23 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Product;
 
 class ProductFormRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // sem policies, todos podem submeter
+        $product = $this->route('product');
+
+        if ($this->isMethod('post')) {
+            return $this->user()?->can('create', Product::class);
+        }
+
+        if ($product) {
+            return $this->user()?->can('update', $product);
+        }
+
+        return false;
     }
 
     public function rules(): array
@@ -25,7 +36,6 @@ class ProductFormRequest extends FormRequest
             'discount'           => 'nullable|numeric|min:0',
         ];
 
-        // Aplica regras de validação para 'photo' somente se houver arquivo enviado
         if ($this->hasFile('photo')) {
             $rules['photo'] = ['image', 'mimes:jpeg,png,jpg,gif,svg'];
         }

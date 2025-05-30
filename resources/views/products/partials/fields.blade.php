@@ -85,6 +85,30 @@
     @endif
 </div>
 
+{{-- Stock Lower limit--}}
+<div class="w-full sm:w-96">
+    @if ($readonly || !($canEditAll || $canEditStockOnly))
+        <flux:input name="stock_lower_limit" label="{{ __('Stock Lower Limit') }}" value="{{ old('stock_lower_limit', $product->stock_lower_limit ?? '') }}"
+            readonly type="number" step="1" :placeholder="__('Required')" />
+        <input type="hidden" name="stock" value="{{ old('stock', $product->stock_lower_limit ?? '') }}">
+    @else
+        <flux:input name="stock_lower_limit" label="{{ __('Stock Lower Limit') }}" value="{{ old('stock_lower_limit', $product->stock_lower_limit ?? '') }}"
+            type="number" step="1" :placeholder="__('Required')" />
+    @endif
+</div>
+
+{{-- Stock upper limit--}}
+<div class="w-full sm:w-96">
+    @if ($readonly || !($canEditAll || $canEditStockOnly))
+        <flux:input name="stock_upper_limit" label="{{ __('Stock Upper Limit') }}" value="{{ old('stock_upper_limit', $product->stock_upper_limit ?? '') }}"
+            readonly type="number" step="1" :placeholder="__('Required')" />
+        <input type="hidden" name="stock" value="{{ old('stock', $product->stock ?? '') }}">
+    @else
+        <flux:input name="stock_upper_limit" label="{{ __('Stock Upper Limit') }}" value="{{ old('stock_upper_limit', $product->stock_upper_limit ?? '') }}"
+            type="number" step="1" :placeholder="__('Required')" />
+    @endif
+</div>
+
 {{-- Quantidade mínima para desconto --}}
 <div class="w-full sm:w-96">
     @if ($forceReadonly || !$canEditAll)
@@ -111,13 +135,7 @@
     @endif
 </div>
 
-{{-- Foto do produto --}}
-{{-- <div class="w-full sm:w-96">
-    @if (!$readonly || !($userType !== 'board'))
-        <flux:input name="photo" label="{{ __('Product Photo') }}" type="file" accept="image/*" />
-    @endif
-</div>
- --}}
+
 
 
 <div class="w-full sm:w-96">

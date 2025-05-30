@@ -8,7 +8,6 @@ use App\Models\User;
 class Order extends Model
 {
 
-   
     protected $fillable = [
         'member_id',
         'status',
@@ -19,7 +18,6 @@ class Order extends Model
         'nif',        
         'delivery_address',
     ];
-
 
 
 
