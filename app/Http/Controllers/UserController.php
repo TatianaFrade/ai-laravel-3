@@ -90,22 +90,6 @@ class UserController extends Controller
     }
 
 
- 
-    public function store(UserFormRequest $request)
-    {
-        $this->authorize('create', User::class);
-
-        $data = $request->validated();
-        $data['password'] = Hash::make($data['password']);
-        $data['deleted_at'] = null;
-
-    
-        User::create($data);
-
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
-    }
-
-
 
     public function edit(User $user): View
     {
@@ -114,7 +98,7 @@ class UserController extends Controller
     }
 
 
-    public function update(UserFormRequest $request, User $user): RedirectResponse
+    public function update(UserFormRequest $request, User $user)
     {
         $this->authorize('update', $user);
 
@@ -126,18 +110,31 @@ class UserController extends Controller
             unset($data['password']);
         }
 
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $filename = time() . '_' . $file->getClientOriginalName();
+
+            // Mover o novo ficheiro
+            $file->move(public_path('storage/users'), $filename);
+
+            // Apagar a foto antiga, se existir
+            $oldPhotoPath = public_path('storage/users/' . $user->photo);
+            if ($user->photo && file_exists($oldPhotoPath)) {
+                unlink($oldPhotoPath);
+            }
+
+            // Guardar só o nome do ficheiro novo
+            $data['photo'] = $filename;
+        } else {
+            // Manter a foto antiga
+            $data['photo'] = $user->photo;
+        }
+
         $user->update($data);
 
-        $url = route('users.show', ['user' => $user]);
-        $htmlMessage = "User <a href='$url'><strong>{$user->name}</strong></a> has been updated successfully!";
-
-        return redirect()->route('users.index')
-            ->with('alert-type', 'success')
-            ->with('alert-msg', $htmlMessage);
-        
-
-   
+        return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
+
 
 
 
