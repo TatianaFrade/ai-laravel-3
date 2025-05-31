@@ -69,8 +69,9 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/users/{user}/toggle-blocked', [UserController::class, 'toggleBlocked'])->name('users.toggleBlocked');
    
     Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
-    Route::patch('/products/{product}/stock', [ProductController::class, 'updateStock'])
-     ->name('products.updateStock');
+    Route::patch('products/{product}/stock', [ProductController::class, 'updateStock'])
+    ->name('products.updateStock');
+
 
 
     Route::delete('/users/{user}/force', [UserController::class, 'forceDestroy'])->name('users.forceDestroy');

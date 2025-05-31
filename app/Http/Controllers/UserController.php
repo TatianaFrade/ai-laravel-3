@@ -10,11 +10,13 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\UserFormRequest;
 use Illuminate\Support\Facades\Hash;
+use App\Traits\PhotoFileStorage;
 
 
 class UserController extends Controller
 {
     use AuthorizesRequests;
+    use PhotoFileStorage;
 
     public function __construct() 
     { 
@@ -89,6 +91,32 @@ class UserController extends Controller
         return view('users.create')->with('user', $newUser);
     }
 
+    public function store(UserFormRequest $request): RedirectResponse
+    {
+        $this->authorize('create', User::class);
+
+        $data = $request->validated();
+
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        }
+
+        $user = new User($data);
+        $user->save();
+
+        if ($request->hasFile('photo')) {
+            $filename = $this->storePhoto($request->file('photo'), $user, 'photo', 'users');
+
+  
+            $user->photo = $filename;
+            $user->save();
+        }
+
+        return redirect()->route('users.index')->with('success', 'User created successfully.');
+    }
+
+
+
 
 
     public function edit(User $user): View
@@ -98,7 +126,7 @@ class UserController extends Controller
     }
 
 
-    public function update(UserFormRequest $request, User $user)
+    public function update(UserFormRequest $request, User $user): RedirectResponse
     {
         $this->authorize('update', $user);
 
@@ -111,29 +139,21 @@ class UserController extends Controller
         }
 
         if ($request->hasFile('photo')) {
-            $file = $request->file('photo');
-            $filename = time() . '_' . $file->getClientOriginalName();
 
-            // Mover o novo ficheiro
-            $file->move(public_path('storage/users'), $filename);
+            $this->deletePhoto($user, 'photo', 'users');
 
-            // Apagar a foto antiga, se existir
-            $oldPhotoPath = public_path('storage/users/' . $user->photo);
-            if ($user->photo && file_exists($oldPhotoPath)) {
-                unlink($oldPhotoPath);
-            }
+    
+            $filename = $this->storePhoto($request->file('photo'), $user, 'photo', 'users');
 
-            // Guardar só o nome do ficheiro novo
             $data['photo'] = $filename;
-        } else {
-            // Manter a foto antiga
-            $data['photo'] = $user->photo;
         }
 
         $user->update($data);
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
+
+
 
 
 
@@ -175,11 +195,13 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Blocked status updated.');
     }
 
-    public function forceDestroy(User $user)
+    public function forceDestroy(User $user): RedirectResponse
     {
-       $this->authorize('forceDelete', $user);
+        $this->authorize('forceDelete', $user);
 
-         $user->forceDelete();
+        $this->deletePhoto($user, 'photo', 'users');
+
+        $user->forceDelete();
 
         return redirect()->route('users.index')
             ->with('success', 'User deleted permanently.');

@@ -147,6 +147,8 @@
                         <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
                       </a>
                     </td>
+                  @endif
+                  @if($userType === 'board')
                     <td class="px-2 py-2 text-center">
                       <form method="POST" action="{{ route('products.destroy', ['product' => $product]) }}" class="inline-block">
                         @csrf
@@ -156,9 +158,10 @@
                         </button>
                       </form>
                     </td>
-                    @else($userType !== 'board')
-
                   @endif
+                    
+
+                
                 </tr>
               @endforeach
 

@@ -11,12 +11,12 @@ class ProductFormRequest extends FormRequest
     {
         $product = $this->route('product');
 
-        if ($this->isMethod('post')) {
-            return $this->user()?->can('create', Product::class);
+        if ($product) {
+            return $this->user()?->can('update', $product) || $this->user()?->can('updateStock', $product);
         }
 
-        if ($product) {
-            return $this->user()?->can('update', $product);
+        if ($this->isMethod('post')) {
+            return $this->user()?->can('create', Product::class);
         }
 
         return false;
@@ -24,7 +24,15 @@ class ProductFormRequest extends FormRequest
 
     public function rules(): array
     {
-        $rules = [
+        // Só precisa validar stock para employee
+        if ($this->user()?->type === 'employee') {
+            return [
+                'stock' => 'required|integer|min:0',
+            ];
+        }
+
+        // Board pode validar tudo
+        return [
             'category_id'        => 'required|integer|exists:categories,id',
             'name'               => 'required|string|max:255',
             'price'              => 'required|numeric|min:0',
@@ -34,12 +42,8 @@ class ProductFormRequest extends FormRequest
             'stock_upper_limit'  => 'nullable|integer|min:0',
             'discount_min_qty'   => 'nullable|integer|min:0',
             'discount'           => 'nullable|numeric|min:0',
+            'photo'              => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
         ];
-
-        if ($this->hasFile('photo')) {
-            $rules['photo'] = ['image', 'mimes:jpeg,png,jpg,gif,svg'];
-        }
-
-        return $rules;
     }
+
 }

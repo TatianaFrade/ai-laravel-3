@@ -12,12 +12,14 @@ use App\Models\Category;
 use App\Models\SupplyOrder;
 use App\Models\StockAdjustment;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Traits\PhotoFileStorage;
 
 
 
 class ProductController extends Controller
 {
-     use AuthorizesRequests;
+    use AuthorizesRequests;
+    use PhotoFileStorage;
 
     public function __construct() 
     { 
@@ -80,9 +82,8 @@ class ProductController extends Controller
     public function create(): View
     {
         $categories = Category::orderBy('name')->get();
-        return view('products.create', compact('categories'));
+        return view('products.create')->with('categories', $categories);
     }
-
 
 
     public function store(ProductFormRequest $request): RedirectResponse
@@ -90,24 +91,23 @@ class ProductController extends Controller
         $data = $request->validated();
 
         if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
-            $data['discount'] = null; 
+            $data['discount'] = null;
         }
 
         if (!$request->filled('discount')) {
             $data['discount'] = null;
         }
 
-        if ($request->hasFile('photo')) {
-            $file = $request->file('photo');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('storage/products'), $filename);
-            $data['photo'] = $filename;
-        }
+        $product = new Product($data);
+        $product->save();  // Salva antes de salvar a foto para ter ID
 
-        Product::create($data);
+        if ($request->hasFile('photo')) {
+            $this->storePhoto($request->file('photo'), $product, 'photo', 'products');
+        }
 
         return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
+
 
 
     public function edit(Product $product): View
@@ -130,13 +130,13 @@ class ProductController extends Controller
 
     public function update(ProductFormRequest $request, Product $product): RedirectResponse
     {
-        $userType = auth()->user()->type;
-        $data = $request->validated();
+        $user = auth()->user();
+        $userType = $user->type;
 
+        $data = $request->validated();
         $oldStock = $product->stock;
 
-        if ($userType === "board") {
-
+        if ($userType === 'board') {
             if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
                 $data['discount'] = null;
             }
@@ -145,30 +145,19 @@ class ProductController extends Controller
                 $data['discount'] = null;
             }
 
-            if ($request->hasFile('photo')) {
-                $file = $request->file('photo');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('storage/products'), $filename);
+          if ($request->hasFile('photo')) {
+                $this->deletePhoto($product, 'photo', 'products');
+                $this->storePhoto($request->file('photo'), $product, 'photo', 'products');
 
-                if ($product->photo && file_exists(public_path('storage/products/' . $product->photo))) {
-                    unlink(public_path('storage/products/' . $product->photo));
-                }
-
-                $data['photo'] = $filename;
-            } else {
-                $data['photo'] = $product->photo;
+                unset($data['photo']);
             }
 
             $product->update($data);
 
+
         } elseif ($userType === 'employee') {
-            $validatedStock = $request->validate([
-                'stock' => 'required|integer|min:0',
-            ]);
-
-            $product->stock = $validatedStock['stock'];
+            $product->stock = $data['stock'];
             $product->save();
-
         } else {
             abort(403, 'Acesso não autorizado.');
         }
@@ -179,11 +168,10 @@ class ProductController extends Controller
         if ($stockChanged !== 0) {
             StockAdjustment::create([
                 'product_id' => $product->id,
-                'registered_by_user_id' => auth()->id(),
+                'registered_by_user_id' => $user->id,
                 'quantity_changed' => $stockChanged,
             ]);
         }
-
 
         if ($product->stock <= $product->stock_lower_limit) {
             $existingOrder = SupplyOrder::where('product_id', $product->id)
@@ -198,19 +186,20 @@ class ProductController extends Controller
                         'product_id' => $product->id,
                         'quantity' => $quantityToOrder,
                         'status' => 'requested',
-                        'registered_by_user_id' => auth()->id() ?? 1,
+                        'registered_by_user_id' => $user->id,
                     ]);
                 }
             }
         }
 
-        return redirect()->route('products.index')->with('success', 'Product updated successfully and supply order created if necessary.');
+        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
 
 
 
 
-    public function destroy(Product $product): RedirectResponse
+
+   public function destroy(Product $product): RedirectResponse
     {
         try {
             $hasSales = \DB::table('items_orders')
@@ -222,6 +211,8 @@ class ProductController extends Controller
                 $alertType = 'success';
                 $alertMsg = "Product <strong>{$product->name}</strong> was sold before, so it was soft deleted.";
             } else {
+                $this->deletePhoto($product, 'photo', 'products');
+
                 $product->forceDelete();
                 $alertType = 'success';
                 $alertMsg = "Product <strong>{$product->name}</strong> deleted permanently.";
@@ -245,9 +236,15 @@ class ProductController extends Controller
             ->with('alert-msg', $alertMsg);
     }
 
-    public function forceDestroy()
+
+    public function forceDestroy(Product $product)
     {
-        return $this->forceDelete();
+        $this->deletePhoto($product, 'photo', 'products');
+
+        $product->forceDelete();
+
+        return redirect()->route('products.index')
+            ->with('success', "Product <strong>{$product->name}</strong> deleted permanently.");
     }
 
 

@@ -26,7 +26,7 @@ class ProductPolicy
 
     public function update(User $user, Product $product): bool
     {
-        return $user->type === 'board';
+         return $user->type === 'board' || $user->type === 'employee';
     }
 
 

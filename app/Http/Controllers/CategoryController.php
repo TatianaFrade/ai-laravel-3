@@ -8,11 +8,13 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\CategoryFormRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
+use App\Traits\PhotoFileStorage;
 
 class CategoryController extends Controller
 {
 
     use AuthorizesRequests;
+    use PhotoFileStorage;
 
     public function __construct() 
     { 
@@ -70,17 +72,12 @@ class CategoryController extends Controller
     {
         $data = $request->validated();
 
+        $category = new Category($data);
+        $category->save();  
+
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('storage/categories'), $filename);
-
-           
-            $data['image'] = $filename;
+            $this->storePhoto($request->file('image'), $category, 'image', 'categories');
         }
-
-        Category::create($data);
 
         return redirect()->route('categories.index')->with('success', 'Category created successfully.');
     }
@@ -97,22 +94,16 @@ class CategoryController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
+       if ($request->hasFile('image')) {
+            $this->deletePhoto($category, 'image', 'categories');
+            $this->storePhoto($request->file('image'), $category, 'image', 'categories');
 
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('storage/categories'), $filename);
-
-            if ($category->image && file_exists(public_path('storage/categories/' . $category->image))) {
-                unlink(public_path('storage/categories/' . $category->image));
-            }
-            $data['image'] = $filename;
-
-        } else {
-            $data['image'] = $category->image;
+            unset($data['image']);
         }
 
         $category->update($data);
+
+
 
         return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
     }
@@ -130,7 +121,7 @@ class CategoryController extends Controller
                 $alertType = 'success';
                 $alertMsg = "Category <strong>{$category->name}</strong> soft deleted successfully because it has linked products.";
             } else {
-         
+                $this->deletePhoto($category, 'image', 'categories');
                 $category->forceDelete();
 
                 $alertType = 'success';
@@ -146,16 +137,20 @@ class CategoryController extends Controller
 
 
     
-    public function forceDestroy($id)
+    public function forceDestroy(Category $category)
     {
-        $category = category::withTrashed()->findOrFail($id);
-        $category->forceDelete();
+        if ($category->trashed()) {
+            $this->deletePhoto($category, 'image', 'categories');
+            $category->forceDelete();
 
-        $url = route('categories.index', ['category' => $category]);
+            $url = route('categories.index');
+            $htmlMessage = "Category <a href='$url'><strong>{$category->name}</strong></a> permanently deleted!";
 
-        $htmlMessage = "category <a href='$url'><strong>{$category->name}</strong></a> deleted successfully!";
+            return redirect()->back()->with('alert-type', 'danger')->with('alert-msg', $htmlMessage);
+        }
 
-        return redirect()->back()->with('alert-type', 'danger')->with('alert-msg', $htmlMessage);
+        return redirect()->back()->with('alert-type', 'warning')->with('alert-msg', 'Only deleted categories can be force deleted.');
     }
+
 
 }
