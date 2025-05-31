@@ -26,7 +26,7 @@ class CourseFormRequest extends FormRequest
             'name_pt' => 'required|string|max:255',
             'type' => 'required|in:Degree,Master,TESP',
             'gender' => 'required|integer|between:1,10',
-            'delivery_address' => 'required|integer|min:1',
+            'default_delivery_address' => 'required|integer|min:1',
             'nif' => 'required|integer|min:0',
             'payment_details' => 'required|email',
             'profile_photo' => 'required|string',

@@ -34,7 +34,7 @@ class UserFormRequest extends FormRequest
                 'boolean',
             ],
             'gender' => 'required|in:F,M,O',
-            'delivery_address' => 'nullable|string|max:255',
+            'default_delivery_address' => 'nullable|string|max:255',
             'nif' => 'nullable|digits_between:8,14',
             'payment_details' => 'nullable|string|max:255',
             'photo' => 'nullable|string|max:255',

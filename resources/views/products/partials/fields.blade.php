@@ -71,6 +71,7 @@
     name="discount_min_qty" 
     label="{{ __('Minimum quantity for discount') }}" 
     value="{{ old('discount_min_qty', $product->discount_min_qty ?? '') }}" 
+    :disabled="$readonly"
     type="number" 
     step="1" 
     min="0" 

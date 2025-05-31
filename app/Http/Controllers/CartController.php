@@ -7,6 +7,7 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\ShippingCost;
 use App\Http\Requests\CartConfirmationFormRequest;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +16,10 @@ class CartController extends Controller
     public function show(): View
     {
         $cart = session('cart', null);
-        return view('cart.show', compact('cart'));
+
+        $shippingCosts = ShippingCost::all();
+        
+        return view('cart.show', compact('cart', 'shippingCosts'));
     }
 
     public function addToCart(Request $request, Product $product): RedirectResponse
@@ -138,11 +142,11 @@ class CartController extends Controller
                 ->with('alert-type', 'danger')
                 ->with('alert-msg', "Cart was not confirmed, because cart is empty!");
         } else {
-            $user = User::where('number', $request->validated()['student_number'])->first();
+            $user = User::where('nif', $request->validated()['nif'])->first();
             if (!$user) {
                 return back()
                     ->with('alert-type', 'danger')
-                    ->with('alert-msg', "User number does not exist on the database!");
+                    ->with('alert-msg', "Nif number does not exist on the database!");
             }
             $insertProducts = [];
             $productsOfUser = $user->products;
@@ -159,11 +163,6 @@ class CartController extends Controller
                     ];
                 }
             }
-            $ignoredStr = match ($ignored) {
-                0 => "",
-                1 => "<br>(1 product was ignored because user already has it)",
-                default => "<br>($ignored products were ignored because user already has them)"
-            };
             $totalInserted = count($insertProducts);
             $totalInsertedStr = match ($totalInserted) {
                 0 => "",
@@ -174,7 +173,7 @@ class CartController extends Controller
                 $request->session()->forget('cart');
                 return back()
                     ->with('alert-type', 'danger')
-                    ->with('alert-msg', "No product was added to the user!$ignoredStr");
+                    ->with('alert-msg', "No product was added to the user!$");
             } else {
                 DB::transaction(function () use ($user, $insertProducts) {
                     $user->products()->attach($insertProducts);
@@ -187,7 +186,7 @@ class CartController extends Controller
                 } else {
                     return redirect()->route('users.show', ['user' => $user])
                         ->with('alert-type', 'warning')
-                        ->with('alert-msg', "$totalInsertedStr. $ignoredStr");
+                        ->with('alert-msg', "$totalInsertedStr");
                 }
             }
         }

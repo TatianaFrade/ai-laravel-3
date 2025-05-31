@@ -7,10 +7,15 @@
             <tr class="border-b-2 border-b-gray-400 dark:border-b-gray-500 bg-gray-100 dark:bg-gray-800">
                 <th class="px-2 py-2 text-left">Photo</th>
                 <th class="px-2 py-2 text-left">Name</th>
-                <th class="px-2 py-2 text-left  hidden md:table-cell">Category</th>
-                <th class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">Price</th>
+                @if (!$isCart)
+                    <th class="px-2 py-2 text-left  hidden md:table-cell">Category</th>
+                @endif
+                <th class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">Unit Price</th>
                 <th class="px-2 py-2 text-left hidden sm:table-cell">Discount</th>
-                <td class="px-2 py-2 text-left hidden sm:table-cell">{{ $isCart ? 'Quantity' : 'Stock' }}</td>
+                @if ($isCart)
+                    <th class="px-2 py-2 text-left hidden sm:table-cell">Total Price</th>
+                @endif
+                <td class="px-2 py-2 text-left hidden sm:table-cell"> {{ $isCart ? 'Quantity' : 'Stock' }} </td>
                 {{-- Description --}}
                 @if (!$isCart)
                     <th class="px-2 py-2 text-left hidden sm:table-cell">Description</th>
@@ -39,10 +44,18 @@
         <tbody>
             @foreach ($products as $product)
                 @php
-                    $hasDiscount = $product->discount && $product->discount > 0;
-                    $priceAfterDiscount = $hasDiscount
-                        ? $product->price - $product->discount
-                        : $product->price;
+                    if ($product->discount_min_qty < $product->stock) {
+                        $hasDiscount = $product->discount && $product->discount > 0;
+                        $priceAfterDiscount = $hasDiscount
+                            ? $product->price - $product->discount
+                            : $product->price;
+                    } else {
+                        $hasDiscount = false;
+                        $priceAfterDiscount = $product->price;
+                    }
+
+                    $totalPrice = ($hasDiscount ? $priceAfterDiscount : $product->price) * $product->quantity;
+
                 @endphp
                 <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
                     {{-- Photo --}}
@@ -69,8 +82,10 @@
                         @endif
                     </td>
 
-                    {{-- Category --}}
-                    <td class="px-2 py-2 text-left">{{ $product->category->name ?? '—' }}</td>
+                    @if (!$isCart)
+                        {{-- Category --}}
+                        <td class="px-2 py-2 text-left">{{ $product->category->name ?? '—' }}</td>
+                    @endif
 
                     {{-- Price --}}
                     @if ($userType === 'board')
@@ -93,9 +108,22 @@
                         </td>
                     @endif
 
+                    {{-- Total Price in Cart --}}
+                    @if ($isCart)
+                        <td class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">
+                            {{ number_format($totalPrice, 2) }}
+                            €
+                        </td>
+                    @endif
+
                     {{-- Stock --}}
                     @if ($isCart)
-                        <td class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">{{ $product->quantity }}</td>
+                        <td class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">
+                            {{ $product->quantity }}
+                            @if ($product->quantity > $product->stock)
+                                <span class="text-red-600 ms-2">(stock insuficiente)</span>
+                            @endif
+                        </td>
                     @else
                         @if ($userType === 'board')
                             <td class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">{{ $product->stock }}</td>
@@ -112,7 +140,6 @@
                             {{ $product->description_translated }}
                         </td>
                     @endif
-
 
                     @if($showView)
                         <td class="ps-2 px-0.5">
@@ -141,23 +168,22 @@
                             </form>
                         </td>
                     @endif
-
                     @if($isCart)
-                        <td class="pl-4">
-                            <form method="POST" action="{{ route('cart.increase', ['product' => $product]) }}"
-                                class="flex items-center">
-                                @csrf
-                                <button type="submit">
-                                    <flux:icon.plus-circle class="size-5 hover:text-green-600" />
-                                </button>
-                            </form>
-                        </td>
                         <td class="pl-4">
                             <form method="POST" action="{{ route('cart.decrease', ['product' => $product]) }}"
                                 class="flex items-center">
                                 @csrf
                                 <button type="submit">
                                     <flux:icon.minus-circle class="size-5 hover:text-green-600" />
+                                </button>
+                            </form>
+                        </td>
+                        <td class="pl-4">
+                            <form method="POST" action="{{ route('cart.increase', ['product' => $product]) }}"
+                                class="flex items-center">
+                                @csrf
+                                <button type="submit">
+                                    <flux:icon.plus-circle class="size-5 hover:text-green-600" />
                                 </button>
                             </form>
                         </td>

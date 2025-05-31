@@ -118,14 +118,14 @@
 />
 
 <flux:input
-    name="delivery_address"
+    name="default_delivery_address"
     label="Personal address"
-    value="{{ old('delivery_address', $user->delivery_address) }}"
+    value="{{ old('default_delivery_address', $user->default_delivery_address) }}"
     :disabled="$disableAddress"
     placeholder="Optional"
 />
 @if ($disableAddress)
-    <input type="hidden" name="delivery_address" value="{{ old('delivery_address', $user->delivery_address) }}">
+    <input type="hidden" name="default_delivery_address" value="{{ old('default_delivery_address', $user->default_delivery_address) }}">
 @endif
 
 <flux:input

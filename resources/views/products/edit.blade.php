@@ -32,7 +32,7 @@
     </div>
 
     {{-- JS para validar que desconto só pode se stock >= quantidade mínima --}}
-    <script>
+    <!-- <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('product-form');
             const stockInput = document.getElementById('stock');
@@ -51,6 +51,6 @@
                 }
             });
         });
-    </script>
+    </script> -->
 
 </x-layouts.main-content>

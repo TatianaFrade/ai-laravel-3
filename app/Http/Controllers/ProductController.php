@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\ProductFormRequest;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 use App\Models\Category;
+use App\Models\ShippingCost;
 
 
 class ProductController extends Controller
@@ -48,10 +49,6 @@ class ProductController extends Controller
         return view('products.index', compact('allProducts', 'orderPrice', 'orderStock', 'filterByName', 'userType'));
     }
 
-
-
-
-
     public function showCase(): View
     {
         return view('products.showcase');
@@ -76,21 +73,23 @@ class ProductController extends Controller
     {
         $categories = Category::orderBy('name')->get();
         return view('products.create', compact('categories'));
-
-       
     }
-
-
 
     public function store(ProductFormRequest $request): RedirectResponse
     {
         $data = $request->validated();
 
-        if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
-            $data['discount'] = null; // desativa desconto se estoque insuficiente
-        }
+        // if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
+        //     $data['discount'] = null; // desativa desconto se estoque insuficiente
+        // }
 
         // Se o campo discount estiver vazio ou não enviado, definir como null
+
+        if (!$request->filled('stock')) {
+            $data['stock'] = null;
+        }
+
+         // Se o campo discount estiver vazio ou não enviado, definir como null
         if (!$request->filled('discount')) {
             $data['discount'] = null;
         }
@@ -130,11 +129,16 @@ class ProductController extends Controller
     {
         $data = $request->validated();
 
-        if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
-            $data['discount'] = null; // desativa desconto se estoque insuficiente
-        }
+        //if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
+            //$data['discount'] = null; // desativa desconto se estoque insuficiente
+        //}
 
         // Se o campo discount estiver vazio ou não enviado, definir como null
+        
+        if (!$request->filled('stock')) {
+            $data['stock'] = null;
+        }
+        
         if (!$request->filled('discount')) {
             $data['discount'] = null;
         }

@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
 
-class User extends Authenticatable implements MustVerifyEmail 
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
@@ -33,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'photo',
         'deleted_at',
     ];
+    
 
     /**
      * The attributes that should be hidden for serialization.
@@ -64,11 +65,11 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return Str::of($this->name)
             ->explode(' ')
-            ->map(fn (string $name) => Str::of($name)->substr(0, 1))
+            ->map(fn(string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
 
-     public function isEmployee(): bool
+    public function isEmployee(): bool
     {
         return $this->type === 'employee';
     }
@@ -83,11 +84,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->type === 'board';
     }
 
-  
+
 
     public function card()
     {
         return $this->hasOne(Card::class);
     }
-
 }

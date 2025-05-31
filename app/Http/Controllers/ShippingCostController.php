@@ -95,6 +95,4 @@ class ShippingCostController extends Controller
         return redirect()->route('shippingcosts.index')
                         ->with('success', 'Shipping cost updated successfully.');
     }
-
-
 }

@@ -15,11 +15,11 @@
 
         @if(session('cart'))
             <flux:navlist variant="outline">
-<<<<<<< HEAD
                 <flux:navlist.group :heading="__('Services')" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    
-                  
+                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
+                        wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+
+
 
                 </flux:navlist.group>
 
@@ -47,11 +47,12 @@
 
             </flux:navlist.group>
         </flux:navlist>
+        
+        <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')"
+            :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
 
-
-                    <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')" :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
-
-                    <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
+        <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')"
+            :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
 
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Managing')" class="grid">
@@ -67,10 +68,12 @@
                     :current="request()->routeIs('products.index')" wire:navigate>Products</flux:navlist.item>
 
                 <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')"
-                    :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
+                    :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees
+                </flux:navlist.item>
 
                 <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')"
-                    :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
+                    :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs
+                </flux:navlist.item>
 
             </flux:navlist.group>
         </flux:navlist>
@@ -178,11 +181,11 @@
         </flux:dropdown>
     </flux:header>
 
-  
+
 </body>
 
-  {{ $slot }}
+{{ $slot }}
 
-    @fluxScripts
+@fluxScripts
 
 </html>
