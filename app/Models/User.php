@@ -76,7 +76,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->photo) {
                 return asset('storage/users/' . $this->photo);
             }
-            return asset('storage/users/anonymous.png');
+            return null;
     }
     
 
