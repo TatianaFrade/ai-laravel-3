@@ -21,10 +21,10 @@ class ProductController extends Controller
     use AuthorizesRequests;
     use PhotoFileStorage;
 
-    public function __construct() 
-    { 
-        $this->authorizeResource(Product::class, 'product');
-    }
+    // public function __construct() 
+    // { 
+    //     $this->authorizeResource(Product::class, 'product');
+    // }
 
 
     public function index(Request $request): View

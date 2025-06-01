@@ -53,7 +53,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 /* ----- AUTHENTICATED USERS (verificados ou não) ----- */
 Route::middleware(['auth'])->group(function () {
-    Route::resource('courses', CourseController::class);
     Route::resource('users', UserController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
@@ -85,11 +84,16 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-/* ----- NON-VERIFIED USERS ----- */
-Route::middleware(['auth'])->group(function () {
-    Route::resource('products', ProductController::class)->only(['index', 'show']);
+/* ----- NON-VERIFIED USERS PUBLIC ROUTES----- */
 
-});
+Route::resource('products', ProductController::class)->only(['index', 'show']);
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware('web')->name('dashboard');
+
+
+
 
 
 require __DIR__ . '/auth.php';

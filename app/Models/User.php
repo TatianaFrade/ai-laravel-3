@@ -56,7 +56,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function firstLastName()
     {
-        // Exemplo: retorna "Primeiro Último"
         $names = explode(' ', $this->name);
         $first = $names[0] ?? '';
         $last = end($names);
@@ -72,15 +71,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $firstInitial . $lastInitial;
     }
 
-    public function getPhotoFullUrlAttribute()
-    {
+     public function getPhotoFullUrlAttribute()
+     {
         if ($this->photo) {
-            return asset('storage/users/' . $this->photo);
-        }
-        return asset('images/default-user.png');
+                return asset('storage/users/' . $this->photo);
+            }
+            return asset('storage/users/anonymous.png');
     }
-
-
+    
 
 
      public function isEmployee(): bool

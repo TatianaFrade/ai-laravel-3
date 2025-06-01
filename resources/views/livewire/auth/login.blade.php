@@ -71,6 +71,14 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {
         return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
+
+    public function enterAsGuest(): void
+    {
+        session(['guest' => true]);
+
+        $this->redirect(route('dashboard', absolute: false), navigate: true);
+    }
+
 }; ?>
 
 <div class="flex flex-col gap-6">
@@ -117,6 +125,12 @@ new #[Layout('components.layouts.auth')] class extends Component {
             <flux:button variant="primary" type="submit" class="w-full">{{ __('Log in') }}</flux:button>
         </div>
     </form>
+
+    <div class="flex items-center justify-end">
+        <flux:button variant="primary" wire:click="enterAsGuest" class="w-full">
+            {{ __('Enter without account') }}
+        </flux:button>
+    </div>
 
     @if (Route::has('register'))
         <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
