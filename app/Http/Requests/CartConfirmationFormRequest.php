@@ -19,10 +19,11 @@ class CartConfirmationFormRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    public function rules()
     {
         return [
-            'user_number' => 'required|exists:users,number'
+            'nif' => 'required|numeric|digits:9',
+            'default_delivery_address' => 'required|string|max:255',
         ];
     }
 }
