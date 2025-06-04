@@ -12,6 +12,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SupplyOrderController;
 use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\CardController;
 
 use App\Http\Controllers\MembershipFeeController;
 
@@ -61,7 +62,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('shippingcosts', ShippingCostController::class);
     Route::resource('orders', OrderController::class);
     Route::resource('supplyorders', SupplyOrderController::class);
-  Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
+    Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
+    Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
+
 
 
 
