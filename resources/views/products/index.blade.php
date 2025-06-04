@@ -22,8 +22,11 @@
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
 
-        <div class="flex justify-start">
-            <div class="my-4 p-6 w-full">
+        {{-- Filtros mantidos para todos --}}
+        <x-products.filter-card 
+          :filterAction="route('categories.index')" 
+          :resetUrl="route('categories.index')" 
+        />
 
         <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
           <table class="table-auto border-collapse w-full">
@@ -44,16 +47,18 @@
                   <th class="px-2 py-2 text-left hidden sm:table-cell">Description</th>
                 @endif
 
-                <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
+                 <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
                     <x-products.table 
-                    :products="$allProducts" 
-                    :showView="true"
-                    :showEdit="$userType === 'board'"
-                    :showDelete="$userType === 'board'"
-                    :showAddToCart="$userType !== 'board'"
-                    :showRemoveFromCart="false"
-                    :isCart="false"
+                      :products="$allProducts" 
+                      :showView="true"
+                      :showEdit="$userType === 'board'"
+                      :showDelete="$userType === 'board'"
+                      :showAddToCart="$userType !== 'board'"
+                      :showRemoveFromCart="false"
+                      :isCart="false"
                     />
+
+                <th class="px-2 py-2 text-left"></th>
 
                 @if($userType === 'board' || $userType === 'employee')
                   <th class="px-2 py-2 text-left"></th>
@@ -63,7 +68,7 @@
             </thead>
 
             <tbody>
-              @foreach ($allProducts as $product)
+              {{-- @foreach ($allProducts as $product)
                 @php
                   $hasDiscount = $product->discount && $product->discount > 0;
                   $priceAfterDiscount = $hasDiscount
@@ -72,7 +77,7 @@
                 @endphp
 
                 <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
-                  {{-- Photo --}}
+        
                   <td class="px-2 py-2 hidden sm:table-cell">
                     @php
                       $imagePath = 'storage/products/' . $product->photo;
@@ -85,7 +90,7 @@
                     @endif
                   </td>
 
-                  {{-- Name --}}
+        
                   <td class="px-2 py-2 text-left {{ (!$userType === 'board' && $hasDiscount) ? 'text-green-700 font-semibold' : '' }}">
                     @if ($userType !== 'board' && $hasDiscount)
                       <span class="text-green-700 font-semibold">{{ $product->name }}</span>
@@ -94,10 +99,9 @@
                     @endif
                   </td>
 
-                  {{-- Category --}}
                   <td class="px-2 py-2 text-left">{{ $product->category->name ?? '—' }}</td>
 
-                  {{-- Price --}}
+           
                   @if ($userType === 'board' )
                     <td class="px-2 py-2 text-left">{{ number_format($product->price, 2) }}€</td>
                   @else
@@ -146,7 +150,7 @@
            
                   <td class="px-2 py-2 text-left"></td>
 
-                  {{-- Actions for board --}}
+            
                   @if($userType === 'board' || $userType === 'employee')
                     <td class="px-2 py-2 text-center">
                       <a href="{{ route('products.edit', ['product' => $product]) }}" title="Edit">
@@ -169,10 +173,20 @@
 
                 
                 </tr>
-              @endforeach
+              @endforeach --}}
 
             </tbody>
           </table>
         </div>
+
+        
+       
+
+      </div>
+       <!-- Paginação -->
+          <div class="mt-4 flex justify-center">
+              {{ $allProducts->withQueryString()->links() }}
+          </div>
     </div>
+  </div>
 </x-layouts.main-content>

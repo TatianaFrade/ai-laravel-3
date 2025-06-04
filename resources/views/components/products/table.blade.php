@@ -1,5 +1,8 @@
 <div {{ $attributes }}>
     <table class="table-auto border-collapse">
+          {{-- Filtros mantidos para todos --}}
+    
+
         @php
             $userType = session('userType', 'pending_member'); 
         @endphp

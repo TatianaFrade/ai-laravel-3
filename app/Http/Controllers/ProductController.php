@@ -166,12 +166,7 @@ class ProductController extends Controller
             $product->update($data);
 
 
-        } elseif ($userType === 'employee') {
-            $product->stock = $data['stock'];
-            $product->save();
-        } else {
-            abort(403, 'Acesso não autorizado.');
-        }
+        
 
         $newStock = $product->stock;
         $stockChanged = $newStock - $oldStock;
