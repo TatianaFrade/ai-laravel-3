@@ -3,41 +3,42 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-
 class Operation extends Model
 {
     protected $fillable = [
-        'card_id','type'
-        ,'value','date'
-        ,'debit_type' 
-        ,'credit_type'
-        ,'payment_type'
-        ,'payment_reference',
-        'order_id','created_at',
-        'updated_at'];
+        'card_id',
+        'type',
+        'value',
+        'date',
+        'debit_type',
+        'credit_type',
+        'payment_type',
+        'payment_reference',
+        'order_id'
+    ];
 
+    protected $casts = [
+        'date' => 'date', // Garante que a data seja tratada corretamente
+    ];
 
-    protected $dates = ['created_at','updated_at'];
-
-    public function user()
+    public function card()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Card::class, 'card_id');
     }
 
-    // public static function create($card,$operationDate,$type,$creditType,$value,$payment_type,$payment_reference,$order)
-    // {
-    //     return self::create([
-    //         'card_id' => $card->id,
-    //         'type' => $type,
-    //         'value' => $value,
-    //         'date' => $operationDate->toDateString(),
-    //         'debit_type' => $type == 'debit' ? 'order' : null,
-    //         'credit_type' => $creditType,
-    //         'payment_type' => $payment_type,
-    //         'payment_reference' => $payment_reference,
-    //         'order_id' => $order->id,
-    //         'created_at' => $operationDate,
-    //         'updated_at' => $operationDate,
-    //     ]);
-    // }
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id');
+    }
+
+    /**
+     * Registra uma nova operação de crédito ou débito.
+     *
+     * @param array $data
+     * @return self
+     */
+    public static function register(array $data)
+    {
+        return self::create($data);
+    }
 }

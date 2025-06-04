@@ -178,10 +178,6 @@
             </tbody>
           </table>
         </div>
-
-        
-       
-
       </div>
        <!-- Paginação -->
           <div class="mt-4 flex justify-center">
