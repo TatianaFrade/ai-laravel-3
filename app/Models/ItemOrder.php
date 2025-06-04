@@ -11,7 +11,9 @@ class ItemOrder extends Model
         'order_id', 
         'product_id', 
         'quantity', 
-        'price'
+        'unit_price',
+        'discount',
+        'subtotal',
     ];
 
     public function product()
@@ -23,4 +25,6 @@ class ItemOrder extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    public $timestamps = false;
 }

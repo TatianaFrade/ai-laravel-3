@@ -22,11 +22,8 @@
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
 
-        {{-- Filtros mantidos para todos --}}
-        <x-products.filter-card 
-          :filterAction="route('categories.index')" 
-          :resetUrl="route('categories.index')" 
-        />
+        <div class="flex justify-start">
+            <div class="my-4 p-6 w-full">
 
         <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
           <table class="table-auto border-collapse w-full">
@@ -47,7 +44,16 @@
                   <th class="px-2 py-2 text-left hidden sm:table-cell">Description</th>
                 @endif
 
-                <th class="px-2 py-2 text-left"></th>
+                <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
+                    <x-products.table 
+                    :products="$allProducts" 
+                    :showView="true"
+                    :showEdit="$userType === 'board'"
+                    :showDelete="$userType === 'board'"
+                    :showAddToCart="$userType !== 'board'"
+                    :showRemoveFromCart="false"
+                    :isCart="false"
+                    />
 
                 @if($userType === 'board' || $userType === 'employee')
                   <th class="px-2 py-2 text-left"></th>
@@ -168,11 +174,5 @@
             </tbody>
           </table>
         </div>
-
-        <div class="mt-4">
-          {{ $allProducts->links() }}
-        </div>
-      </div>
     </div>
-  </div>
 </x-layouts.main-content>

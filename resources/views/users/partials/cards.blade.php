@@ -22,7 +22,7 @@
                     
                 </div>
                 <address class="font-light text-gray-700 dark:text-gray-300">
-                    <a href="mailto:{{ $user->delivery_address }}">{{ $user->delivery_address }}</a>.
+                    <a href="mailto:{{ $user->default_delivery_address }}">{{ $user->default_delivery_address }}</a>.
                 </address>
             </figcaption>
         

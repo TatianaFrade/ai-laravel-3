@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
 
-class User extends Authenticatable implements MustVerifyEmail 
+class User extends Authenticatable implements MustVerifyEmail
 {
 
     use HasFactory;
@@ -24,12 +24,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'type',
         'blocked',
         'gender',
-        'delivery_address',
+        'default_delivery_address',
         'nif',
-        'payment_details',
+        'default_payment_type',
         'photo',
         'deleted_at',
     ];
+    
 
     protected $hidden = [
         'password',
@@ -50,7 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return Str::of($this->name)
             ->explode(' ')
-            ->map(fn (string $name) => Str::of($name)->substr(0, 1))
+            ->map(fn(string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
 
@@ -96,24 +97,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->type === 'board';
     }
 
-  
 
-  
-  public function card()
+
+    public function card()
     {
         return $this->hasOne(Card::class, 'id', 'id');
     }
-
-
-    public function orders()
-    {
-        return $this->hasMany(Order::class);
-    }
-
-    public function supplyorders()
-    {
-        return $this->hasMany(SupplyOrder::class, 'registered_by_user_id', 'id');
-    }
-
 
 }

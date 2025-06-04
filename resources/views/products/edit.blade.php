@@ -51,6 +51,6 @@
                 }
             });
         });
-    </script>
+    </script> -->
 
 </x-layouts.main-content>

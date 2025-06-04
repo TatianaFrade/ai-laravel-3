@@ -40,6 +40,14 @@
                     wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
             </flux:navlist.group>
         </flux:navlist>
+        
+        <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')"
+            :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
+
+
+                    <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')" :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
+
+                    <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
 
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Services')" class="grid">
@@ -51,11 +59,8 @@
             </flux:navlist.group>
         </flux:navlist>
 
-        <flux:navlist variant="outline">
-            @can('viewAny', App\Models\User::class)
-                <flux:navlist.group :heading="__('Managing')" class="grid">
-                    <flux:navlist.item icon="academic-cap" :href="route('users.index')"
-                        :current="request()->routeIs('users.index')" wire:navigate>Users</flux:navlist.item>
+                <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')"
+                    :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
 
                     <flux:navlist.item icon="academic-cap" :href="route('supplyorders.index')"
                         :current="request()->routeIs('supplyorders.index')" wire:navigate>Supply orders</flux:navlist.item>

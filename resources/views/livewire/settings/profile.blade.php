@@ -13,7 +13,7 @@ new class extends Component {
     public string $name = '';
     public string $email = '';
     public string $gender = '';
-    public string $delivery_address = '';
+    public string $default_delivery_address = '';
     public string $nif = '';
     public string $payment_details = '';
     public $profile_photo = null;
@@ -24,7 +24,7 @@ new class extends Component {
         $this->name = $user->name;
         $this->email = $user->email;
         $this->gender = $user->gender ?? '';
-        $this->delivery_address = $user->delivery_address ?? '';
+        $this->default_delivery_address = $user->default_delivery_address ?? '';
         $this->nif = $user->nif ?? '';
         $this->payment_details = $user->payment_details ?? '';
     }
@@ -45,7 +45,7 @@ new class extends Component {
                 Rule::unique(User::class)->ignore($user->id),
             ],
             'gender' => ['nullable', 'in:F,M,O'],
-            'delivery_address' => ['nullable', 'string', 'max:255'],
+            'default_delivery_address' => ['nullable', 'string', 'max:255'],
             'nif' => ['nullable', 'string', 'max:20'],
             'payment_details' => ['nullable', 'string', 'max:255'],
             'profile_photo' => ['nullable', 'image', 'max:2048'],
@@ -125,7 +125,7 @@ new class extends Component {
         </flux:select>
 
             @unless(auth()->user()->isEmployee())
-                <flux:input wire:model="delivery_address" :label="__('Delivery Address')" type="text" autocomplete="street-address" />
+                <flux:input wire:model="default_delivery_address" :label="__('Delivery Address')" type="text" autocomplete="street-address" />
             @endunless  
 
             @unless(auth()->user()->isEmployee())

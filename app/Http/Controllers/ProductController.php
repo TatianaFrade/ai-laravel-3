@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\ProductFormRequest;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 use App\Models\Category;
+use App\Models\ShippingCost;
 use App\Models\SupplyOrder;
 use App\Models\StockAdjustment;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -62,7 +63,10 @@ class ProductController extends Controller
         return view('products.index', compact('allProducts', 'orderPrice', 'orderStock', 'filterByName', 'userType'));
     }
 
-
+    public function showCase(): View
+    {
+        return view('products.showcase');
+    }
 
     public function show(Product $product): View
     {
@@ -86,6 +90,7 @@ class ProductController extends Controller
     }
 
 
+
     public function store(ProductFormRequest $request): RedirectResponse
     {
         $data = $request->validated();
@@ -94,6 +99,7 @@ class ProductController extends Controller
             $data['discount'] = null;
         }
 
+         // Se o campo discount estiver vazio ou não enviado, definir como null
         if (!$request->filled('discount')) {
             $data['discount'] = null;
         }
@@ -136,14 +142,19 @@ class ProductController extends Controller
         $data = $request->validated();
         $oldStock = $product->stock;
 
-        if ($userType === 'board') {
-            if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
-                $data['discount'] = null;
-            }
+        if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
+            $data['discount'] = null; // desativa desconto se estoque insuficiente
+        }
 
-            if (!$request->filled('discount')) {
-                $data['discount'] = null;
-            }
+        // Se o campo discount estiver vazio ou não enviado, definir como null
+        
+        if (!$request->filled('stock')) {
+            $data['stock'] = null;
+        }
+        
+        if (!$request->filled('discount')) {
+            $data['discount'] = null;
+        }
 
           if ($request->hasFile('photo')) {
                 $this->deletePhoto($product, 'photo', 'products');
