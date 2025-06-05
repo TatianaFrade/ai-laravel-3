@@ -10,6 +10,9 @@
 
                     <div class="bg-gray-700 p-4 rounded-md shadow-sm border border-gray-600">
                         <p class="text-lg font-semibold text-gray-300">
+                            Nome do Usuário: <span class="text-yellow-400">{{ auth()->user()->name }}</span>
+                        </p>
+                        <p class="text-lg font-semibold text-gray-300">
                             Número do Cartão: <span class="text-blue-400" name="cardNum">{{ $card->card_number }}</span>
                         </p>
                         <p class="text-lg font-semibold text-gray-300">
@@ -22,12 +25,41 @@
                                 class="w-full" />
                         </div>
                         <div class="flex-1 min-w-[180px]">
-                            <flux:select name="type" label="Método de Pagamento:" class="w-full">
-                                <option value="Visa">Visa</option>
-                                <option value="PayPal">PayPal</option>
-                                <option value="MB WAY">Mb WAY</option>
+                            <flux:select name="type" label="Método de Pagamento:" class="w-full" id="payment-type">
+                                <option value="">Selecione</option>
+                                <option value="Visa" {{ old('type') == 'Visa' ? 'selected' : '' }}>Visa</option>
+                                <option value="PayPal" {{ old('type') == 'PayPal' ? 'selected' : '' }}>PayPal</option>
+                                <option value="MB WAY" {{ old('type') == 'MB WAY' ? 'selected' : '' }}>Mb WAY</option>
                             </flux:select>
                         </div>
+                    </div>
+                    <div class="flex flex-wrap gap-4 mt-4">
+
+                        <div class="flex-1 min-w-[180px]" id="visa-fields" style="display: none;">
+                            <flux:input name="card_num" label="Número do Cartão" value="{{ old('num_card') }}" class="w-full mb-2" />
+                            <flux:input name="cvc" label="CVC" value="{{ old('cvc') }}" class="w-full" />
+                        </div>
+
+                        <div class="flex-1 min-w-[180px]" id="paypal-fields" style="display: none;">
+                            <flux:input name="email" label="Email PayPal" value="{{ old('email') }}" class="w-full" />
+                        </div>
+
+                        <div class="flex-1 min-w-[180px]" id="mbway-fields" style="display: none;">
+                            <flux:input name="phone_number" label="Telemóvel MB WAY" value="{{ old('phone_number') }}" class="w-full" />
+                        </div>
+
+                        <script>
+                            function showPaymentFields() {
+                                const type = document.getElementById('payment-type').value;
+                                document.getElementById('visa-fields').style.display = (type === 'Visa') ? '' : 'none';
+                                document.getElementById('paypal-fields').style.display = (type === 'PayPal') ? '' : 'none';
+                                document.getElementById('mbway-fields').style.display = (type === 'MB WAY') ? '' : 'none';
+                            }
+                            document.addEventListener('DOMContentLoaded', function() {
+                                document.getElementById('payment-type').addEventListener('change', showPaymentFields);
+                                showPaymentFields();
+                            });
+                        </script>
                     </div>
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6">
                         <div class="flex space-x-2 w-full">

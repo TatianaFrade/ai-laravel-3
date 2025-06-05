@@ -45,28 +45,28 @@ class Card extends Model
     }
 
     public function credit($service, $reference, $amount)
-{
-    if (method_exists(Payment::class, $service)) {
-        if (call_user_func([Payment::class, $service], $reference)) {
-            $this->balance += $amount;
-            $this->save();
+    {
+        if (method_exists(Payment::class, $service)) {
+            if (call_user_func([Payment::class, $service], $reference)) {
+                $this->balance += $amount;
+                $this->save();
 
-            Operation::register([
-                'card_id' => $this->id,
-                'type' => 'credit',
-                'value' => $amount,
-                'date' => now(),
-                'credit_type' => 'payment',
-                'payment_type' => $service,
-                'payment_reference' => $reference,
-            ]);
+                Operation::register([
+                    'card_id' => $this->id,
+                    'type' => 'credit',
+                    'value' => $amount,
+                    'date' => now(),
+                    'credit_type' => 'payment',
+                    'payment_type' => $service,
+                    'payment_reference' => $reference,
+                ]);
 
-            return true;
+                return true;
+            }
         }
-    }
 
-    return false;
-}
+        return false;
+    }
 
     private static function generateUniqueCardNumber()
     {
