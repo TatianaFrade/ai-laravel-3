@@ -19,8 +19,8 @@
             <thead>
               <tr class="border-b-2 border-b-gray-400 dark:border-b-gray-500 bg-gray-100 dark:bg-gray-800">
                 <th class="px-3 py-2 text-left">Id</th>
-                <th class="px-3 py-2 text-left">Product number</th>
-                <th class="px-3 py-2 text-left">Member number</th>
+                <th class="px-3 py-2 text-left">Product</th>
+                <th class="px-3 py-2 text-left">Member</th>
                 <th class="px-3 py-2 text-left">Status</th>
                 <th class="px-3 py-2 text-left">Quantity</th>
                 <th class="px-3 py-2 text-center"></th>
@@ -31,9 +31,10 @@
               <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
                 <td class="px-3 py-2">{{ $supplyorder->id }}</td>
                 <td class="px-3 py-2">
-                  {{ optional($supplyorder->product)->id ?? 'Product not available' }}
+                  {{ optional($supplyorder->product)->name ?? 'Product not available' }}
                 </td>
-                <td class="px-3 py-2">{{ $supplyorder->registered_by_user_id }}</td>
+                {{-- <td class="px-3 py-2">{{ $supplyorder->registered_by_user_id }}</td> --}}
+                <td class="px-3 py-2">{{ optional($supplyorder->registeredByUser)->name ?? 'User not available' }}</td>
                 <td class="px-3 py-2">{{ $supplyorder->status }}</td>
                 <td class="px-3 py-2">{{ $supplyorder->quantity }}</td>
                 <td class="px-3 py-2 text-center">

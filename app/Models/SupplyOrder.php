@@ -33,4 +33,10 @@ class SupplyOrder extends Model
         
     }
 
+    public function registeredByUser()
+    {
+        return $this->belongsTo(User::class, 'registered_by_user_id');
+    }
+
+
 }

@@ -1,192 +1,93 @@
 <x-layouts.main-content :title="__('Products')" heading="List of Products">
-  <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-    
-   <div class="flex justify-between items-center mb-4">
+  <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl text-sm"> {{-- aplica redução global de texto --}}
 
-    @can('create', App\Models\Product::class)
-      <flux:button variant="primary" href="{{ route('products.create') }}">
-        Create a new product
-      </flux:button>
-    @else
-      <div></div> 
-    @endcan
+    <div class="flex justify-between items-center mb-4">
+      @can('create', App\Models\Product::class)
+        <flux:button variant="primary" href="{{ route('products.create') }}">
+          Create a new product
+        </flux:button>
+      @else
+        <div></div>
+      @endcan
 
-    @can('viewAny', App\Models\StockAdjustment::class)
-      <flux:button variant="primary" href="{{ route('stockadjustments.index') }}">
-        Inventory records
-      </flux:button>
-    @endcan
-
-  </div>
+      @can('viewAny', App\Models\StockAdjustment::class)
+        <flux:button variant="primary" href="{{ route('stockadjustments.index') }}">
+          Inventory records
+        </flux:button>
+      @endcan
+    </div>
 
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
 
-        {{-- Filtros mantidos para todos --}}
-        <x-products.filter-card 
-          :filterAction="route('categories.index')" 
-          :resetUrl="route('categories.index')" 
-        />
+        @can('viewFilter', App\Models\Product::class)
+          <x-products.filter-card 
+            :filterAction="route('categories.index')" 
+            :resetUrl="route('categories.index')" 
+          />
+        @endcan
 
-        <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
-          <table class="table-auto border-collapse w-full">
-            <thead>
-              <tr class="border-b-2 border-b-gray-400 dark:border-b-gray-500 bg-gray-100 dark:bg-gray-800">
-                <th class="px-2 py-2 text-left hidden sm:table-cell">Photo</th>
-                <th class="px-2 py-2 text-left">Name</th>
-                <th class="px-2 py-2 text-left">Category</th>
-                
-                @if($userType === 'board' || $userType === 'employee')
-                  <th class="px-2 py-2 text-left">Price</th>
-                  <th class="px-2 py-2 text-left hidden sm:table-cell">Stock</th>
-                  <th class="px-2 py-2 text-left hidden sm:table-cell">Description</th>
-                  <th class="px-2 py-2 text-left hidden sm:table-cell">Discount</th>
-                @else
-                  <th class="px-2 py-2 text-left">Price</th>
-                  <th class="px-2 py-2 text-left">Discount</th>
-                  <th class="px-2 py-2 text-left hidden sm:table-cell">Description</th>
-                @endif
+        @can('viewTable', App\Models\Product::class)
+          <x-products.table 
+            :products="$allProducts" 
+            :showView="true"
+            :showEdit="$userType === 'board'"
+            :showDelete="$userType === 'board'"
+            :showAddToCart="$userType !== 'board'"
+            :showRemoveFromCart="false"
+            :isCart="false"
+          />
+        @else
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            @foreach ($allProducts as $product)
+              <div class="rounded-xl shadow p-4 border bg-white dark:bg-gray-900 text-sm">
 
-                 <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
-                    <x-products.table 
-                      :products="$allProducts" 
-                      :showView="true"
-                      :showEdit="$userType === 'board'"
-                      :showDelete="$userType === 'board'"
-                      :showAddToCart="$userType !== 'board'"
-                      :showRemoveFromCart="false"
-                      :isCart="false"
-                    />
-
-                <th class="px-2 py-2 text-left"></th>
-
-                @if($userType === 'board' || $userType === 'employee')
-                  <th class="px-2 py-2 text-left"></th>
-                  <th class="px-2 py-2 text-left"></th>
-                @endif
-              </tr>
-            </thead>
-
-            <tbody>
-              {{-- @foreach ($allProducts as $product)
                 @php
-                  $hasDiscount = $product->discount && $product->discount > 0;
-                  $priceAfterDiscount = $hasDiscount
-                      ? $product->price - $product->discount
-                      : $product->price;
+                  $imagePath = 'storage/products/' . $product->photo;
+                  $fullImagePath = public_path($imagePath);
                 @endphp
 
-                <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
-        
-                  <td class="px-2 py-2 hidden sm:table-cell">
-                    @php
-                      $imagePath = 'storage/products/' . $product->photo;
-                      $fullImagePath = public_path($imagePath);
-                    @endphp
-                    @if ($product->photo && file_exists($fullImagePath))
-                      <img src="{{ asset($imagePath) }}" alt="Photo of {{ $product->name }}" class="h-20 w-20 object-cover" />
-                    @else
-                      <span class="text-gray-400">No photo</span>
-                    @endif
-                  </td>
-
-        
-                  <td class="px-2 py-2 text-left {{ (!$userType === 'board' && $hasDiscount) ? 'text-green-700 font-semibold' : '' }}">
-                    @if ($userType !== 'board' && $hasDiscount)
-                      <span class="text-green-700 font-semibold">{{ $product->name }}</span>
-                    @else
-                      {{ $product->name }}
-                    @endif
-                  </td>
-
-                  <td class="px-2 py-2 text-left">{{ $product->category->name ?? '—' }}</td>
-
-           
-                  @if ($userType === 'board' )
-                    <td class="px-2 py-2 text-left">{{ number_format($product->price, 2) }}€</td>
+                <div class="w-full h-48 mb-3">
+                  @if ($product->photo && file_exists($fullImagePath))
+                    <img src="{{ asset($imagePath) }}" alt="{{ $product->name }}" class="w-full h-full object-cover rounded" />
                   @else
-                    <td class="px-2 py-2 text-left {{ $hasDiscount ? 'text-green-700 font-semibold' : '' }}">
-                      {{ number_format($priceAfterDiscount, 2) }} €
-                    </td>
+                    <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Image</div>
                   @endif
+                </div>
 
-                 
-                  @if($userType === 'board' || $userType === 'employee')
-                    <td class="px-2 py-2 text-left hidden sm:table-cell">
-                      <div class="flex items-center gap-1">
-                        {{ $product->stock }}
-                        @if ($product->stock <= $product->stock_lower_limit)
-                          <span title="Low stock">
-                            <flux:icon.battery-50 class="size-5 text-yellow-500" />
-                          </span>
-                        @elseif ($product->stock >= $product->stock_upper_limit)
-                          <span title="Max stock">
-                            <flux:icon.battery-100 class="size-5 text-green-500" />
-                          </span>
-                        @endif
-                      </div>
-                    </td>
+                <div class="text-sm font-semibold mb-1">{{ $product->name }}</div>
+                <div class="text-xs text-gray-600 mb-2">{{ $product->category->name ?? '—' }}</div>
 
-              
-                    <td class="px-2 py-2 text-left hidden sm:table-cell">
-                      {{ $product->description_translated }}
-                    </td>
+                <div class="text-sm font-bold mb-1 {{ $product->discount ? 'text-green-600' : 'text-white' }}">
+                  {{ number_format($product->price - ($product->discount ?? 0), 2) }} €
+                </div>
 
-                    <td class="px-2 py-2 text-left hidden sm:table-cell">
-                      {{ $product->discount ? $product->discount . '€' : '—' }}
-                    </td>
-                  @else
-                 
-                    <td class="px-2 py-2 text-left {{ $hasDiscount ? 'text-green-700 font-semibold' : '' }}">
-                      {{ $hasDiscount ? $product->discount . '€' : '—' }}
-                    </td>
+                @if ($product->discount)
+                  <div class="text-xs text-gray-500 line-through">
+                    {{ number_format($product->price, 2) }} €
+                  </div>
+                @endif
 
-              
-                    <td class="px-2 py-2 text-left hidden sm:table-cell">
-                      {{ $product->description_translated }}
-                    </td>
-                  @endif
+                <div class="text-xs text-gray-700 mt-2">
+                  {{ Str::limit($product->description_translated, 100) }}
+                </div>
 
-           
-                  <td class="px-2 py-2 text-left"></td>
+                <form method="POST" action="{{ route('cart.add', ['product' => $product]) }}" class="mt-4">
+                  @csrf
+                  <button type="submit" class="bg-green-600 text-white py-1.5 px-3 text-sm rounded hover:bg-green-700 w-full">
+                    Add to cart
+                  </button>
+                </form>
+              </div>
+            @endforeach
+          </div>
+        @endcan
 
-            
-                  @if($userType === 'board' || $userType === 'employee')
-                    <td class="px-2 py-2 text-center">
-                      <a href="{{ route('products.edit', ['product' => $product]) }}" title="Edit">
-                        <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
-                      </a>
-                    </td>
-                  @endif
-                  @if($userType === 'board')
-                    <td class="px-2 py-2 text-center">
-                      <form method="POST" action="{{ route('products.destroy', ['product' => $product]) }}" class="inline-block">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" title="Delete">
-                          <flux:icon.trash class="size-5 hover:text-red-600" />
-                        </button>
-                      </form>
-                    </td>
-                  @endif
-                    
-
-                
-                </tr>
-              @endforeach --}}
-
-            </tbody>
-          </table>
+        <div class="mt-4 flex justify-center">
+          {{ $allProducts->withQueryString()->links() }}
         </div>
 
-        
-       
-
       </div>
-       <!-- Paginação -->
-          <div class="mt-4 flex justify-center">
-              {{ $allProducts->withQueryString()->links() }}
-          </div>
     </div>
   </div>
 </x-layouts.main-content>
