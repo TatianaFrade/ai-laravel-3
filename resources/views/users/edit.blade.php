@@ -1,10 +1,9 @@
-<x-layouts.main-content :title="$user->name"
-                        heading="Edit user"
-                        :subheading="$user->name">
+<x-layouts.main-content :title="$user->name" heading="Edit user" :subheading="$user->name">
     <div class="flex flex-col space-y-6">
         <div class="max-full">
             <section>
-                <form method="POST" action="{{ route('users.update', ['user' => $user]) }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('users.update', ['user' => $user]) }}"
+                    enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
@@ -19,7 +18,11 @@
                     @endif
 
                     <div class="mt-6 space-y-4">
-                        @include('users.partials.fields', ['mode' => 'edit'])
+                        @include('users.partials.fields', [
+                            'mode' => 'edit',
+                            'editableFields' => $editableFields
+                        ])
+
                     </div>
 
                     <div class="flex mt-6">

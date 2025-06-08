@@ -26,7 +26,7 @@ class ProductPolicy
 
     public function update(User $user, Product $product): bool
     {
-         return $user->type === 'board' || $user->type === 'employee';
+        return $user->type === 'board' || $user->type === 'employee';
     }
 
 
@@ -36,12 +36,14 @@ class ProductPolicy
     }
 
 
+
+
     public function delete(User $user, Product $product): bool
     {
         return $user->type === 'board';
     }
 
- 
+
 
     public function restore(User $user, Product $product): bool
     {
@@ -53,14 +55,16 @@ class ProductPolicy
         return false;
     }
 
+  
     public function viewTable(User $user): bool
     {
-        return in_array($user->type, ['board', 'employee']);
+        return in_array($user->type, ['board', 'employee']) && request('view') !== 'public';
     }
+
 
     public function viewFilter(User $user): bool
     {
-        return in_array($user->type, ['board', 'employee']);
+         return in_array($user->type, ['board', 'employee']) && request('view') !== 'public';
     }
 
 

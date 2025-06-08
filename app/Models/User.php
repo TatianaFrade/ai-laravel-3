@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -29,6 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'default_payment_type',
         'photo',
         'deleted_at',
+        'payment_details',
     ];
     
 
@@ -72,14 +74,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $firstInitial . $lastInitial;
     }
 
-     public function getPhotoFullUrlAttribute()
-     {
-        if ($this->photo) {
-                return asset('storage/users/' . $this->photo);
-            }
-            return null;
-    }
-    
 
 
      public function isEmployee(): bool
@@ -102,6 +96,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function card()
     {
         return $this->hasOne(Card::class, 'id', 'id');
+    }
+
+     public function getImageUrlAttribute()
+    {
+        if ($this->photo && Storage::disk('public')->exists("users/{$this->photo}")) {
+            return asset("storage/users/{$this->photo}");
+
+        } else {
+            return asset("storage/users/anonymous.png");
+        }
     }
 
 }

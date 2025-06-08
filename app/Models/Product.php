@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 
 class Product extends Model
@@ -42,5 +43,15 @@ class Product extends Model
         return $this->hasMany(StockAdjustment::class);
     }
 
+
+    
+    public function getImageUrlAttribute()
+    {
+        if ($this->photo && Storage::disk('public')->exists("products/{$this->photo}")) {
+            return asset("storage/products/{$this->photo}");
+        } else {
+            return asset("storage/products/no_product.png");
+        }
+    }
 
 }

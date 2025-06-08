@@ -5,31 +5,48 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Card;
 use App\Models\User;
-use App\Http\Requests\orderFormRequest;
+use App\Http\Requests\OrderFormRequest;
 use App\Models\ShippingCost;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderCompletedMail;
+use Illuminate\Http\Request;
 
 
 
 class OrderController extends Controller
 {
     public string $email = '';
-    public function index()
-    {
-        $user = Auth::user();
 
-        if ($user->type === 'employee') {
-            $orders = Order::where('status', 'pending')->paginate(20);
+    public function index(Request $request)
+    {
+        $this->authorize('viewAny', Order::class); 
+        
+        $user = Auth::user();
+        $onlyOwnOrders = $request->boolean('mine');
+
+       if ($user->type === 'employee') {
+            $orders = Order::query()
+                ->when($onlyOwnOrders, fn($query) => $query->where('member_id', $user->id))
+                ->when(!$onlyOwnOrders, fn($query) => $query->where('status', 'pending'))
+                ->orderByDesc('created_at')
+                ->paginate(20);
+        
+
         } elseif ($user->type === 'board') {
-            $orders = Order::paginate(20);
+            if ($onlyOwnOrders) {
+                $orders = Order::where('member_id', $user->id)
+                            ->orderByDesc('created_at')
+                            ->paginate(20);
+            } else {
+                $orders = Order::orderByDesc('created_at')->paginate(20);
+            }
         } elseif ($user->type === 'member') {
-            $orders = Order::where('member_id', $user->id)->paginate(20);
-        } else 
-        {
-            // Caso queira negar acesso a outros tipos
+            $orders = Order::where('member_id', $user->id)
+                        ->orderByDesc('created_at')
+                        ->paginate(20);
+        } else {
             abort(403, 'Acesso não autorizado');
         }
 

@@ -1,6 +1,5 @@
-<x-layouts.main-content title="New Employee"
-                        heading="Create a Employee"
-                        subheading='Click on "Save" button to store the information.'>
+<x-layouts.main-content title="New Employee" heading="Create a Employee"
+    subheading='Click on "Save" button to store the information.'>
     <div class="flex flex-col space-y-6">
         <div class="max-full">
             <section>
@@ -15,10 +14,14 @@
                                 @endforeach
                             </ul>
                         </div>
-                    @endif  
+                    @endif
 
                     <div class="mt-6 space-y-4">
-                        @include('users.partials.fields', ['mode' => 'create'])
+                        @include('users.partials.fields', [
+                            'mode' => 'create',
+                            'editableFields' => $editableFields
+                        ])
+
                     </div>
 
                     <div class="flex mt-6">

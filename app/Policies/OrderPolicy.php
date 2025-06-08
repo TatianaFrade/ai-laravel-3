@@ -7,27 +7,26 @@ use App\Models\Order;
 
 class OrderPolicy
 {
-    public function viewAny(User $user): bool
-    {
-        return true;
-    }
-
-
     public function view(User $user, Order $order): bool
     {
-        return true;
+        return $user->type !== 'member' || $order->user_id === $user->id;
+    }
+
+    public function viewAny(User $user): bool
+    {
+        return in_array($user->type, ['board', 'employee', 'member']);
     }
 
 
-    public function create(Order $order): bool
+    public function create(User $user): bool
     {
-        return true;
+        return $user->type === 'board';
     }
 
- 
-    public function update(Order $order): bool
+
+    public function update(User $user): bool
     {
-        return true;
+        return in_array($user->type, ['board', 'employee']);
     }
 
 

@@ -28,21 +28,17 @@ class CartController extends Controller
 
     public function addToCart(Request $request, Product $product): RedirectResponse
     {
-        $cart = session('cart', collect()); // Garante que o carrinho seja uma coleção
+        $cart = session('cart', collect()); 
 
-        // Verifica se o produto já existe no carrinho
         $existingProduct = $cart->firstWhere('id', $product->id);
 
         if ($existingProduct) {
-            // Se já estiver no carrinho, aumenta a quantidade
             $existingProduct->quantity++;
         } else {
-            // Caso contrário, adiciona o produto como um objeto e cria um atributo "quantity"
             $product->quantity = 1;
             $cart->push($product);
         }
 
-        // Atualiza a sessão do carrinho
         $request->session()->put('cart', $cart);
 
         $alertType = 'success';
@@ -80,7 +76,6 @@ class CartController extends Controller
             $existingProduct->quantity--;
             $request->session()->put('cart', $cart);
         } elseif ($existingProduct) {
-            // Se a quantidade for 1, remove o produto do carrinho
             $cart = $cart->reject(fn($item) => $item->id === $product->id);
             $request->session()->put('cart', $cart);
         }

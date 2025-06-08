@@ -33,23 +33,23 @@ new class extends Component {
     {
         $user = Auth::user();
 
-        if($user->isBoard() || $user->isRegular()){
+        if (Auth::user()->can('update-profile', $user)) {
             $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                Rule::unique(User::class)->ignore($user->id),
-            ],
-            'gender' => ['nullable', 'in:F,M,O'],
-            'default_delivery_address' => ['nullable', 'string', 'max:255'],
-            'nif' => ['nullable', 'string', 'max:20'],
-            'payment_details' => ['nullable', 'string', 'max:255'],
-            'profile_photo' => ['nullable', 'image', 'max:2048'],
-        ]);
+                'name' => ['required', 'string', 'max:255'],
+                'email' => [
+                    'required',
+                    'string',
+                    'lowercase',
+                    'email',
+                    'max:255',
+                    Rule::unique(User::class)->ignore($user->id),
+                ],
+                'gender' => ['nullable', 'in:F,M,O'],
+                'default_delivery_address' => ['nullable', 'string', 'max:255'],
+                'nif' => ['nullable', 'string', 'max:20'],
+                'payment_details' => ['nullable', 'string', 'max:255'],
+                'profile_photo' => ['nullable', 'image', 'max:2048'],
+            ]);
 
             $user->fill($validated);
 
@@ -66,11 +66,6 @@ new class extends Component {
 
             $this->dispatch('profile-updated', name: $user->name);
         }
-
-        if($user->isEmployee()){
-             
-        }
-      
     }
 
     public function resendVerificationNotification(): void
@@ -93,12 +88,12 @@ new class extends Component {
 
     <x-settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" :readonly="auth()->user()->isEmployee()"/>
+            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" :readonly="!auth()->user()->can('update-profile', auth()->user())"/>
 
             <div>
-                <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" :readonly="auth()->user()->isEmployee()"/>
+                <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" :readonly="!auth()->user()->can('update-profile', auth()->user())"/>
 
-                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
+                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !auth()->user()->hasVerifiedEmail())
                     <div>
                         <flux:text class="mt-4">
                             {{ __('Your email address is unverified.') }}
@@ -117,48 +112,38 @@ new class extends Component {
                 @endif
             </div>
 
-        <flux:select wire:model="gender" :label="__('Gender')" :disabled="auth()->user()->isEmployee()">
-            <option value="">-- {{ __('Select Gender') }} --</option>
-            <option value="F">{{ __('Female') }}</option>
-            <option value="M">{{ __('Male') }}</option>
-            <option value="O">{{ __('Other') }}</option>
-        </flux:select>
+            <flux:select wire:model="gender" :label="__('Gender')" :disabled="!auth()->user()->can('update-profile', auth()->user())">
+                <option value="">-- {{ __('Select Gender') }} --</option>
+                <option value="F">{{ __('Female') }}</option>
+                <option value="M">{{ __('Male') }}</option>
+                <option value="O">{{ __('Other') }}</option>
+            </flux:select>
 
-            @unless(auth()->user()->isEmployee())
+            @can('update-profile', auth()->user())
                 <flux:input wire:model="default_delivery_address" :label="__('Delivery Address')" type="text" autocomplete="street-address" />
-            @endunless  
-
-            @unless(auth()->user()->isEmployee())
                 <flux:input wire:model="nif" :label="__('NIF Number')" type="text" />
-            @endunless
-
-            @unless(auth()->user()->isEmployee())
                 <flux:input wire:model="payment_details" :label="__('Payment Information')" type="text" />
-            @endunless
-            
-            <flux:input wire:model="profile_photo" :label="__('Profile Photo')" type="file" accept="image/*" :disabled="auth()->user()->isEmployee()" />
+            @endcan
 
+            <flux:input wire:model="profile_photo" :label="__('Profile Photo')" type="file" accept="image/*" :disabled="!auth()->user()->can('update-profile', auth()->user())" />
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">
-                    @unless(auth()->user()->isEmployee())
+                    @can('update-profile', auth()->user())
                         <flux:button variant="primary" type="submit" class="w-full">
                             {{ __('Save') }}
                         </flux:button>
-                    @endunless  
+                    @endcan
                 </div>
 
                 <x-action-message class="me-3" on="profile-updated">
                     {{ __('Saved.') }}
                 </x-action-message>
-
-               
-
             </div>
         </form>
 
-        @unless(auth()->user()->isEmployee())
+        @can('update-profile', auth()->user())
             <livewire:settings.delete-user-form />
-        @endunless
+        @endcan
     </x-settings.layout>
 </section>

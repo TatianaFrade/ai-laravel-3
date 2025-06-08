@@ -18,8 +18,8 @@ class CardController extends Controller
         $card = $user->card;
 
  
-        if (!$card) {
-            return redirect()->back()->with('error', 'Nenhum cartão encontrado para este utilizador.');
+        if ($card) {
+            $this->authorize('view', $card);
         }
 
 

@@ -3,10 +3,10 @@
                         subheading="Manage the users offered by the institution">
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl ">
     @can('create', App\Models\User::class)
-    <div class="flex items-center gap-4 mb-4">
-      <flux:button variant="primary" href="{{ route('users.create') }}">Create a new employee</flux:button>
-    </div>
-  @endcan
+      <div class="flex items-center gap-4 mb-4">
+        <flux:button variant="primary" href="{{ route('users.create') }}">Create a new employee</flux:button>
+      </div>
+    @endcan
  
     <div class="flex justify-start ">
       <div class="my-4 p-6 w-full">
@@ -38,19 +38,13 @@
                @foreach ($allUsers as $user)
               <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
                  <td class="px-2 py-2 text-left">
-                  @php
-                    $imagePath = 'storage/users/' . $user->photo;
-                    $fullImagePath = public_path($imagePath);
-                  @endphp
+                  
 
-                  @if ($user->photo && file_exists($fullImagePath))
-                    <img src="{{ asset($imagePath) }}" 
-                         alt="Photo of {{ $user->name }}" 
-                         class="h-10 w-10 rounded-full object-cover">
-                  @else
-                    <span class="text-gray-400">No photo</span>
-                  @endif
+                   <div class="h-20 w-20 rounded-full object-cover">
+                    <img src="{{ $user->image_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover rounded" />
+                  </div>
 
+   
                   </td>
                   <td class="{{ $user->trashed() ? 'text-red-600 font-semibold' : '' }}">
                     {{ $user->name }}
@@ -59,26 +53,27 @@
                   <td class="px-2 py-2 text-left">{{ $user->type }}</td>
                   <td class="px-2 py-2 text-left">{{ $user->gender }}</td>
 
-                  @can('update', $user)
-                    <td class="px-2 py-2 text-left">
-                      @if ($user->type === 'member')
-                        <form action="{{ route('users.toggleBlocked', $user->id) }}" method="POST">
-                          @csrf
-                          @method('PATCH')
-                          <button 
-                            type="submit" 
-                            title="{{ $user->blocked ? 'Desbloquear utilizador' : 'Bloquear utilizador' }}"
-                            class="text-sm text-white px-3 py-1 rounded 
-                                  {{ $user->blocked ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
-                            {{ $user->blocked ? 'Blocked' : 'Unblocked' }}
-                          </button>
-                        </form>
-                      @else
-                        {{-- Mostrar hífen alinhado no lugar do botão --}}
+               <td class="px-2 py-2 text-left">
+                    @can('update', $user)
+                        @if ($user->id !== Auth::id() && $user->type === 'member')
+                            <form action="{{ route('users.toggleBlocked', $user->id) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <button 
+                                    type="submit" 
+                                    title="{{ $user->blocked ? 'Desbloquear utilizador' : 'Bloquear utilizador' }}"
+                                    class="text-sm text-white px-3 py-1 rounded 
+                                        {{ $user->blocked ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
+                                    {{ $user->blocked ? 'Blocked' : 'Unblocked' }}
+                                </button>
+                            </form>
+                        @else
+                            <div class="text-left text-gray-500">-</div>
+                        @endif
+                    @else
                         <div class="text-left text-gray-500">-</div>
-                      @endif
-                    </td>
-                  @endcan
+                    @endcan
+                </td>
 
                   <td class="ps-2 px-0.5">
                     <a href="{{ route('users.show', ['user' => $user]) }}" class="hover:text-gray-600" title="View">

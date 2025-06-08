@@ -13,17 +13,19 @@ use Illuminate\Support\Facades\Hash;
 use App\Traits\PhotoFileStorage;
 
 
+
+
 class UserController extends Controller
 {
     use AuthorizesRequests;
     use PhotoFileStorage;
 
-    public function __construct() 
-    { 
+    public function __construct()
+    {
         $this->authorizeResource(User::class, 'user');
     }
 
-   public function index(Request $request): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', User::class);
 
@@ -36,7 +38,7 @@ class UserController extends Controller
 
         if ($filterByName !== null) {
             $usersQuery->where('name', 'LIKE', $filterByName . '%')
-            ->orWhere('email', 'LIKE', $filterByName . '%');
+                ->orWhere('email', 'LIKE', $filterByName . '%');
         }
 
         if (!empty($filterByGender)) {
@@ -68,13 +70,13 @@ class UserController extends Controller
         ];
 
         return view('users.index', compact(
-        'allUsers',
-        'filterByName',
-        'filterByGender',
-        'filterByType',
-        'listGenders',
-        'listTypes',
-    ));
+            'allUsers',
+            'filterByName',
+            'filterByGender',
+            'filterByType',
+            'listGenders',
+            'listTypes',
+        ));
     }
 
 
@@ -87,15 +89,44 @@ class UserController extends Controller
     public function create(): View
     {
         $this->authorize('create', User::class);
-        $newUser = new User();
-        return view('users.create')->with('user', $newUser);
+
+        $newUser = new User(['type' => 'employee']);
+
+        $fields = [
+            'name',
+            'email',
+            'type',
+            'gender',
+            'password',
+            'default_delivery_address',
+            'nif',
+            'payment_details',
+            'photo'
+        ];
+
+        $editableFields = [];
+
+        foreach ($fields as $field) {
+            if (auth()->user()->can('updateField', [$newUser, $field])) {
+                $editableFields[] = $field;
+            }
+        }
+
+        return view('users.create', [
+            'user' => $newUser,
+            'editableFields' => $editableFields,
+        ]);
     }
+
 
     public function store(UserFormRequest $request): RedirectResponse
     {
         $this->authorize('create', User::class);
 
         $data = $request->validated();
+
+        $data['type'] = 'employee'; // board só pode criar employee
+        $data['blocked'] = 0;   // employee nunca começa bloqueado
 
         if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
@@ -106,8 +137,6 @@ class UserController extends Controller
 
         if ($request->hasFile('photo')) {
             $filename = $this->storePhoto($request->file('photo'), $user, 'photo', 'users');
-
-  
             $user->photo = $filename;
             $user->save();
         }
@@ -119,10 +148,35 @@ class UserController extends Controller
 
 
 
+
     public function edit(User $user): View
     {
         $this->authorize('update', $user);
-        return view('users.edit')->with('user', $user);
+
+        $fields = [
+            'name',
+            'email',
+            'type',
+            'gender',
+            'password',
+            'default_delivery_address',
+            'nif',
+            'payment_details',
+            'photo'
+        ];
+
+        $editableFields = [];
+
+        foreach ($fields as $field) {
+            if (auth()->user()->can('updateField', [$user, $field])) {
+                $editableFields[] = $field;
+            }
+        }
+
+        return view('users.edit', [
+            'user' => $user,
+            'editableFields' => $editableFields,
+        ]);
     }
 
 
@@ -142,7 +196,7 @@ class UserController extends Controller
 
             $this->deletePhoto($user, 'photo', 'users');
 
-    
+
             $filename = $this->storePhoto($request->file('photo'), $user, 'photo', 'users');
 
             $data['photo'] = $filename;
@@ -160,7 +214,7 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
-       $this->authorize('delete', $user);
+        $this->authorize('delete', $user);
 
         try {
             $user->delete();
@@ -181,7 +235,7 @@ class UserController extends Controller
                 ->with('alert-type', 'danger')
                 ->with('alert-msg', $alertMsg);
         }
-        
+
     }
     public function toggleBlocked(User $user)
     {
