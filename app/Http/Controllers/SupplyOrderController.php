@@ -22,11 +22,11 @@ class SupplyOrderController extends Controller
 
     public function index()
     {
-         $allSupplyorders = SupplyOrder::with('product')->paginate(10);
+         $allSupplyorders = SupplyOrder::with(['product','registeredByUser'])->paginate(10);
         return view('supplyorders.index')->with('allSupplyorders', $allSupplyorders);
 
     }
-
+    
     public function create()
     {
         $userType = auth()->user()->type ?? null;

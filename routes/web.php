@@ -14,6 +14,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SupplyOrderController;
 use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\OperationController;
+use App\Http\Controllers\CardController;
 use App\Http\Controllers\MembershipFeeController;
 
 use App\Http\Controllers\CartController;
@@ -72,10 +73,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('orders', OrderController::class);
     Route::resource('supplyorders', SupplyOrderController::class);
     Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
-
-
-
-
+    Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
 
     Route::patch('/users/{user}/toggle-blocked', [UserController::class, 'toggleBlocked'])->name('users.toggleBlocked');
 

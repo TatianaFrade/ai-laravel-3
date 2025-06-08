@@ -46,7 +46,6 @@
             <flux:navlist.group :heading="__('Services')" class="grid">
                 <flux:navlist.item icon="academic-cap" :href="route('products.index')"
                     :current="request()->routeIs('products.index')" wire:navigate>Products</flux:navlist.item>
-
                 <flux:navlist.item icon="academic-cap" :href="route('orders.index')"
                     :current="request()->routeIs('orders.index')" wire:navigate>Orders</flux:navlist.item>
 

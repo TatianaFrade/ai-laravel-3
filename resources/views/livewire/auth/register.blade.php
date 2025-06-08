@@ -42,19 +42,20 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $validated['password'] = Hash::make($validated['password']);
 
         if ($this->photo) {
-            $validated['photo'] = $this->photo->store('profile-photos', 'public');
+            $filename = $this->photo->getClientOriginalName();
+            $storedPath = $this->photo->storeAs('users', uniqid() . '_' . $filename, 'public');
+            $validated['photo'] = basename($storedPath); // guarda apenas o nome
         }
+
 
         event(new Registered(($user = User::create($validated))));
 
-        
 
         Auth::login($user);
 
-        Card::createForUser($user);
+     
+        $this->redirectIntended(route('verification.notice'), navigate: true);
 
-        //$this->redirectIntended(route('profile.edit', absolute: false), navigate: true);
-        $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
     }
 }; ?>
 

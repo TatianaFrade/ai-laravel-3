@@ -99,13 +99,12 @@ class ProductController extends Controller
             $data['discount'] = null;
         }
 
-         // Se o campo discount estiver vazio ou não enviado, definir como null
         if (!$request->filled('discount')) {
             $data['discount'] = null;
         }
 
         $product = new Product($data);
-        $product->save();  // Salva antes de salvar a foto para ter ID
+        $product->save(); 
 
         if ($request->hasFile('photo')) {
             $this->storePhoto($request->file('photo'), $product, 'photo', 'products');

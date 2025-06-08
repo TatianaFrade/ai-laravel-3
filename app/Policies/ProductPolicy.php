@@ -52,4 +52,16 @@ class ProductPolicy
     {
         return false;
     }
+
+    public function viewTable(User $user): bool
+    {
+        return in_array($user->type, ['board', 'employee']);
+    }
+
+    public function viewFilter(User $user): bool
+    {
+        return in_array($user->type, ['board', 'employee']);
+    }
+
+
 }

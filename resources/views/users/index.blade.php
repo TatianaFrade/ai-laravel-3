@@ -51,10 +51,6 @@
                     <span class="text-gray-400">No photo</span>
                   @endif
 
-
-        
-
-
                   </td>
                   <td class="{{ $user->trashed() ? 'text-red-600 font-semibold' : '' }}">
                     {{ $user->name }}

@@ -18,7 +18,7 @@
               <tr class="border-b-2 border-b-gray-400 dark:border-b-gray-500 bg-gray-100 dark:bg-gray-800">
                 <th class="px-3 py-2 text-left">Photo</th>
                 <th class="px-3 py-2 text-left">Name</th>
-                <th class="px-3 py-2 text-left">Type</th>
+                {{-- <th class="px-3 py-2 text-left">Type</th> --}}
                 <th class="px-3 py-2 text-left">Products</th>
                 <th class="px-3 py-2 text-center"></th>
               </tr>
@@ -43,7 +43,7 @@
                 <td class="px-3 py-2 {{ $category->trashed() ? 'text-red-600 font-semibold' : '' }}">
                   {{ $category->name }}
                 </td>
-                <td class="px-3 py-2">{{ $category->type ?? '—' }}</td>
+                {{-- <td class="px-3 py-2">{{ $category->type ?? '—' }}</td> --}}
                 <td class="px-3 py-2">{{ $category->products_count ?? '0' }}</td>
                 <td class="px-3 py-2 text-center">
                   <div class="flex justify-center items-center gap-2">
