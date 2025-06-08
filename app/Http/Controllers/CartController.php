@@ -203,6 +203,15 @@ class CartController extends Controller
                     'discount' => $product->discount ?? 0,
                     'subtotal' => ($product->price - ($product->discount ?? 0)) * $product->quantity,
                 ]);
+
+                //se a quantidade no stock for menor que a quantidade de produtos no carrinho, 
+                //não permitir a compra e avisar o utilizador que para a quantidade de produtos 
+                //que ele quer comprar não há stock suficiente e vai ter de aguardar
+                $productModel = Product::find($product->id);
+                if ($productModel) {
+                    $productModel->stock = max(0, $productModel->stock - $product->quantity);
+                    $productModel->save();
+                }
             }
 
             // Debitar saldo do cartão virtual

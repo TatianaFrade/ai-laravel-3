@@ -2,6 +2,7 @@
 
 
 use App\Http\Controllers\ShippingCostController;
+use App\Models\Operation;
 use App\Models\Order;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -12,23 +13,24 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SupplyOrderController;
 use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\OperationController;
 use App\Http\Controllers\CardController;
-
 use App\Http\Controllers\MembershipFeeController;
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CreditController;
+use App\Http\Controllers\CardController;
 
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\User;
-use App\Models\Course;
-
 
 
 
 /* ----- PUBLIC ROUTES ----- */
 Route::get('/', function () {
-    return view('welcome'); })->name('home');
+    return view('welcome');
+})->name('home');
 
 Route::get('products/showcase', [ProductController::class, 'showCase'])->name('products.showcase')
     ->can('viewShowCase', Product::class);
@@ -49,6 +51,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 
+
+    Route::get('/card/{id}', [CardController::class, 'show'])->name('card.show');
+    Route::post('/card/update', [CardController::class, 'update'])->name('balance.update');
+
+    Route::get('/credit', [CreditController::class, 'create'])->name('credit.create');
+    Route::post('/credit', [CreditController::class, 'store'])->name('credit.store');
+    Route::get('/operations', [OperationController::class, 'index'])->name('operations.index');
+
 });
 
 
@@ -65,16 +75,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
     Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
 
-
-
-
-
-
     Route::patch('/users/{user}/toggle-blocked', [UserController::class, 'toggleBlocked'])->name('users.toggleBlocked');
-   
+
     Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
     Route::patch('products/{product}/stock', [ProductController::class, 'updateStock'])
-    ->name('products.updateStock');
+        ->name('products.updateStock');
 
 
 
@@ -83,7 +88,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/product/{product}/force', [UserController::class, 'forceDestroy'])->name('products.forceDestroy');
 
 
-    
+
     Route::get('/stockadjustments', [StockAdjustmentController::class, 'index'])->name('stockadjustments.index');
 });
 

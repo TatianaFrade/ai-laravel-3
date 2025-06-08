@@ -86,7 +86,6 @@
         <div class="mt-4 flex justify-center">
           {{ $allProducts->withQueryString()->links() }}
         </div>
-
       </div>
     </div>
   </div>
