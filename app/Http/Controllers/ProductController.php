@@ -31,7 +31,7 @@ class ProductController extends Controller
     public function index(Request $request): View
     {
         $filterByName = $request->input('name');
-        $orderPrice = $request->input('order_price'); 
+        $orderPrice = $request->input('order_price');
         $orderStock = $request->input('order_stock');
 
         $productQuery = Product::withTrashed()->withCount('category');
@@ -65,14 +65,17 @@ class ProductController extends Controller
 
     public function showCase(): View
     {
+        $this->authorize('viewShowCase', Product::class); // respeita a policy
+
         return view('products.showcase');
     }
+
 
     public function show(Product $product): View
     {
         $categories = Category::orderBy('name')->get();
 
-        $tr = new GoogleTranslate('en'); 
+        $tr = new GoogleTranslate('en');
         $product->description_translated = $tr->translate($product->description);
 
         return view('products.show', [
@@ -82,7 +85,7 @@ class ProductController extends Controller
         ]);
     }
 
-    
+
     public function create(): View
     {
         $categories = Category::orderBy('name')->get();
@@ -104,7 +107,7 @@ class ProductController extends Controller
         }
 
         $product = new Product($data);
-        $product->save(); 
+        $product->save();
 
         if ($request->hasFile('photo')) {
             $this->storePhoto($request->file('photo'), $product, 'photo', 'products');
@@ -119,7 +122,7 @@ class ProductController extends Controller
     {
         $categories = Category::orderBy('name')->get();
 
-        $tr = new GoogleTranslate('en'); 
+        $tr = new GoogleTranslate('en');
         $product->description_translated = $tr->translate($product->description);
 
         $userType = auth()->check() ? auth()->user()->type : 'guest';
@@ -146,26 +149,26 @@ class ProductController extends Controller
         }
 
         // Se o campo discount estiver vazio ou não enviado, definir como null
-        
+
         if (!$request->filled('stock')) {
             $data['stock'] = null;
         }
-        
+
         if (!$request->filled('discount')) {
             $data['discount'] = null;
         }
 
-          if ($request->hasFile('photo')) {
-                $this->deletePhoto($product, 'photo', 'products');
-                $this->storePhoto($request->file('photo'), $product, 'photo', 'products');
+        if ($request->hasFile('photo')) {
+            $this->deletePhoto($product, 'photo', 'products');
+            $this->storePhoto($request->file('photo'), $product, 'photo', 'products');
 
-                unset($data['photo']);
-            }
+            unset($data['photo']);
+        }
 
-            $product->update($data);
+        $product->update($data);
 
 
-        
+
 
         $newStock = $product->stock;
         $stockChanged = $newStock - $oldStock;
@@ -204,7 +207,7 @@ class ProductController extends Controller
 
 
 
-   public function destroy(Product $product): RedirectResponse
+    public function destroy(Product $product): RedirectResponse
     {
         try {
             $hasSales = \DB::table('items_orders')
@@ -251,6 +254,7 @@ class ProductController extends Controller
         return redirect()->route('products.index')
             ->with('success', "Product <strong>{$product->name}</strong> deleted permanently.");
     }
+
 
 
 }

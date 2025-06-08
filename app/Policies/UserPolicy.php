@@ -13,7 +13,7 @@ class UserPolicy
     }
 
 
-    public function view( User $user)
+    public function view(User $user)
     {
         return in_array($user->type, ['employee', 'board']);
     }
@@ -28,7 +28,7 @@ class UserPolicy
     public function update(User $user, User $userToUpdate)
     {
         if ($user->id === $userToUpdate->id) {
-        return false;  
+            return false;
         }
         return $user->type === 'board';
     }
@@ -48,7 +48,27 @@ class UserPolicy
 
 
 
-    
+    public function updateField(User $authUser, User $userToEdit, string $field): bool
+    {
+        if ($authUser->type !== 'board') {
+            return false;
+        }
+
+        // Se estiver a criar um novo user (sem ID), assume que é employee
+        $isCreating = !$userToEdit->exists;
+
+        // Se a criar ou editar um employee, só permite estes campos
+        if ($isCreating || $userToEdit->type === 'employee') {
+            return in_array($field, ['email', 'password', 'name', 'gender', 'photo']);
+        }
+
+        // Ao editar um board ou member, permite tudo
+        return true;
+    }
+
+
+
+
     public function restore(User $user, User $model): bool
     {
         return false;

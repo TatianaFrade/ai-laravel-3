@@ -16,12 +16,12 @@
               </tr>
             </thead>
             <tbody>
-              @foreach ($stockadjustments as $stockadjustment)
+              @foreach ($stockadjustments as $index => $stockadjustment)
                 <tr>
-                  <td class="px-3 py-2">{{ $stockadjustment->id ?? '—' }}</td>
-                  <td class="px-3 py-2">{{ $stockadjustment->product_id ?? '0' }}</td>
-                  <td class="px-3 py-2">{{ $stockadjustment->registered_by_user_id ?? '0' }}</td>
-                  <td class="px-3 py-2">{{ $stockadjustment->quantity_changed ?? '0' }}</td>
+                    <td class="px-3 py-2">{{ $index + 1 }}</td>
+                    <td class="px-3 py-2">{{ $stockadjustment->product->name ?? '—' }}</td>
+                    <td class="px-3 py-2">{{ $stockadjustment->user->name ?? '—' }}</td>
+                    <td class="px-3 py-2">{{ $stockadjustment->quantity_changed ?? '0' }}</td>
                 </tr>
               @endforeach
 

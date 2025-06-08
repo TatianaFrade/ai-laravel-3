@@ -9,34 +9,40 @@ class MembershipFeePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->type === 'board';
+        return true;
     }
 
-    public function update(User $user, MembershipFee $fee): bool
+    public function view(User $user, MembershipFee $membershipFee): bool
     {
-        return $user->type === 'board';
+        return true;
     }
 
-
-
-
-    
     public function create(User $user): bool
     {
-        return false;   
+        return $user->type === 'board';
     }
 
-    public function delete(User $user, MembershipFee $fee): bool
+    public function update(User $user, MembershipFee $membershipFee): bool
     {
-        return false; 
+        return $user->type === 'board' && request('view') !== 'public';
     }
 
-    public function restore(User $user, MembershipFee $fee): bool
+    public function pay(User $user, MembershipFee $membershipFee): bool
+    {
+        return $user->blocked === 1;
+    }
+
+    public function delete(User $user, MembershipFee $membershipFee): bool
     {
         return false;
     }
 
-    public function forceDelete(User $user, MembershipFee $fee): bool
+    public function restore(User $user, MembershipFee $membershipFee): bool
+    {
+        return false;
+    }
+
+    public function forceDelete(User $user, MembershipFee $membershipFee): bool
     {
         return false;
     }

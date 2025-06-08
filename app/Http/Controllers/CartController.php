@@ -27,21 +27,17 @@ class CartController extends Controller
 
     public function addToCart(Request $request, Product $product): RedirectResponse
     {
-        $cart = session('cart', collect()); // Garante que o carrinho seja uma coleção
+        $cart = session('cart', collect()); 
 
-        // Verifica se o produto já existe no carrinho
         $existingProduct = $cart->firstWhere('id', $product->id);
 
         if ($existingProduct) {
-            // Se já estiver no carrinho, aumenta a quantidade
             $existingProduct->quantity++;
         } else {
-            // Caso contrário, adiciona o produto como um objeto e cria um atributo "quantity"
             $product->quantity = 1;
             $cart->push($product);
         }
 
-        // Atualiza a sessão do carrinho
         $request->session()->put('cart', $cart);
 
         $alertType = 'success';
@@ -79,7 +75,6 @@ class CartController extends Controller
             $existingProduct->quantity--;
             $request->session()->put('cart', $cart);
         } elseif ($existingProduct) {
-            // Se a quantidade for 1, remove o produto do carrinho
             $cart = $cart->reject(fn($item) => $item->id === $product->id);
             $request->session()->put('cart', $cart);
         }
@@ -139,22 +134,18 @@ class CartController extends Controller
 
     public function confirm(CartConfirmationFormRequest $request): RedirectResponse
     {
-        //dd("A função confirm() foi chamada!");
-
-
 
         $cart = session('cart', null);
         if (!$cart || $cart->isEmpty()) {
             return back()->with('alert-type', 'danger')->with('alert-msg', "O carrinho está vazio!");
         }
-        //dd($cart);
-        // Buscar utilizador e verificar se é membro do clube
+ 
         $user = User::where('nif', $request->validated()['nif'])->first();
         if (!$user || !$user->isRegular()) {
             return $user ? back()->with('alert-type', 'danger')->with('alert-msg', "Apenas membros do clube podem fazer compras.")
                 : redirect()->route('login')->with('alert-msg', "Precisas de iniciar sessão para confirmar a compra.");
         }
-        //dd($user);
+
 
         $virtualCard = Card::where('id', $user->id)->first();
 
@@ -163,25 +154,22 @@ class CartController extends Controller
         }
 
         $cardBalance = $virtualCard->balance;
-        //dd($cardBalance);
-        // Calcular o total dos itens com desconto aplicado
+
         $totalItems = $cart->sum(fn($product) => ($product->price - ($product->discount ?? 0)) * $product->quantity);
 
         $totalCartItems = $cart->sum(fn($product) => $product->quantity);
 
-        // Obter o custo de envio correto da tabela com base no total da compra
         $shippingCosts = ShippingCost::where('min_value_threshold', '<=', $totalItems)
             ->where('max_value_threshold', '>=', $totalItems)
-            ->value('shipping_cost') ?? 0.00; // Definir como 0 se não houver correspondência
-        //dd($shippingCosts);
-        // Calcular total do pedido
+            ->value('shipping_cost') ?? 0.00; 
+
         $totalOrder = $totalItems + $shippingCosts;
 
         if ($cardBalance < $totalOrder) {
             return back()->with('alert-type', 'danger')->with('alert-msg', "Saldo insuficiente no cartão virtual.");
         }
 
-        // Criar o pedido
+  
         DB::transaction(function () use ($user, $cart, $totalCartItems, $shippingCosts, $totalOrder, $virtualCard) {
             $order = Order::create([
                 'member_id' => $user->id,

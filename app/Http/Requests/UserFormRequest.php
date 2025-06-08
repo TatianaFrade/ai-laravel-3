@@ -30,13 +30,7 @@ class UserFormRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email',
             'type' => 'required|in:member,board,employee',
-            'blocked' => [
-                'sometimes',
-                Rule::requiredIf(function () {
-                    return $this->input('type') === 'member';
-                }),
-                'boolean',
-            ],
+           
             'gender' => 'required|in:F,M,O',
             'default_delivery_address' => 'nullable|string|max:255',
             'nif' => 'nullable|digits_between:8,14',

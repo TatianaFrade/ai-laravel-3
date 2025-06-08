@@ -18,7 +18,6 @@
               <tr class="border-b-2 border-b-gray-400 dark:border-b-gray-500 bg-gray-100 dark:bg-gray-800">
                 <th class="px-3 py-2 text-left">Photo</th>
                 <th class="px-3 py-2 text-left">Name</th>
-                {{-- <th class="px-3 py-2 text-left">Type</th> --}}
                 <th class="px-3 py-2 text-left">Products</th>
                 <th class="px-3 py-2 text-center"></th>
               </tr>
@@ -26,20 +25,19 @@
             <tbody>
               @foreach ($allCategories as $category)
               <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
-                <td class="px-3 py-2">
-                  @php
-                    $imagePath = 'storage/categories/' . $category->image;
-                    $fullImagePath = public_path($imagePath);
-                  @endphp
 
-                  @if ($category->image && file_exists($fullImagePath))
-                    <img src="{{ asset($imagePath) }}" 
-                         alt="Photo of {{ $category->name }}" 
-                         class="h-20 w-20 rounded-full object-cover" />
+              <td class="px-3 py-2">
+                  @if (!empty($category->image) && file_exists(public_path('storage/categories/' . $category->image)))
+                      <img src="{{ asset('storage/categories/' . $category->image) }}" 
+                          alt="{{ $category->name }}" 
+                          class="w-20 h-20 object-cover rounded" />
                   @else
-                    <span class="text-gray-400">No photo</span>
+                      <span class="text-gray-400 text-xs">No photo</span>
                   @endif
-                </td>
+              </td>
+
+
+
                 <td class="px-3 py-2 {{ $category->trashed() ? 'text-red-600 font-semibold' : '' }}">
                   {{ $category->name }}
                 </td>

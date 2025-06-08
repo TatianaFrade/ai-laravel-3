@@ -13,16 +13,15 @@ class CardController extends Controller
     {
  
         $user = Auth::user();
-
-     
-        $card = $user->card;
+         $card = Card::find($user->id); // evita 404
 
  
-        if (!$card) {
-            return redirect()->back()->with('error', 'Nenhum cartão encontrado para este utilizador.');
+        if ($card) {
+            $this->authorize('view', $card);
         }
 
 
         return view('card.show', compact('card'));
     }
+
 }

@@ -1,31 +1,18 @@
 @php
-    $mode = $mode ?? 'edit';
-    $readonly = $mode === 'show';
-
-    // Se quiseres alguma lógica específica para campos diferentes, adiciona aqui
-    // Por exemplo, se alguns campos forem só leitura dependendo de outras condições
-    $disableName = $readonly;
-    $disableImage = $readonly;
+    $imagePath = 'storage/categories/' . ($category->image ?? '');
 @endphp
 
-<div class="w-full sm:w-96">
-    <flux:input 
-        name="name" 
-        label="Name" 
-        value="{{ old('name', $category->name ?? '') }}" 
-        :disabled="$disableName" 
-        :placeholder="__('Required')" 
-    />
-    @if ($disableName)
-        <input type="hidden" name="name" value="{{ old('name', $category->name ?? '') }}">
+<div class="h-24 w-24 mb-4 rounded-full overflow-hidden">
+    @if (!empty($category->image) && file_exists(public_path($imagePath)))
+        <img src="{{ asset($imagePath) }}"
+             alt="Category image"
+             class="w-full h-full object-cover" />
+    @else
+        <div class="w-full h-full flex items-center justify-center text-sm text-gray-500 border border-dashed border-gray-300">
+            No photo
+        </div>
     @endif
 </div>
-
-@if(isset($category) && isset($category->image) && $category->image)
-    <img src="{{ asset('storage/categories/' . $category->image) }}" 
-         alt="Category image" 
-         class="h-24 w-24 object-cover rounded-full mb-4" />
-@endif
 
 <flux:input
     name="image"
@@ -34,6 +21,7 @@
     accept="image/*"
     :disabled="$disableImage"
 />
+
 @if ($disableImage)
     <input type="hidden" name="image" value="{{ old('image', $category->image ?? '') }}">
 @endif

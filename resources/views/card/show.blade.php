@@ -23,7 +23,9 @@
               </tbody>
             </table>
           @else
-            <p>User does not have a card yet.</p>
+            <div class="text-center py-12 text-gray-500 text-lg">
+              You don’t have a card yet.
+            </div>
           @endif
         </div>
       </div>

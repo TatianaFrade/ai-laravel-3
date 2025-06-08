@@ -10,6 +10,8 @@ use App\Models\User;
 
 class AppServiceProvider extends ServiceProvider
 {
+    
+
     public function register(): void
     {
         
@@ -20,6 +22,38 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('board', function (User $user) { 
             return $user->type === 'board';
         }); 
+
+        Gate::define('employee', fn(User $user) => $user->type === 'employee');
+
+        Gate::define('manage-users', function (User $user) {
+            return in_array($user->type, ['board', 'employee']);
+        });
+
+
+
+
+        Gate::define('viewAny-user', function (User $user) {
+            return in_array($user->type, ['employee', 'board']);
+        });
+
+        Gate::define('view-user', function (User $user, User $userToView) {
+            return in_array($user->type, ['employee', 'board']);
+        });
+
+      
+
+
+
+        Gate::define('update-profile', function ($user, $targetUser = null) {
+            return $user->isBoard() || $user->isRegular();
+        });
+
+        Gate::define('see-obfuscated-order-id', function (User $user) {
+        return $user->type === 'member';
+    });
+
+
+
 
         
     }

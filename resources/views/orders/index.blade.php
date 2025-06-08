@@ -1,72 +1,94 @@
-<x-layouts.main-content :title="__('Orders')"
-                        heading="List of Orders"
-                        subheading="Manage the orders">
+@php
+  use Illuminate\Support\Facades\Auth;
+
+  $isMember = Auth::user()->type === 'member';
+@endphp
+
+<x-layouts.main-content 
+    :title="__('Orders')"
+    :heading="$isMember ? 'My Orders' : (request()->boolean('mine') ? 'My Orders' : 'List of Orders')"
+    :subheading="$isMember ? 'Here are your orders' : (request()->boolean('mine') ? 'Here are your orders' : 'Manage the orders of all users')">
+
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-    <div class="flex items-center gap-4 mb-4">
-      <flux:button variant="primary" href="{{ route('orders.create') }}">Create a new order</flux:button>
-    </div>
+
+    @can('create', App\Models\Order::class)
+      @if (!$isMember && !request()->boolean('mine'))
+        <div class="flex items-center gap-4 mb-4">
+          <flux:button variant="primary" href="{{ route('orders.create') }}">
+            Create a new order
+          </flux:button>
+        </div>
+      @endif
+    @endcan
+
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
-     
-
         <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
-          <table class="table w-full border-collapse">
-            <thead>
-              <tr class="border-b-2 border-b-gray-400 dark:border-b-gray-500 bg-gray-100 dark:bg-gray-800">
-                <th class="px-3 py-2 text-left">Id</th>
-                <th class="px-3 py-2 text-left">Member</th>
-                <th class="px-3 py-2 text-left">Status</th>
-                <th class="px-3 py-2 text-left">Date</th>
-                <th class="px-3 py-2 text-left">Total Items</th>
-                <th class="px-3 py-2 text-left">Shipping Cost</th>
-                <th class="px-3 py-2 text-left">Total</th>
-                <th class="px-3 py-2 text-center"></th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach ($allOrders as $order)
-              <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
-               
-                <td class="px-3 py-2">{{ $order->id }}</td>
-               <td class="px-3 py-2">
-                  {{ optional($order->user)->email ?? 'Email não disponível' }}
-              </td>
+          @if ($allOrders->count() > 0)
+            <table class="table w-full border-collapse">
+              <thead>
+                <tr class="border-b-2 border-b-gray-400 dark:border-b-gray-500 bg-gray-100 dark:bg-gray-800">
+                  <th class="px-3 py-2 text-left">Id</th>
 
-                <td class="px-3 py-2">{{ $order->status }}</td>
-                <td class="px-3 py-2">{{ $order->date }}</td>
-                <td class="px-3 py-2">{{ $order->total_items }}</td>
-                <td class="px-3 py-2">{{ $order->shipping_cost }}</td>
-                <td class="px-3 py-2">{{ $order->total }}</td>
-                <td class="px-3 py-2 text-center">
-                  <div class="flex justify-center items-center gap-2">
-                    <a href="{{ route('orders.show', ['order' => $order]) }}" title="View">
-                      <flux:icon.eye class="size-5 hover:text-gray-600" />
-                    </a>
-                    <a href="{{ route('orders.edit', ['order' => $order]) }}" title="Edit">
-                      <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
-                    </a>
+                  @if (!$isMember)
+                    <th class="px-3 py-2 text-left">Member</th>
+                  @endif
 
-                    {{-- @if (!$order->trashed())
-                      <form method="POST" action="{{ route('orders.destroy', ['order' => $order]) }}" class="inline-block">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" 
-                                title="{{ $order->products_count > 0 ? 'Soft delete (has products)' : 'Permanent delete (no products)' }}">
-                          @if ($order->products_count > 0)
-                            <flux:icon.cube class="size-5 hover:text-orange-500" />
+                  <th class="px-3 py-2 text-left">Status</th>
+                  <th class="px-3 py-2 text-left">Date</th>
+                  <th class="px-3 py-2 text-left">Total Items</th>
+                  <th class="px-3 py-2 text-left">Shipping Cost</th>
+                  <th class="px-3 py-2 text-left">Total</th>
+                  <th class="px-3 py-2 text-center"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach ($allOrders as $order)
+                  <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
+                    <td class="px-3 py-2">{{ $loop->iteration }}</td>
+
+                    @if (!$isMember)
+                      <td class="px-3 py-2">
+                        {{ optional($order->user)->email ?? 'Email não disponível' }}
+                      </td>
+                    @endif
+
+                    <td class="px-3 py-2">{{ $order->status }}</td>
+                    <td class="px-3 py-2">{{ $order->date }}</td>
+                    <td class="px-3 py-2">{{ $order->total_items }}</td>
+                    <td class="px-3 py-2">{{ $order->shipping_cost }}</td>
+                    <td class="px-3 py-2">{{ $order->total }}</td>
+
+                    <td class="px-3 py-2 text-center">
+                      <div class="flex justify-center items-center gap-2">
+                        <a href="{{ route('orders.show', ['order' => $order]) }}" title="View">
+                          <flux:icon.eye class="size-5 hover:text-gray-600" />
+                        </a>
+
+                        @can('update', $order)
+                          @if ($order->status === 'pending')
+                            <a href="{{ route('orders.edit', ['order' => $order]) }}" title="Edit">
+                              <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
+                            </a>
                           @else
-                            <flux:icon.trash class="size-5 hover:text-red-600" />
+                            <span class="size-5 inline-block"></span>
                           @endif
-                        </button>
-                      </form>
-                    @endif --}}
-                  </div>
-                </td>
-              </tr>
-              @endforeach
-            </tbody>
-          </table>
+                        @else
+                          <span class="size-5 inline-block"></span>
+                        @endcan
+                      </div>
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          @else
+            <div class="text-center py-12 text-gray-500 text-lg">
+              {{ $isMember || request()->boolean('mine') ? "You don't have any orders yet." : "No orders found." }}
+            </div>
+          @endif
         </div>
+
         <div class="mt-4">
           {{ $allOrders->links() }}
         </div>

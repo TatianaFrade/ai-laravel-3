@@ -2,10 +2,8 @@
 
 
 use App\Http\Controllers\ShippingCostController;
-use App\Models\Order;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
-use App\Http\Controllers\CourseController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
@@ -19,9 +17,7 @@ use App\Http\Controllers\MembershipFeeController;
 use App\Http\Controllers\CartController;
 
 use App\Models\Product;
-use App\Models\Category;
-use App\Models\User;
-use App\Models\Course;
+
 
 
 
@@ -32,6 +28,7 @@ Route::get('/', function () {
 
 Route::get('products/showcase', [ProductController::class, 'showCase'])->name('products.showcase')
     ->can('viewShowCase', Product::class);
+
 Route::get('cart', [CartController::class, 'show'])->name('cart.show');
 Route::post('cart/{product}', [CartController::class, 'addToCart'])->name('cart.add');
 Route::delete('cart/{product}', [CartController::class, 'removeFromCart'])->name('cart.remove');
@@ -56,13 +53,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 /* ----- AUTHENTICATED USERS (verificados ou não) ----- */
 Route::middleware(['auth'])->group(function () {
-    Route::resource('users', UserController::class);
+     Route::resource('users', UserController::class);
+//     Route::get('/users', [UserController::class, 'index'])->name('users.index')
+//     ->can('viewAny-user');
+
+// Route::get('/users/{user}', [UserController::class, 'show']) ->name('users.show')
+//     ->can('view-user', 'user');
+
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
     Route::resource('shippingcosts', ShippingCostController::class);
     Route::resource('orders', OrderController::class);
     Route::resource('supplyorders', SupplyOrderController::class);
     Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
+    Route::post('/membershipfees/{membershipfee}/pay', [MembershipFeeController::class, 'pay'])
+    ->name('membershipfees.pay');
+
+    
     Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
 
 
