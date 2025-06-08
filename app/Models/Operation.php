@@ -16,7 +16,7 @@ class Operation extends Model
         'payment_reference',
         'order_id'
     ];
-    
+
     protected $casts = [
         'date' => 'date', // Garante que a data seja tratada corretamente
     ];

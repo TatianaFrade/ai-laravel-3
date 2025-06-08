@@ -2,9 +2,6 @@
                         heading="List of Orders"
                         subheading="Manage the orders">
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-    <div class="flex items-center gap-4 mb-4">
-      <flux:button variant="primary" href="{{ route('orders.create') }}">Create a new order</flux:button>
-    </div>
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
      
@@ -44,6 +41,9 @@
                     </a>
                     <a href="{{ route('orders.edit', ['order' => $order]) }}" title="Edit">
                       <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
+                    </a>
+                    <a href="{{ route('orders.cancel', ['order' => $order]) }}" title="Cancel Order"></a>
+                      <flux:icon.x-circle class="size-5 hover:text-blue-600" />
                     </a>
 
                     {{-- @if (!$order->trashed())

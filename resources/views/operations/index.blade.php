@@ -52,6 +52,9 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="mt-4 flex justify-center">
+                    {{ $operations->withQueryString()->links() }}
+                </div>
             </section>
         </div>
     </div>

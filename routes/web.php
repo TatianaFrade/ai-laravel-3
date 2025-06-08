@@ -13,6 +13,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SupplyOrderController;
 use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\CardController;
+use App\Http\Controllers\OperationController;
 
 use App\Http\Controllers\MembershipFeeController;
 
@@ -49,6 +50,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 
+    Route::get('/card', [CardController::class, 'show'])->name('card.show');
+    Route::post('/card/update', [CardController::class, 'update'])->name('balance.update');
+
+    Route::get('/operations', [OperationController::class, 'index'])->name('operations.index');
+
 });
 
 
@@ -63,7 +69,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('orders', OrderController::class);
     Route::resource('supplyorders', SupplyOrderController::class);
     Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
-    Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
+    //Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
 
 
 

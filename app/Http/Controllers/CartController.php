@@ -8,6 +8,7 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\Operation;
 use App\Models\ShippingCost;
 use App\Http\Requests\CartConfirmationFormRequest;
 use Illuminate\Support\Facades\DB;
@@ -139,22 +140,16 @@ class CartController extends Controller
 
     public function confirm(CartConfirmationFormRequest $request): RedirectResponse
     {
-        //dd("A função confirm() foi chamada!");
-
-
-
         $cart = session('cart', null);
         if (!$cart || $cart->isEmpty()) {
             return back()->with('alert-type', 'danger')->with('alert-msg', "O carrinho está vazio!");
         }
-        //dd($cart);
-        // Buscar utilizador e verificar se é membro do clube
-        $user = User::where('nif', $request->validated()['nif'])->first();
+
+        $user = auth()->user();
         if (!$user || !$user->isRegular()) {
             return $user ? back()->with('alert-type', 'danger')->with('alert-msg', "Apenas membros do clube podem fazer compras.")
                 : redirect()->route('login')->with('alert-msg', "Precisas de iniciar sessão para confirmar a compra.");
         }
-        //dd($user);
 
         $virtualCard = Card::where('id', $user->id)->first();
 
@@ -163,25 +158,21 @@ class CartController extends Controller
         }
 
         $cardBalance = $virtualCard->balance;
-        //dd($cardBalance);
-        // Calcular o total dos itens com desconto aplicado
+
         $totalItems = $cart->sum(fn($product) => ($product->price - ($product->discount ?? 0)) * $product->quantity);
 
         $totalCartItems = $cart->sum(fn($product) => $product->quantity);
 
-        // Obter o custo de envio correto da tabela com base no total da compra
         $shippingCosts = ShippingCost::where('min_value_threshold', '<=', $totalItems)
             ->where('max_value_threshold', '>=', $totalItems)
-            ->value('shipping_cost') ?? 0.00; // Definir como 0 se não houver correspondência
-        //dd($shippingCosts);
-        // Calcular total do pedido
+            ->value('shipping_cost') ?? 0.00;
+
         $totalOrder = $totalItems + $shippingCosts;
 
         if ($cardBalance < $totalOrder) {
             return back()->with('alert-type', 'danger')->with('alert-msg', "Saldo insuficiente no cartão virtual.");
         }
 
-        // Criar o pedido
         DB::transaction(function () use ($user, $cart, $totalCartItems, $shippingCosts, $totalOrder, $virtualCard) {
             $order = Order::create([
                 'member_id' => $user->id,
@@ -205,12 +196,24 @@ class CartController extends Controller
                 ]);
             }
 
-            // Debitar saldo do cartão virtual
-            $virtualCard->balance -= $totalOrder;
-            $virtualCard->save();
+            // Reload the card for update to avoid race conditions
+            $card = Card::where('id', $virtualCard->id)->lockForUpdate()->first();
+            $card->balance -= $totalOrder;
+            $card->save();
+
+            Operation::create([
+                'card_id' => $card->id,
+                'type' => 'debit',
+                'value' => $totalOrder,
+                'date' => now()->format('Y-m-d'),
+                'debit_type' => 'order',
+                'credit_type' => null,
+                'payment_type' => null,
+                'payment_reference' => null,
+                'order_id' => $order->id,
+            ]);
         });
 
-        // Limpar carrinho e alertar sobre status do pedido
         $request->session()->forget('cart');
         return redirect()->route('products.index')
             ->with('alert-type', 'success')
