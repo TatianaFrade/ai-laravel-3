@@ -6,6 +6,9 @@ use App\Models\Card;
 use Illuminate\Http\Request;
 use App\Services\Payment;
 use App\Http\Requests\CardFormRequest;
+use App\Models\Operation;
+use App\Models\MembershipFee;
+
 class CardController extends Controller
 {
     public function show($id)
@@ -45,31 +48,77 @@ class CardController extends Controller
             abort(400, 'Método de pagamento inválido.');
         }
 
-        $this->updateBalance(auth()->id(), $data['amount']); // Atualiza o saldo do cartão
-
         // Registra a operação após atualizar o saldo -- continuar aqui
-
+        
         $card = Card::findOrFail(auth()->id());
         $card->operations()->create([
             'card_id' => $card->id,
-            'type' => 'deposit',
+            'type' => 'credit',
             'value' => $data['amount'],
-            'date' => now(),
+            'date' => now()->format('Y-m-d'),
             'debit_type' => null,
-            'credit_type' => null,
+            'credit_type' => 'payment',
             'payment_type' => $data['type'],
-            'payment_reference' => null,
+            'payment_reference' => $data['email'] ?? $data['phone_number'] ?? $data['card_num'] ?? null,
             'order_id' => null,
         ]);
 
-        return redirect()->back()->with('success', 'Saldo atualizado com sucesso!');
-    }
-
-    protected function updateBalance($id, $amount)
-    {
-        $card = Card::findOrFail($id);
-        $card->balance += $amount;
+        $card->balance += $data['amount'];
         $card->save();
-    }
 
+        $membershipFee = MembershipFee::latest()->value('membership_fee');
+
+        // Verifica se já existe uma operação de débito de mensalidade
+        $hasMembershipFee = $card->operations()
+            ->where('debit_type', 'membership_fee')
+            ->exists();
+    
+        
+        if (!$hasMembershipFee && $card->balance >= $membershipFee) {
+            // Debita a mensalidade
+            $card->balance -= $membershipFee;
+            $card->operations()->create([
+                'card_id' => $card->id,
+                'type' => 'debit',
+                'value' => $membershipFee,
+                'date' => now()->format('Y-m-d'),
+                'debit_type' => 'membership_fee',
+                'credit_type' => null,
+                'payment_type' => null,
+                'payment_reference' => null,
+                'order_id' => null,
+            ]);
+            $card->save();
+
+            $alertType = 'success';
+            $htmlMessage = "Saldo atualizado e mensalidade paga com sucesso!";
+            return redirect()->back()
+                ->with('alert-msg', $htmlMessage)
+                ->with('alert-type', $alertType);
+        } else if (!$hasMembershipFee && $card->balance < $membershipFee) {
+            $amountNeeded = $membershipFee - $card->balance;
+            
+            $alertType = 'warning';
+            $htmlMessage = "Saldo atualizado, mas insuficiente para pagar a mensalidade. Para pagar a mensalidade, adicione mais " . number_format($amountNeeded, 2, ',', '.') . "€ ao cartão.";
+            return redirect()->back()
+                ->with('alert-msg', $htmlMessage)
+                ->with('alert-type', $alertType);
+        }
+        $card->save();
+
+        $alertType = 'success';
+        $htmlMessage = "Saldo do cartão atualizado com sucesso!";
+        return redirect()->back()
+            ->with('alert-msg', $htmlMessage)
+            ->with('alert-type', $alertType);
+    }
 }
+
+// $alertType = 'success';
+//         $url = route('products.show', ['product' => $product]);
+//         $htmlMessage = "Product <a href='$url'>#{$product->id}
+//             <strong>\"{$product->name}\"</strong></a> foi adicionado ao carrinho.";
+
+//         return back()
+//             ->with('alert-msg', $htmlMessage)
+//             ->with('alert-type', $alertType);

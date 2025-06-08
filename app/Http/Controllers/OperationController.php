@@ -10,7 +10,9 @@ class OperationController extends Controller
 {
     public function index()
     {
-        return response()->json(Operation::all());
+        $operations = Operation::where('card_id', auth()->id())->get();
+
+        return view('operations.index', compact('operations'));
     }
 
     public function show($id)

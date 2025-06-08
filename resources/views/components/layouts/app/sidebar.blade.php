@@ -52,6 +52,9 @@
 
                 <flux:navlist.item icon="academic-cap" :href="route('card.show', ['id' => auth()->user()->id])"
                     :current="request()->routeIs('card.show')" wire:navigate>Card</flux:navlist.item>
+
+                <flux:navlist.item icon="academic-cap" :href="route('operations.index')"
+                    :current="request()->routeIs('operations.show')" wire:navigate>Operations</flux:navlist.item>
             </flux:navlist.group>
         </flux:navlist>
 

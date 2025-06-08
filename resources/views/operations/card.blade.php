@@ -19,7 +19,7 @@
                             Saldo: <span class="text-green-400">€{{ number_format($card->balance, 2) }}</span>
                         </p>
                     </div>
-                    <div class="flex flex-wrap gap-4 mt-4">
+                    <div class="flex flex-wrap gap-2 mt-4 justify-center">
                         <div class="flex-1 min-w-[180px]">
                             <flux:input name="amount" label="Adicionar Valor (€)" value="{{ old('amount') }}"
                                 class="w-full" />
@@ -62,7 +62,7 @@
                         </script>
                     </div>
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6">
-                        <div class="flex space-x-2 w-full">
+                        <div class="flex space-x-2 w-full justify-center">
                             <flux:button variant="primary" class="w-1/3" type="submit">
                                 Adicionar
                             </flux:button>
@@ -70,6 +70,7 @@
                         </div>
                     </div>
                 </form>
+
             </section>
         </div>
     </div>
