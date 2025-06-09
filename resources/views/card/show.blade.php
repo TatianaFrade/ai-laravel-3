@@ -1,6 +1,7 @@
 <x-layouts.main-content :title="'Meu Cartão'" :heading="'Detalhes do cartão'"
     subheading='Verifique as informações do seu cartão abaixo.'>
 
+    @if($card)
     <div class="flex flex-col space-y-6">
         <div class="w-1/2 ml-0">
             <section class="bg-gray-800 text-white p-6 rounded-lg shadow-md">
@@ -72,6 +73,11 @@
                 </form>
 
             </section>
+             @else
+                <div class="flex justify-center items-center h-64">
+                    <span class="text-lg text-gray-600">You don't have a card yet</span>
+                </div>
+            @endif
         </div>
     </div>
 </x-layouts.main-content>
