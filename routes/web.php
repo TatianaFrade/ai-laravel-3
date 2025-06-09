@@ -17,6 +17,8 @@ use App\Http\Controllers\MembershipFeeController;
 
 use App\Http\Controllers\CartController;
 
+use App\Http\Controllers\StatisticsController;
+
 use App\Models\Product;
 
 
@@ -52,6 +54,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/operations', [OperationController::class, 'index'])->name('operations.index');
 
+	Route::get('statistics/basic', [StatisticsController::class, 'basic'])->name('statistics.basic');
+	Route::get('statistics/advanced', [StatisticsController::class, 'advanced'])->name('statistics.advanced');
 });
 
 
