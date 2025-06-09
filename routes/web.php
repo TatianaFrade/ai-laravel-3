@@ -81,7 +81,7 @@ Route::middleware(['auth'])->group(function () {
     ->name('membershipfees.pay');
 
     
-    Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
+    Route::get('card', [CardController::class, 'show'])->name('card.show');
 
 
 

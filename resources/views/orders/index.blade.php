@@ -17,13 +17,13 @@
             <table class="table w-full border-collapse">
               <thead>
                 <tr class="border-b-2 border-b-gray-400 dark:border-b-gray-500 bg-gray-100 dark:bg-gray-800">
-                  <th class="px-3 py-2 text-left">Id</th>
+                  {{-- <th class="px-3 py-2 text-left">Id</th>
 
                 <td class="px-3 py-2">{{ $order->status }}</td>
                 <td class="px-3 py-2">{{ $order->date }}</td>
                 <td class="px-3 py-2">{{ $order->total_items }}</td>
                 <td class="px-3 py-2">{{ $order->shipping_cost }}</td>
-                <td class="px-3 py-2">{{ $order->total }}</td>
+                <td class="px-3 py-2">{{ $order->total }}</td> --}}
                 <td class="px-3 py-2 text-center">
                   <div class="flex justify-center items-center gap-2">
                     <a href="{{ route('orders.show', ['order' => $order]) }}" title="View">
