@@ -91,11 +91,11 @@
     <input type="hidden" name="nif" value="{{ old('nif', $user->nif) }}">
 @endif
 
-@if (canEdit('payment_details', $editableFields))
-    <flux:input name="payment_details" label="Payment details"
-        value="{{ old('payment_details', $user->payment_details) }}" :disabled="$readonly" placeholder="Optional" />
+@if (canEdit('default_payment_type', $editableFields))
+    <flux:input name="default_payment_type" label="Payment details"
+        value="{{ old('default_payment_type', $user->default_payment_type) }}" :disabled="$readonly" placeholder="Optional" />
 @else
-    <input type="hidden" name="payment_details" value="{{ old('payment_details', $user->payment_details) }}">
+    <input type="hidden" name="default_payment_type" value="{{ old('default_payment_type', $user->default_payment_type) }}">
 @endif
 
 @if (canEdit('photo', $editableFields))

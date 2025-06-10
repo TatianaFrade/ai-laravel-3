@@ -100,7 +100,8 @@ class UserController extends Controller
             'password',
             'default_delivery_address',
             'nif',
-            'payment_details',
+            'default_payment_type',
+            //'payment_details',
             'photo'
         ];
 
@@ -161,7 +162,8 @@ class UserController extends Controller
             'password',
             'default_delivery_address',
             'nif',
-            'payment_details',
+            'default_payment_type',
+            //'payment_details',
             'photo'
         ];
 
@@ -185,7 +187,7 @@ class UserController extends Controller
         $this->authorize('update', $user);
 
         $data = $request->validated();
-
+        
         if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
@@ -203,6 +205,7 @@ class UserController extends Controller
         }
 
         $user->update($data);
+        
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }

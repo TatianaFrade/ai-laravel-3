@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/card', [CardController::class, 'show'])->name('card.show');
     Route::post('/card/update', [CardController::class, 'update'])->name('balance.update');
 
+    //Route::post('/orders', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::get('/operations', [OperationController::class, 'index'])->name('operations.index');
 
 	Route::get('statistics/basic', [StatisticsController::class, 'basic'])->name('statistics.basic');

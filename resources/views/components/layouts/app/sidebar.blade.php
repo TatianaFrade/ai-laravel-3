@@ -13,13 +13,13 @@
 
     @if(session('cart'))
         <flux:navlist variant="outline">
-            <flux:navlist.group :heading="__('Services')" class="grid">
+            <!-- <flux:navlist.group :heading="__('Services')" class="grid">
                 <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>Products</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('orders.index')" :current="request()->routeIs('orders.index')" wire:navigate>Orders</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('card.show')" :current="request()->routeIs('card.show')" wire:navigate>Virtual Card</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('operations.index')" :current="request()->routeIs('operations.show')" wire:navigate>Operations</flux:navlist.item>
-            </flux:navlist.group>
+            </flux:navlist.group> -->
             <div class="relative inline-flex items-center mr-4">
                 <div class="-top-0.5 absolute left-6 z-10">
                     <p class="flex p-3 h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs text-white">
@@ -44,6 +44,7 @@
             <flux:navlist.item icon="academic-cap" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>Products</flux:navlist.item>
             <flux:navlist.item icon="academic-cap" :href="route('orders.index')" :current="request()->routeIs('orders.index')" wire:navigate>Orders</flux:navlist.item>
             <flux:navlist.item icon="academic-cap" :href="route('card.show')" :current="request()->routeIs('card.show')" wire:navigate>Virtual Card</flux:navlist.item>
+            <flux:navlist.item icon="academic-cap" :href="route('operations.index')" :current="request()->routeIs('operations.index')" wire:navigate>Operations</flux:navlist.item>
         </flux:navlist.group>
     </flux:navlist>
 

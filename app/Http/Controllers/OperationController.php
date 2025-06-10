@@ -27,20 +27,20 @@ class OperationController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'card_id' => 'required|exists:cards,id',
-            'type' => 'required|string',
-            'value' => 'required|numeric',
-            'date' => 'required|date',
-            'debit_type' => 'nullable|string',
-            'credit_type' => 'nullable|string',
-            'payment_type' => 'nullable|string',
-            'payment_reference' => 'nullable|string',
-            'order_id' => 'nullable|exists:orders,id'
-        ]);
+        // $data = $request->validate([
+        //     'card_id' => 'required|exists:cards,id',
+        //     'type' => 'required|string',
+        //     'value' => 'required|numeric',
+        //     'date' => 'required|date',
+        //     'debit_type' => 'nullable|string',
+        //     'credit_type' => 'nullable|string',
+        //     'payment_type' => 'nullable|string',
+        //     'payment_reference' => 'nullable|string',
+        //     'order_id' => 'nullable|exists:orders,id'
+        // ]);
 
-        $operation = Operation::create($data);
-        return response()->json($operation, 201);
+        // $operation = Operation::create($data);
+        // return response()->json($operation, 201);
     }
 }
 

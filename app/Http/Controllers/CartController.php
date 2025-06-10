@@ -141,7 +141,7 @@ class CartController extends Controller
         }
 
         $user = auth()->user();
-        if (!$user || !$user->isRegular()) {
+        if (!$user) { //if (!$user || !$user->isRegular()) {
             return $user ? back()->with('alert-type', 'danger')->with('alert-msg', "Apenas membros do clube podem fazer compras.")
                 : redirect()->route('login')->with('alert-msg', "Precisas de iniciar sessão para confirmar a compra.");
         }
