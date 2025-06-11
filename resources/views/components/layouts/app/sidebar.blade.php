@@ -6,11 +6,11 @@
 <body class="min-h-screen bg-white dark:bg-zinc-800">
 <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
     <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
-
+ 
     <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
         <x-app-logo />
     </a>
-
+ 
     @if(session('cart'))
         <flux:navlist variant="outline">
             <!-- <flux:navlist.group :heading="__('Services')" class="grid">
@@ -32,13 +32,13 @@
             </div>
         </flux:navlist>
     @endif
-
+ 
     <flux:navlist variant="outline">
         <flux:navlist.group :heading="__('Principal')" class="grid">
             <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
         </flux:navlist.group>
     </flux:navlist>
-
+ 
     <flux:navlist variant="outline">
         <flux:navlist.group :heading="__('Services')" class="grid">
             <flux:navlist.item icon="academic-cap" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>Products</flux:navlist.item>
@@ -47,17 +47,19 @@
             <flux:navlist.item icon="academic-cap" :href="route('operations.index')" :current="request()->routeIs('operations.index')" wire:navigate>Operations</flux:navlist.item>
         </flux:navlist.group>
     </flux:navlist>
-
+ 
     <flux:navlist variant="outline">
         @can('viewAny', App\Models\MembershipFee::class)
             <flux:navlist.group :heading="__('Managing Board')" class="grid">
                 <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')" :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
+                <flux:navlist.item icon="academic-cap" :href="route('supplyorders.index')" :current="request()->routeIs('supplyorders.index')" wire:navigate>Supply Orders</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('categories.index')" :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
+                <flux:navlist.item icon="academic-cap" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>Users</flux:navlist.item>
             </flux:navlist.group>
         @endcan
     </flux:navlist>
-
+ 
     {{-- Desktop User Menu --}}
     @auth
         <flux:dropdown position="bottom" align="start">
@@ -98,9 +100,9 @@
             </flux:menu>
         </flux:dropdown>
     @endauth
-
+ 
 </flux:sidebar>
-
+ 
 <!-- Mobile User Menu -->
 <flux:header class="lg:hidden">
     <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
@@ -143,9 +145,9 @@
         </flux:dropdown>
     @endauth
 </flux:header>
-
+ 
 {{ $slot }}
-
+ 
 @fluxScripts
 </body>
 </html>
