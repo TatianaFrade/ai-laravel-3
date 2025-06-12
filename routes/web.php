@@ -26,8 +26,7 @@ use App\Models\Product;
 
 
 /* ----- PUBLIC ROUTES ----- */
-Route::get('/', function () {
-    return view('welcome'); })->name('home');
+Route::redirect('/', 'login')->name('home');
 
 Route::get('products/showcase', [ProductController::class, 'showCase'])->name('products.showcase')
     ->can('viewShowCase', Product::class);
