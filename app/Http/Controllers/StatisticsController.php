@@ -43,11 +43,13 @@ class StatisticsController extends Controller
         $user = auth()->user();
 
         if ($user->type === 'member') {
-            $ordersByMonth = Order::selectRaw("DATE_FORMAT(`date`, '%Y-%m') as month")
-                ->selectRaw("SUM(`total`) as total")
-                ->where('member_id', $user->id)
-                ->where('status', 'completed')
-                ->groupBy('month')
+            $ordersData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
+                ->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
+                ->join('products', 'items_orders.product_id', '=', 'products.id')
+                ->join('categories', 'products.category_id', '=', 'categories.id')
+                ->where('orders.member_id', $user->id)         // filtra pelo membro logado
+                ->where('orders.status', 'completed')
+                ->groupBy('month', 'categories.name')
                 ->orderBy('month')
                 ->get();
 
@@ -63,16 +65,17 @@ class StatisticsController extends Controller
                 ->get();
 
             $data = [
-                'orders_by_month'    => $ordersByMonth,
-                'frequent_products'  => $frequentProducts,
+                'sales_by_category' => $ordersData,
+                'frequent_products' => $frequentProducts,
             ];
 
             return view('statistics.member_advanced', compact('data'));
         } elseif ($user->type === 'board') {
-            $salesByMonth = Order::selectRaw("DATE_FORMAT(`date`, '%Y-%m') as month")
-                ->selectRaw("SUM(`total`) as total")
-                ->where('status', 'completed')
-                ->groupBy('month')
+            $salesData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
+                ->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
+                ->join('products', 'items_orders.product_id', '=', 'products.id')
+                ->join('categories', 'products.category_id', '=', 'categories.id')
+                ->groupBy('month', 'categories.name')
                 ->orderBy('month')
                 ->get();
 
@@ -96,11 +99,11 @@ class StatisticsController extends Controller
                 ->get();
 
             $data = [
-                'sales_by_month' => $salesByMonth,
+                'sales_by_category' => $salesData,
                 'top_products'   => $topProducts,
                 'top_spenders'   => $topSpenders
             ];
-
+            
             return view('statistics.board_advanced', compact('data'));
         }
     }

@@ -54,6 +54,7 @@
                 <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')" :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('categories.index')" :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
+				<flux:navlist.item icon="academic-cap" :href="route('statistics.basic')" :current="request()->routeIs('statistics.*')" wire:navigate>Statistics</flux:navlist.item>
             </flux:navlist.group>
         @endcan
     </flux:navlist>
