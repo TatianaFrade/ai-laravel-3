@@ -3,31 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\Card;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\ProductFormRequest;
+use Illuminate\Support\Facades\Storage;
 use Stichoza\GoogleTranslate\GoogleTranslate;
-use App\Models\Category;
-use App\Models\ShippingCost;
-use App\Models\SupplyOrder;
-use App\Models\StockAdjustment;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use App\Traits\PhotoFileStorage;
-
-
 
 class ProductController extends Controller
 {
-    use AuthorizesRequests;
-    use PhotoFileStorage;
-
-    // public function __construct() 
-    // { 
-    //     $this->authorizeResource(Product::class, 'product');
-    // }
-
-
     public function index(Request $request): View
     {
         $filterByName = $request->get('name');
@@ -37,26 +22,23 @@ class ProductController extends Controller
         $productQuery = Product::withTrashed()->with('category');
 
         if ($filterByName) {
-            $productQuery->where(function($query) use ($filterByName) {
+            $productQuery->where(function ($query) use ($filterByName) {
                 $query->where('name', 'LIKE', "%$filterByName%")
-                    ->orWhereHas('category', function($query) use ($filterByName) {
+                    ->orWhereHas('category', function ($query) use ($filterByName) {
                         $query->where('name', 'LIKE', "%$filterByName%");
                     });
             });
         }
 
         if (in_array($orderPrice, ['asc', 'desc'])) {
-            $direction = $orderPrice;
-            $productQuery->orderByRaw("CASE WHEN discount > 0 THEN price - discount ELSE price END {$direction}");
+            $productQuery->orderByRaw("CASE WHEN discount > 0 THEN price - discount ELSE price END {$orderPrice}");
         }
 
         if (in_array($orderStock, ['asc', 'desc'])) {
             $productQuery->orderBy('stock', $orderStock);
         }
 
-        $allProducts = $productQuery
-            ->paginate(20)
-            ->withQueryString();
+        $allProducts = $productQuery->paginate(20)->withQueryString();
 
         $tr = new GoogleTranslate('en');
         foreach ($allProducts as $product) {
@@ -68,17 +50,128 @@ class ProductController extends Controller
         return view('products.index', compact('allProducts', 'orderPrice', 'orderStock', 'filterByName', 'userType'));
     }
 
-    public function showCase(): View
+    public function create(): View
     {
-        $this->authorize('viewShowCase', Product::class); // respeita a policy
+        $categories = Category::all();
+        return view('products.create', [
+            'mode' => 'create',
+            'product' => new Product(),
+            'categories' => $categories
+        ]);
+    }
 
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $this->validateProduct($request);
+        
+        // Validação adicional específica do produto
+        $errorMessage = $this->validateProductData($validated);
+        if ($errorMessage !== null) {
+            return back()
+                ->withInput()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', $errorMessage);
+        }
+
+        if ($request->hasFile('photo')) {
+            $validated['photo'] = $request->file('photo')->store('products', 'public');
+        }
+
+        $product = Product::create($validated);
+        
+        // Verifica se precisa criar supply order
+        $this->createSupplyOrderIfNeeded($product);
+
+        return redirect()->route('products.index')
+            ->with('success', 'Produto criado com sucesso.');
+    }
+
+    public function edit(Product $product): View
+    {
+        $categories = Category::all();
+        $userType = auth()->check() ? auth()->user()->type : 'guest';
+
+        $tr = new GoogleTranslate('en');
+        $product->description_translated = $tr->translate($product->description);
+
+        return view('products.edit', [
+            'mode' => 'edit',
+            'product' => $product,
+            'categories' => $categories,
+            'userType' => $userType
+        ]);
+    }
+
+    public function update(Request $request, Product $product): RedirectResponse
+    {
+        $validated = $this->validateProduct($request, $product->id);
+        
+        // Validação adicional específica do produto
+        $errorMessage = $this->validateProductData($validated);
+        if ($errorMessage !== null) {
+            return back()
+                ->withInput()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', $errorMessage);
+        }
+
+        if ($request->hasFile('photo')) {
+            if ($product->photo) {
+                Storage::disk('public')->delete($product->photo);
+            }
+            $validated['photo'] = $request->file('photo')->store('products', 'public');
+        }
+
+        $product->update($validated);
+        
+        // Verifica se precisa criar supply order
+        $this->createSupplyOrderIfNeeded($product);
+
+        return redirect()->route('products.index')
+            ->with('success', 'Produto atualizado com sucesso.');
+    }
+
+    public function destroy(Product $product): RedirectResponse
+    {
+        try {
+            // Verifica se o produto já foi vendido (existe na tabela items_orders)
+            $hasSales = \DB::table('items_orders')
+                ->where('product_id', $product->id)
+                ->exists();
+
+            if ($hasSales) {
+                // Se já foi vendido, faz soft delete
+                $product->delete();
+                $alertType = 'success';
+                $alertMsg = "O produto {$product->name} já tem vendas associadas e foi movido para a lixeira.";
+            } else {
+                // Se nunca foi vendido, remove a foto e deleta permanentemente
+                if ($product->photo) {
+                    Storage::disk('public')->delete('products/' . $product->photo);
+                }
+                $product->forceDelete();
+                $alertType = 'success';
+                $alertMsg = "O produto {$product->name} foi eliminado permanentemente.";
+            }
+        } catch (\Exception $e) {
+            $alertType = 'danger';
+            $alertMsg = "Erro ao tentar eliminar o produto {$product->name}: " . $e->getMessage();
+        }
+
+        return back()
+            ->with('alert-type', $alertType)
+            ->with('alert-msg', $alertMsg);
+    }
+
+    public function showcase(): View
+    {
+        $this->authorize('viewShowCase', Product::class);
         return view('products.showcase');
     }
 
-
     public function show(Product $product): View
     {
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::all();
 
         $tr = new GoogleTranslate('en');
         $product->description_translated = $tr->translate($product->description);
@@ -90,104 +183,91 @@ class ProductController extends Controller
         ]);
     }
 
-
-    public function create(): View
+    public function restore(int $id): RedirectResponse
     {
-        $categories = Category::orderBy('name')->get();
-        return view('products.create')->with('categories', $categories);
+        $product = Product::withTrashed()->findOrFail($id);
+        
+        try {
+            $product->restore();
+            $alertType = 'success';
+            $alertMsg = "O produto {$product->name} foi restaurado com sucesso.";
+        } catch (\Exception $e) {
+            $alertType = 'danger';
+            $alertMsg = "Erro ao tentar restaurar o produto {$product->name}: " . $e->getMessage();
+        }
+
+        return back()
+            ->with('alert-type', $alertType)
+            ->with('alert-msg', $alertMsg);
     }
 
-
-
-    public function store(ProductFormRequest $request): RedirectResponse
+    private function validateProduct(Request $request, ?int $productId = null): array
     {
-        $data = $request->validated();
-
-        if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
-            $data['discount'] = null;
-        }
-
-        if (!$request->filled('discount')) {
-            $data['discount'] = null;
-        }
-
-        $product = new Product($data);
-        $product->save();
-
-        if ($request->hasFile('photo')) {
-            $this->storePhoto($request->file('photo'), $product, 'photo', 'products');
-        }
-
-        return redirect()->route('products.index')->with('success', 'Product created successfully.');
-    }
-
-
-
-    public function edit(Product $product): View
-    {
-        $categories = Category::orderBy('name')->get();
-
-        $tr = new GoogleTranslate('en');
-        $product->description_translated = $tr->translate($product->description);
-
-        $userType = auth()->check() ? auth()->user()->type : 'guest';
-
-        return view('products.edit', [
-            'product' => $product,
-            'categories' => $categories,
-            'mode' => 'edit',
-            'userType' => $userType,
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'description' => ['nullable', 'string'],
+            'stock' => ['required', 'integer', 'min:0'],
+            'stock_lower_limit' => ['nullable', 'integer', 'min:0'],
+            'stock_upper_limit' => ['nullable', 'integer', 'min:0'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
+            'discount_min_qty' => ['nullable', 'integer', 'min:0'],
+            'photo' => ['nullable', 'image'],
         ]);
     }
 
-
-    public function update(ProductFormRequest $request, Product $product): RedirectResponse
+    /**
+     * Validate stock against upper limit
+     */
+    private function validateStockAgainstLimit(int $stock, int $upperLimit): bool
     {
-        $user = auth()->user();
-        $userType = $user->type;
+        return $stock <= $upperLimit;
+    }
 
-        $data = $request->validated();
-        $oldStock = $product->stock;
-
-        if ($data['stock'] < ($data['discount_min_qty'] ?? 0)) {
-            $data['discount'] = null; // desativa desconto se estoque insuficiente
+    /**
+     * Validate if discount can be applied based on stock
+     */
+    private function validateDiscountStock(int $stock, ?int $minQty, ?float $discount): bool
+    {
+        if (!$discount) {
+            return true;
         }
 
-        // Se o campo discount estiver vazio ou não enviado, definir como null
+        return $stock >= ($minQty ?? 0);
+    }
 
-        if (!$request->filled('stock')) {
-            $data['stock'] = null;
+    /**
+     * Validate product data before saving
+     */
+    private function validateProductData(array $data): ?string
+    {
+        $stock = (int)($data['stock'] ?? 0);
+        $upperLimit = (int)($data['stock_upper_limit'] ?? 0);
+        $minQty = (int)($data['discount_min_qty'] ?? 0);
+        $discount = (float)($data['discount'] ?? 0);
+
+        // Validate stock upper limit
+        if (!$this->validateStockAgainstLimit($stock, $upperLimit)) {
+            return "The stock ({$stock}) cannot exceed the maximum stock limit ({$upperLimit}) for this product.";
         }
 
-        if (!$request->filled('discount')) {
-            $data['discount'] = null;
+        // Validate discount conditions
+        if (!$this->validateDiscountStock($stock, $minQty, $discount)) {
+            return "Discounts can only be applied if stock is greater than or equal to minimum quantity.";
         }
 
-        if ($request->hasFile('photo')) {
-            $this->deletePhoto($product, 'photo', 'products');
-            $this->storePhoto($request->file('photo'), $product, 'photo', 'products');
+        return null;
+    }
 
-            unset($data['photo']);
-        }
-
-        $product->update($data);
-
-
-
-
-        $newStock = $product->stock;
-        $stockChanged = $newStock - $oldStock;
-
-        if ($stockChanged !== 0) {
-            StockAdjustment::create([
-                'product_id' => $product->id,
-                'registered_by_user_id' => $user->id,
-                'quantity_changed' => $stockChanged,
-            ]);
-        }
-
+    /**
+     * Create a supply order if stock is below or equal to lower limit
+     */
+    private function createSupplyOrderIfNeeded(Product $product): void
+    {
         if ($product->stock <= $product->stock_lower_limit) {
-            $existingOrder = SupplyOrder::where('product_id', $product->id)
+            // Verifica se já existe uma supply order pendente
+            $existingOrder = \App\Models\SupplyOrder::where('product_id', $product->id)
                 ->where('status', 'requested')
                 ->exists();
 
@@ -195,84 +275,14 @@ class ProductController extends Controller
                 $quantityToOrder = $product->stock_upper_limit - $product->stock;
 
                 if ($quantityToOrder > 0) {
-                    SupplyOrder::create([
+                    \App\Models\SupplyOrder::create([
                         'product_id' => $product->id,
                         'quantity' => $quantityToOrder,
                         'status' => 'requested',
-                        'registered_by_user_id' => $user->id,
+                        'registered_by_user_id' => auth()->id()
                     ]);
                 }
             }
         }
-
-        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
-
-
-
-
-
-    public function destroy(Product $product): RedirectResponse
-    {
-        try {
-            $hasSales = \DB::table('items_orders')
-                ->where('product_id', $product->id)
-                ->exists();
-
-            if ($hasSales) {
-                $product->delete();
-                $alertType = 'success';
-                $alertMsg = "Product <strong>{$product->name}</strong> was sold before, so it was soft deleted.";
-            } else {
-                $this->deletePhoto($product, 'photo', 'products');
-
-                $product->forceDelete();
-                $alertType = 'success';
-                $alertMsg = "Product <strong>{$product->name}</strong> deleted permanently.";
-            }
-
-        } catch (\Illuminate\Database\QueryException $e) {
-            if ($e->getCode() === '23000') {
-                $alertType = 'danger';
-                $alertMsg = "O produto <strong>{$product->name}</strong> tem encomendas de reposição associadas e não pode ser eliminado permanentemente.";
-            } else {
-                $alertType = 'danger';
-                $alertMsg = "Ocorreu um erro ao tentar eliminar o produto <strong>{$product->name}</strong>.";
-            }
-        } catch (\Exception $e) {
-            $alertType = 'danger';
-            $alertMsg = "Erro inesperado ao eliminar o produto <strong>{$product->name}</strong>: " . $e->getMessage();
-        }
-
-        return redirect()->route('products.index')
-            ->with('alert-type', $alertType)
-            ->with('alert-msg', $alertMsg);
-    }
-
-
-    public function forceDestroy(Product $product)
-    {
-        $this->deletePhoto($product, 'photo', 'products');
-
-        $product->forceDelete();
-
-        return redirect()->route('products.index')
-            ->with('success', "Product <strong>{$product->name}</strong> deleted permanently.");
-    }
-
-    public function restore($id)
-    {
-        $product = Product::withTrashed()->findOrFail($id);
-        
-        $this->authorize('restore', $product);
-        
-        $product->restore();
-        
-        return redirect()
-            ->route('products.index')
-            ->with('success', "Product \"{$product->name}\" restored successfully.");
-    }
-
-
-
 }

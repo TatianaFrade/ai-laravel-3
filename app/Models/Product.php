@@ -61,7 +61,10 @@ class Product extends Model
      */
     public function getHasActiveDiscountAttribute()
     {
-        return $this->discount && $this->discount > 0 && $this->discount_min_qty < $this->stock;
+        return $this->discount && $this->discount > 0 && (
+            $this->discount_min_qty < $this->stock || 
+            $this->stock <= $this->stock_lower_limit
+        );
     }
 
     /**

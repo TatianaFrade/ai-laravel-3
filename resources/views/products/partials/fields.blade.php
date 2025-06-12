@@ -12,6 +12,7 @@
 @endphp
 
 
+
 {{-- Name --}}
 <div class="w-full sm:w-96">
     @if ($readonly || (!$canEditAll && !$canEditStockOnly))

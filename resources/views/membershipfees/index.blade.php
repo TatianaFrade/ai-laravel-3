@@ -1,6 +1,6 @@
 <x-layouts.main-content 
     :title="__('Membership fee')"
-    heading="Membership fee applied to new members"
+    heading="Membership fee applied to members anually"
     subheading="New members must pay membership fee to have full access to services">
 
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">

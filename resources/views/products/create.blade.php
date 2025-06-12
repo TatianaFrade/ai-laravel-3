@@ -17,23 +17,7 @@
         </div>
     </div>
 
-    {{-- Validate description field --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('product-form');
-            const descriptionField = form.querySelector('[name="description"]');
 
-            form.addEventListener('submit', function(e) {
-                const description = descriptionField.value.trim();
-                if (!description) {
-                    if (!confirm('The description field is empty. Are you sure you want to continue?')) {
-                        e.preventDefault();
-                        descriptionField.focus();
-                    }
-                }
-            });
-        });
-    </script>
 </x-layouts.main-content>
 
 

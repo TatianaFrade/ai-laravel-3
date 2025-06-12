@@ -39,27 +39,27 @@
  
         <tbody>
             @foreach ($products as $product)
-                <tr class="border-b border-b-gray-400 dark:border-b-gray-500 {{ $product->has_active_discount ? 'bg-green-50 dark:bg-green-900/20' : '' }}">
+                <tr class="border-b border-b-gray-400 dark:border-b-gray-500 {{ $product->has_active_discount ? ($product->stock <= $product->stock_lower_limit ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-green-50 dark:bg-green-900/20') : '' }}">
                     {{-- Photo --}}
                     <td class="px-2 py-2 hidden sm:table-cell">
                         <div class="h-20 w-20 rounded-full object-cover relative">
                             @if($product->has_active_discount)
-                                <div class="absolute -top-2 -right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md z-10">
+                                <div class="absolute -top-2 -right-2 {{ $product->stock <= $product->stock_lower_limit ? 'bg-amber-600' : 'bg-green-600' }} text-white text-xs font-bold px-2 py-1 rounded-full shadow-md z-10">
                                     -{{ number_format($product->discount_percentage, 0) }}%
                                 </div>
                             @endif
-                            <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover rounded {{ $product->has_active_discount ? 'border-2 border-green-500' : '' }}" />
+                            <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover rounded {{ $product->has_active_discount ? ($product->stock <= $product->stock_lower_limit ? 'border-2 border-amber-500' : 'border-2 border-green-500') : '' }}" />
                         </div>
                     </td>
  
                     {{-- Name --}}
                     <td class="px-2 py-2 text-left">
-                        <span class="{{ $product->trashed() ? 'text-red-600 font-semibold' : ($userType !== 'board' && $product->has_active_discount ? 'text-green-700 font-semibold' : '') }}">
+                        <span class="{{ $product->trashed() ? 'text-red-600 font-semibold' : ($userType !== 'board' && $product->has_active_discount ? ($product->stock <= $product->stock_lower_limit ? 'text-amber-700 font-semibold' : 'text-green-700 font-semibold') : '') }}">
                             {{ $product->name }}
                         </span>
                         @if($product->has_active_discount)
-                            <div class="text-xs text-green-600 font-medium mt-1">
-                                Discounted!
+                            <div class="text-xs {{ $product->stock <= $product->stock_lower_limit ? 'text-amber-600' : 'text-green-600' }} font-medium mt-1">
+                                {{ $product->stock <= $product->stock_lower_limit ? 'Low stock discount!' : 'Discounted!' }}
                             </div>
                         @endif
                     </td>
@@ -90,6 +90,9 @@
                                 <div class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 px-2 py-1 rounded text-center">
                                     <div>{{ number_format($product->discount, 2) }} €</div>
                                     <div class="text-xs font-medium">{{ number_format($product->discount_percentage, 0) }}% off</div>
+                                    @if($product->stock <= $product->stock_lower_limit)
+                                        <div class="text-xs font-bold text-amber-600 mt-1">(Low stock discount)</div>
+                                    @endif
                                 </div>
                             @else
                                 <div>{{ number_format($product->discount, 2) }} € <span class="text-xs text-amber-600">(not active)</span></div>
