@@ -41,7 +41,7 @@ Route::post('cart/{product}/increase', [CartController::class, 'increaseQuantity
 Route::post('cart/{product}/decrease', [CartController::class, 'decreaseQuantity'])->name('cart.decrease');
 
 /* ----- VERIFIED USERS ONLY ----- */
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckIfUserBlocked::class])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
     Route::redirect('settings', 'settings/profile');
@@ -65,7 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
 /* ----- AUTHENTICATED USERS (verificados ou não) ----- */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->group(function () {
      Route::resource('users', UserController::class);
 //     Route::get('/users', [UserController::class, 'index'])->name('users.index')
 //     ->can('viewAny-user');

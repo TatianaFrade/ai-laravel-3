@@ -9,10 +9,12 @@
     @endcan
  
     <div class="flex justify-start ">
-      <div class="my-4 p-6 w-full">
-        <x-users.filter-card 
+      <div class="my-4 p-6 w-full">        <x-users.filter-card 
               :filterAction="route('users.index')" 
-              :resetUrl="route('users.index')" 
+              :resetUrl="route('users.index')"
+              :filter-by-name="$filterByName"
+              :filter-by-gender="$filterByGender"
+              :filter-by-type="$filterByType"
         />
 
         <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
@@ -68,20 +70,19 @@
                     @else
                         <div class="text-left text-gray-500">-</div>
                     @endcan
-                </td>                  <td class="px-2 py-2 text-right">
-                    <div class="flex items-center justify-end gap-2">
-                      <a href="{{ route('users.show', ['user' => $user]) }}" class="hover:text-gray-600" title="View">
-                        <flux:icon.eye class="size-5" />
-                      </a>
-
-                      @can('update', $user)
-                        <a href="{{ route('users.edit', ['user' => $user]) }}" title="Edit">
-                          <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
+                </td>                  <td class="px-2 py-2 text-right">                    <div class="flex items-center justify-end gap-2">
+                      @if (!$user->trashed())
+                        <a href="{{ route('users.show', ['user' => $user]) }}" class="hover:text-gray-600" title="View">
+                          <flux:icon.eye class="size-5" />
                         </a>
-                      @endcan
 
-                      @can('delete', $user)
-                        @if (!$user->trashed())
+                        @can('update', $user)
+                          <a href="{{ route('users.edit', ['user' => $user]) }}" title="Edit">
+                            <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
+                          </a>
+                        @endcan
+
+                        @can('delete', $user)
                           <form method="POST" action="{{ route('users.destroy', ['user' => $user]) }}" class="flex items-center">
                             @csrf
                             @method('DELETE')
@@ -89,29 +90,17 @@
                               <flux:icon.cube class="size-5 hover:text-red-600" />
                             </button>
                           </form>
-                        @endif
-                      @endcan
-
-                      @can('restore', $user)
-                        @if ($user->trashed())
+                        @endcan
+                      @else
+                        @can('restore', $user)
                           <form method="POST" action="{{ route('users.restore', ['user' => $user]) }}" class="flex items-center">
                             @csrf
                             <button type="submit" title="Restore membership">
                               <flux:icon.arrow-path-rounded-square class="size-5 hover:text-green-600" />
                             </button>
                           </form>
-                        @endif
-                      @endcan
-
-                      @can('forceDelete', $user)
-                        <form method="POST" action="{{ route('users.forceDestroy', ['user' => $user]) }}" class="flex items-center">
-                          @csrf
-                          @method('DELETE')
-                          <button type="submit" title="Delete user">
-                            <flux:icon.trash class="size-5 hover:text-red-600" />
-                          </button>
-                        </form>
-                      @endcan
+                        @endcan
+                      @endif
                     </div>
                   </td>
 

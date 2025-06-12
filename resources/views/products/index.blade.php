@@ -24,9 +24,12 @@
 
         @can('viewFilter', App\Models\Product::class)
           <x-products.filter-card 
-          class="mb-6"
-            :filterAction="route('categories.index')" 
-            :resetUrl="route('categories.index')" 
+            class="mb-6"
+            :filterAction="route('products.index')" 
+            :resetUrl="route('products.index')"
+            :filter-by-name="$filterByName"
+            :order-price="$orderPrice"
+            :order-stock="$orderStock"
           />
         @endcan
 

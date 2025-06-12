@@ -1,15 +1,16 @@
+@props(['filterAction', 'resetUrl', 'filterByName' => '', 'filterByGender' => '', 'filterByType' => ''])
+
 <div {{ $attributes }}>
-    <form method="GET" action="{{ route('users.index') }}">
+    <form method="GET" action="{{ $filterAction }}">
         <div class="flex justify-between space-x-3">
 
             <!-- Input nome ou email -->
             <div class="grow flex flex-col space-y-2">
-                <label for="name" class="block text-sm font-medium text-gray-300">Search by name or email</label>
-                <input 
+                <label for="name" class="block text-sm font-medium text-gray-300">Search by name or email</label>                <input 
                     type="text" 
                     name="name" 
                     id="name"
-                    value="{{ old('name', $filterByName ?? '') }}" 
+                    value="{{ $filterByName ?? '' }}" 
                     placeholder="All"
                     class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -22,11 +23,10 @@
                     name="gender" 
                     id="gender" 
                     class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    <option value="" @selected(empty($filterByGender)) class="bg-gray-800 text-gray-100">All</option>
-                    <option value="F" @selected(($filterByGender ?? '') === 'F') class="bg-gray-800 text-gray-100">Feminino</option>
-                    <option value="M" @selected(($filterByGender ?? '') === 'M') class="bg-gray-800 text-gray-100">Masculino</option>
-                    <option value="O" @selected(($filterByGender ?? '') === 'O') class="bg-gray-800 text-gray-100">Outro</option>
+                >                    <option value="">All</option>
+                    <option value="F" {{ $filterByGender === 'F' ? 'selected' : '' }} class="bg-gray-800 text-gray-100">Feminino</option>
+                    <option value="M" {{ $filterByGender === 'M' ? 'selected' : '' }} class="bg-gray-800 text-gray-100">Masculino</option>
+                    <option value="O" {{ $filterByGender === 'O' ? 'selected' : '' }} class="bg-gray-800 text-gray-100">Outro</option>
                 </select>
             </div>
 
@@ -37,11 +37,10 @@
                     name="type" 
                     id="type" 
                     class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    <option value="" @selected(empty($filterByType)) class="bg-gray-800 text-gray-100">All</option>
-                    <option value="board" @selected(($filterByType ?? '') === 'board') class="bg-gray-800 text-gray-100">Board</option>
-                    <option value="member" @selected(($filterByType ?? '') === 'member') class="bg-gray-800 text-gray-100">Member</option>
-                    <option value="employee" @selected(($filterByType ?? '') === 'employee') class="bg-gray-800 text-gray-100">Employee</option>
+                >                    <option value="">All</option>
+                    <option value="board" {{ $filterByType === 'board' ? 'selected' : '' }} class="bg-gray-800 text-gray-100">Board</option>
+                    <option value="member" {{ $filterByType === 'member' ? 'selected' : '' }} class="bg-gray-800 text-gray-100">Member</option>
+                    <option value="employee" {{ $filterByType === 'employee' ? 'selected' : '' }} class="bg-gray-800 text-gray-100">Employee</option>
                 </select>
             </div>
 
@@ -50,11 +49,10 @@
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
                     Filter
                 </button>
-            </div>
-             <div class="grow-0 flex flex-col space-y-3 justify-start pt-6">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+            </div>             <div class="grow-0 flex flex-col space-y-3 justify-start pt-6">
+                <a href="{{ route('users.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-center">
                     Cancel
-                </button>
+                </a>
             </div>
             
         </div>

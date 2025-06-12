@@ -30,14 +30,19 @@ class ProductController extends Controller
 
     public function index(Request $request): View
     {
-        $filterByName = $request->input('name');
-        $orderPrice = $request->input('order_price');
-        $orderStock = $request->input('order_stock');
+        $filterByName = $request->get('name');
+        $orderPrice = $request->get('order_price');
+        $orderStock = $request->get('order_stock');
 
         $productQuery = Product::withTrashed()->with('category');
 
-        if ($filterByName !== null) {
-            $productQuery->where('name', 'LIKE', $filterByName . '%');
+        if ($filterByName) {
+            $productQuery->where(function($query) use ($filterByName) {
+                $query->where('name', 'LIKE', "%$filterByName%")
+                    ->orWhereHas('category', function($query) use ($filterByName) {
+                        $query->where('name', 'LIKE', "%$filterByName%");
+                    });
+            });
         }
 
         if (in_array($orderPrice, ['asc', 'desc'])) {

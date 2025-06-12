@@ -24,29 +24,29 @@ class CategoryController extends Controller
     public function index(Request $request): View
     {
         $this->authorize('viewAny', Category::class);
+          // Start with withCount to ensure product counts are available
+        $categoryQuery = Category::withCount('products');
         
-        $categoryQuery = Category::query();
-        
-        $filterByName = $request->name;
-        $orderName = $request->order;
-        $orderProducts = $request->order_products;
+        $filterByName = $request->get('name');
+        $orderName = $request->get('order');
+        $orderProducts = $request->get('order_products');
 
-        if ($filterByName !== null) {
-            $categoryQuery->where('name', 'LIKE', $filterByName . '%');
+        if ($filterByName) {
+            $categoryQuery->where('name', 'LIKE', '%' . $filterByName . '%');
         }
 
-        // Ordenações
+        // Ordering
         if ($orderName === 'name_asc') {
             $categoryQuery->orderBy('name', 'asc');
         } elseif ($orderName === 'name_desc') {
             $categoryQuery->orderBy('name', 'desc');
         }
-
-        if ($orderProducts === 'most') {
-            $categoryQuery->orderBy('products_count', 'desc');
-        } elseif ($orderProducts === 'least') {
-            $categoryQuery->orderBy('products_count', 'asc');
-        }        $categoryQuery->withTrashed();
+        
+        if ($orderProducts === 'most' || $orderProducts === 'least') {
+            $categoryQuery->orderBy('products_count', $orderProducts === 'most' ? 'desc' : 'asc');
+        }
+        
+        $categoryQuery->withTrashed();
 
         $allCategories = $categoryQuery->paginate(20)->withQueryString();
 
