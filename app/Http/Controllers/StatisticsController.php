@@ -115,7 +115,7 @@ class StatisticsController extends Controller
 	public function exportSalesByCategory()
 	{
 		$user = auth()->user();
-		if ($user != null and $user->type == 'board') {
+		if ($user != null && $user->type === 'board') {
 			$salesData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
 				->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
 				->join('products', 'items_orders.product_id', '=', 'products.id')
@@ -126,12 +126,13 @@ class StatisticsController extends Controller
 
 			return Excel::download(new SalesByCategoryExport($salesData), 'sales_by_category.xlsx');
 		}
+        return abort(403, 'Unauthorized');
 	}
 	
 	public function exportUserSpending()
 	{
 		$user = auth()->user();
-		if ($user != null and $user->type == 'member') {
+		if ($user != null && $user->type === 'member') {
 			$ordersByMonth = \App\Models\Order::selectRaw("DATE_FORMAT(`date`, '%Y-%m') as month")
 				->selectRaw("SUM(`total`) as total")
 				->where('member_id', $user->id)
@@ -142,5 +143,6 @@ class StatisticsController extends Controller
 
 			return Excel::download(new UserSpendingExport($ordersByMonth), 'user_spending.xlsx');
 		}
+        return abort(403, 'Unauthorized');
 	}
 }

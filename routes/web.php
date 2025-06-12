@@ -57,7 +57,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 	Route::get('statistics/basic', [StatisticsController::class, 'basic'])->name('statistics.basic');
 	Route::get('statistics/advanced', [StatisticsController::class, 'advanced'])->name('statistics.advanced');
 	Route::get('statistics/export/sales-by-category', [StatisticsController::class, 'exportSalesByCategory'])->name('statistics.export.category');
-	Route::get('/statistics/export/user-spending', [StatisticsController::class, 'exportUserSpending'])->name('statistics.export.user_spending');
+	Route::get('statistics/export/user-spending', [StatisticsController::class, 'exportUserSpending'])->name('statistics.export.user_spending');
 });
 
 
