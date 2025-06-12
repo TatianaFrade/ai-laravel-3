@@ -70,8 +70,7 @@
                       </div>
                       <div class="p-2 inline-flex items-center justify-center">
                         <flux:icon.pencil-square class="size-5 text-gray-400" />
-                      </div>
-                      <form method="POST" action="{{ route('categories.restore', ['category' => $category]) }}" class="inline-flex items-center justify-center">
+                      </div>                      <form method="POST" action="{{ route('categories.restore', ['id' => $category->id]) }}" class="inline-flex items-center justify-center">
                         @csrf
                         <button type="submit" class="p-2" title="Restore category">
                           <flux:icon.arrow-path-rounded-square class="size-5 hover:text-green-600" />

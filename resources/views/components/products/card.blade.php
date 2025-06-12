@@ -26,9 +26,10 @@
           </div>
           <div class="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 px-1 py-0.5 rounded inline-block">
               Save {{ number_format($product->discount, 2) }}€ ({{ number_format(($product->discount / $product->price) * 100, 0) }}% off)
-          </div>
-      @endif
+          </div>      @endif
     </div>
+
+
  
     {{-- Descrição --}}
     <div class="text-xs text-gray-700 mt-2 flex-grow">

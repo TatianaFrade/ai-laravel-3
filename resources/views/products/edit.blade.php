@@ -24,7 +24,7 @@
 
                     <div class="flex mt-6">
                         <flux:button variant="primary" type="submit" class="uppercase">Save</flux:button>
-                        <flux:button class="uppercase ms-4" href="{{ url()->full() }}">Cancel</flux:button>
+                        <flux:button class="uppercase ms-4" href="{{ route('products.index') }}">Cancel</flux:button>
                     </div>
                 </form>
             </section>

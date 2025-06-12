@@ -81,8 +81,8 @@ Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->gro
     Route::resource('supplyorders', SupplyOrderController::class);
     Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
     
-    Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
-    
+    Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+
     //Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
     Route::post('/membershipfees/{membershipfee}/pay', [MembershipFeeController::class, 'pay'])
     ->name('membershipfees.pay');
