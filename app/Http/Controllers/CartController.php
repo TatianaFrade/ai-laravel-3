@@ -168,7 +168,7 @@ class CartController extends Controller
             return back()->with('alert-type', 'danger')->with('alert-msg', "Saldo insuficiente no cartão virtual.");
         }
 
-        DB::transaction(function () use ($user, $cart, $totalCartItems, $shippingCosts, $totalOrder, $virtualCard) {
+        DB::transaction(function () use ($user, $cart, $totalCartItems, $shippingCosts, $totalOrder, $virtualCard, $request) {
             $order = Order::create([
                 'member_id' => $user->id,
                 'status' => 'pending',
@@ -176,8 +176,8 @@ class CartController extends Controller
                 'total_items' => $totalCartItems,
                 'shipping_cost' => $shippingCosts,
                 'total' => $totalOrder,
-                'nif' => $user->nif,
-                'delivery_address' => $user->default_delivery_address,
+                'nif' => $request->input('nif') ?? $user->nif,
+                'delivery_address' => $request->input('default_delivery_address') ?? $user->default_delivery_address,
             ]);
 
             foreach ($cart as $product) {
