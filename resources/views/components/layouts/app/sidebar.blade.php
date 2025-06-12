@@ -98,6 +98,12 @@
                 </form>
             </flux:menu>
         </flux:dropdown>
+	@else
+		<flux:navlist variant="outline">
+			<flux:navlist.group :heading="'Authentication'" class="grid">
+				<flux:navlist.item icon="key" :href="route('login')" :current="request()->routeIs('login')" wire:navigate>Login</flux:navlist.item>
+			</flux:navlist.group>
+		</flux:navlist>
     @endauth
 
 </flux:sidebar>
@@ -142,7 +148,12 @@
                 </form>
             </flux:menu>
         </flux:dropdown>
+	@else
+		<flux:navbar>
+			<flux:navbar.item  icon="key" :href="route('login')" :current="request()->routeIs('login')" wire:navigate>Login</flux:navbar.item>
+		</flux:navbar>
     @endauth
+	
 </flux:header>
 
 {{ $slot }}
