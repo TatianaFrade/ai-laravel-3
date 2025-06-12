@@ -29,6 +29,9 @@
         </div>
 
         {{-- Spending by Category --}}
+		<a href="{{ route('statistics.export.user_spending') }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+			📥 Export Spending Data
+		</a>
         <div class="bg-white p-4 rounded shadow">
             <h3 class="text-lg font-semibold mb-2">💸 Spending by Month & Category</h3>
 

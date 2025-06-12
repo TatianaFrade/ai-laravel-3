@@ -50,6 +50,9 @@
         </div>
 
         {{-- Sales by Month and Category --}}
+		<a href="{{ route('statistics.export.category') }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+			📥 Export Sales by Category
+		</a>
         <div class="bg-white p-4 rounded shadow">
             <h3 class="text-lg font-semibold mb-2">📊 Sales by Month & Category</h3>
 

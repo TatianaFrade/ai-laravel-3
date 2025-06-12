@@ -9,6 +9,10 @@ use App\Models\Product;
 use App\Models\Card;
 use Illuminate\Support\Facades\DB;
 
+use App\Exports\SalesByCategoryExport;
+use App\Exports\UserSpendingExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 class StatisticsController extends Controller
 {
     // Página básica (chamado por statistics.basic)
@@ -107,4 +111,36 @@ class StatisticsController extends Controller
             return view('statistics.board_advanced', compact('data'));
         }
     }
+
+	public function exportSalesByCategory()
+	{
+		$user = auth()->user();
+		if ($user != null and $user->type == 'board') {
+			$salesData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
+				->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
+				->join('products', 'items_orders.product_id', '=', 'products.id')
+				->join('categories', 'products.category_id', '=', 'categories.id')
+				->groupBy('month', 'categories.name')
+				->orderBy('month')
+				->get();
+
+			return Excel::download(new SalesByCategoryExport($salesData), 'sales_by_category.xlsx');
+		}
+	}
+	
+	public function exportUserSpending()
+	{
+		$user = auth()->user();
+		if ($user != null and $user->type == 'member') {
+			$ordersByMonth = \App\Models\Order::selectRaw("DATE_FORMAT(`date`, '%Y-%m') as month")
+				->selectRaw("SUM(`total`) as total")
+				->where('member_id', $user->id)
+				->where('status', 'completed')
+				->groupBy('month')
+				->orderBy('month')
+				->get();
+
+			return Excel::download(new UserSpendingExport($ordersByMonth), 'user_spending.xlsx');
+		}
+	}
 }
