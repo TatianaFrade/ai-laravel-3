@@ -1,18 +1,18 @@
 <?php
-
+ 
 namespace App\Models;
-
+ 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
-
-
+ 
+ 
 class Product extends Model
 {
     use HasFactory;
     use SoftDeletes;
-
+ 
     protected $fillable = [
         'category_id',
         'name',
@@ -22,28 +22,31 @@ class Product extends Model
         'photo',
         'stock_lower_limit',
         'stock_upper_limit',
-        'discount_min_qty', 
+        'discount_min_qty',
         'discount',
     ];
-
-
-
+ 
+    protected $appends = [
+        'image_url',
+        'has_discount',
+        'price_after_discount',
+        'discount_percentage',
+    ];
+ 
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
-
+ 
     public function supplyorders()
     {
         return $this->hasMany(SupplyOrder::class, 'product_id', 'id');
     }
-
+ 
     public function stockAdjustments()
     {
         return $this->hasMany(StockAdjustment::class);
     }
-
-
     
     public function getImageUrlAttribute()
     {
@@ -53,5 +56,27 @@ class Product extends Model
             return asset("storage/products/no_product.png");
         }
     }
-
+ 
+    public function getHasDiscountAttribute()
+    {
+        return $this->discount && $this->discount > 0 && $this->discount_min_qty < $this->stock;
+    }
+ 
+    public function getPriceAfterDiscountAttribute()
+    {
+        return $this->has_discount ? $this->price - $this->discount : $this->price;
+    }
+ 
+    public function getDiscountPercentageAttribute()
+    {
+        return $this->has_discount ? ($this->discount / $this->price) * 100 : 0;
+    }
+ 
+    public function getTotalPriceAttribute($quantity = null)
+    {
+        $quantity = $quantity ?? ($this->quantity ?? 1);
+        return $this->price_after_discount * $quantity;
+    }
 }
+ 
+ 

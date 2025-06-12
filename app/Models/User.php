@@ -46,6 +46,38 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+    
+    /**
+     * Check if user is a board member
+     */
+    public function isBoard(): bool
+    {
+        return $this->type === 'board';
+    }
+    
+    /**
+     * Check if user is an employee
+     */
+    public function isEmployee(): bool
+    {
+        return $this->type === 'employee';
+    }
+    
+    /**
+     * Check if user is a regular member
+     */
+    public function isMember(): bool
+    {
+        return $this->type === 'member';
+    }
+    
+    /**
+     * Check if user is staff (board or employee)
+     */
+    public function isStaff(): bool
+    {
+        return in_array($this->type, ['board', 'employee']);
+    }
  
  
     public function initials(): string
@@ -80,23 +112,6 @@ class User extends Authenticatable implements MustVerifyEmail
  
  
  
-     public function isEmployee(): bool
-    {
-        return $this->type === 'employee';
-    }
- 
-    public function isRegular(): bool
-    {
-        return $this->type === 'member';
-    }
- 
-    public function isBoard(): bool
-    {
-        return $this->type === 'board';
-    }
- 
- 
- 
     public function card()
     {
         return $this->hasOne(Card::class, 'id', 'id');
@@ -111,13 +126,13 @@ class User extends Authenticatable implements MustVerifyEmail
             return asset("storage/users/anonymous.png");
         }
     }
-
-
+ 
+ 
     public function operations()
     {
         return $this->hasMany(Operation::class, 'card_id', 'id'); // Ajusta conforme necessário
     }
-
+ 
     /**
      * Get the date of the last membership payment
      * @return \DateTime|null
@@ -132,49 +147,49 @@ class User extends Authenticatable implements MustVerifyEmail
         if (!$lastPayment) {
             return null;
         }
-
+ 
         return new \DateTime($lastPayment->date);
     }
-
+ 
     public function hasPaidMembership(): bool
     {
         return $this->operations()
             ->where('debit_type', 'membership_fee')
             ->exists();
     }
-
+ 
     public function isMembershipExpired(): bool
     {
         if ($this->type !== 'member') {
             return false;
         }
-
+ 
         // First check if membership was ever paid
         if (!$this->hasPaidMembership()) {
             return true;
         }
-
+ 
         $lastPayment = $this->lastMembershipPaymentDate();
         if (!$lastPayment) {
             return true;
         }
-
+ 
         $now = new \DateTime('now', new \DateTimeZone(date_default_timezone_get()));
         $expiryDate = clone $lastPayment;
         $expiryDate->modify('+1 year');
         
         return $now > $expiryDate;
     }
-
+ 
     public function showMembershipPayButton(): bool
     {
         // Only show for members that can pay
         if (!in_array($this->type, ['member'])) {
             return false;
         }
-
+ 
         // If they haven't paid or membership is expired, show the button
         return !$this->hasPaidMembership() || $this->isMembershipExpired();
     }
-
+ 
 }
