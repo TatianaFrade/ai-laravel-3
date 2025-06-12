@@ -3,15 +3,15 @@
 
         {{-- Navigation between Basic and Advanced --}}
         <div class="flex gap-4 mb-6">
-            <a href="{{ route('statistics.basic') }}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Basic</a>
-            <a href="{{ route('statistics.advanced') }}" class="px-4 py-2 bg-blue-600 text-white rounded">Advanced</a>
+            <a href="{{ route('statistics.basic') }}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">Basic</a>
+            <a href="{{ route('statistics.advanced') }}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Advanced</a>
         </div>
 
         {{-- Top Products --}}
-        <div class="bg-white p-4 rounded shadow">
-            <h3 class="text-lg font-semibold mb-2">🏆 Top 5 Best-Selling Products</h3>
-            <table class="min-w-full text-sm text-left text-gray-600">
-                <thead class="bg-gray-100">
+        <div class="bg-white dark:bg-gray-900 p-4 rounded shadow">
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">🏆 Top 5 Best-Selling Products</h3>
+            <table class="min-w-full text-sm text-left text-gray-600 dark:text-gray-300">
+                <thead class="bg-gray-100 dark:bg-gray-800 dark:text-gray-200">
                     <tr>
                         <th class="px-3 py-2">Product</th>
                         <th class="px-3 py-2">Quantity</th>
@@ -19,7 +19,7 @@
                 </thead>
                 <tbody>
                     @foreach($data['top_products'] as $prod)
-                        <tr class="border-t">
+                        <tr class="border-t dark:border-gray-700">
                             <td class="px-3 py-2">{{ $prod->name }}</td>
                             <td class="px-3 py-2">{{ $prod->total_quantity }}</td>
                         </tr>
@@ -29,10 +29,10 @@
         </div>
 
         {{-- Top Spenders --}}
-        <div class="bg-white p-4 rounded shadow">
-            <h3 class="text-lg font-semibold mb-2">💳 Top 5 Members by Spending</h3>
-            <table class="min-w-full text-sm text-left text-gray-600">
-                <thead class="bg-gray-100">
+        <div class="bg-white dark:bg-gray-900 p-4 rounded shadow">
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">💳 Top 5 Members by Spending</h3>
+            <table class="min-w-full text-sm text-left text-gray-600 dark:text-gray-300">
+                <thead class="bg-gray-100 dark:bg-gray-800 dark:text-gray-200">
                     <tr>
                         <th class="px-3 py-2">Member</th>
                         <th class="px-3 py-2">Total Spent (€)</th>
@@ -40,7 +40,7 @@
                 </thead>
                 <tbody>
                     @foreach($data['top_spenders'] as $sp)
-                        <tr class="border-t">
+                        <tr class="border-t dark:border-gray-700">
                             <td class="px-3 py-2">{{ $sp->name }}</td>
                             <td class="px-3 py-2">€{{ number_format($sp->total_spent, 2, ',', '.') }}</td>
                         </tr>
@@ -49,20 +49,22 @@
             </table>
         </div>
 
+        {{-- Export Button --}}
+        <a href="{{ route('statistics.export.category') }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            📥 Export Sales by Category
+        </a>
+
         {{-- Sales by Month and Category --}}
-		<a href="{{ route('statistics.export.category') }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-			📥 Export Sales by Category
-		</a>
-        <div class="bg-white p-4 rounded shadow">
-            <h3 class="text-lg font-semibold mb-2">📊 Sales by Month & Category</h3>
+        <div class="bg-white dark:bg-gray-900 p-4 rounded shadow">
+            <h3 class="text-lg font-semibold mb-2 dark:text-white">📊 Sales by Month & Category</h3>
 
             <div id="categoryButtons" class="flex flex-wrap gap-3 mb-4">
-                {{-- Os botões serão gerados via JS --}}
+                {{-- Botões via JS --}}
             </div>
 
-            <canvas id="categoryChart" class="mb-4"></canvas>
+            <canvas id="categoryChart" class="mb-4 bg-white dark:bg-gray-800 rounded p-2"></canvas>
 
-            <div id="statsDisplay" class="text-sm text-gray-700 space-y-1">
+            <div id="statsDisplay" class="text-sm text-gray-700 dark:text-gray-300 space-y-1">
                 <p><strong>Category:</strong> <span id="statCategory">-</span></p>
                 <p><strong>Min:</strong> €<span id="statMin">-</span></p>
                 <p><strong>Avg:</strong> €<span id="statAvg">-</span></p>
@@ -79,9 +81,7 @@
         // Agrupa dados por categoria
         const rawData = {};
         rawDataFlat.forEach(item => {
-            if (!rawData[item.category]) {
-                rawData[item.category] = [];
-            }
+            if (!rawData[item.category]) rawData[item.category] = [];
             const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             rawData[item.category].push({
                 month: monthNames[item.month - 1] || item.month,
@@ -108,8 +108,7 @@
         let chart;
 
         function updateCategoryChart(category) {
-            let months = [];
-            let totals = [];
+            let months = [], totals = [];
 
             if (category === 'Total') {
                 const totalData = getTotalByMonth();
@@ -161,7 +160,7 @@
             // Botão Total
             const totalBtn = document.createElement('button');
             totalBtn.textContent = "Total";
-            totalBtn.className = "px-4 py-2 bg-gray-200 hover:bg-blue-500 hover:text-white rounded";
+            totalBtn.className = "px-4 py-2 bg-gray-200 hover:bg-blue-500 hover:text-white rounded dark:bg-gray-700 dark:hover:bg-blue-500 dark:text-white";
             totalBtn.addEventListener('click', () => updateCategoryChart('Total'));
             container.appendChild(totalBtn);
 
@@ -169,7 +168,7 @@
             Object.keys(rawData).forEach(category => {
                 const btn = document.createElement('button');
                 btn.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-                btn.className = "px-4 py-2 bg-gray-200 hover:bg-blue-500 hover:text-white rounded";
+                btn.className = "px-4 py-2 bg-gray-200 hover:bg-blue-500 hover:text-white rounded dark:bg-gray-700 dark:hover:bg-blue-500 dark:text-white";
                 btn.addEventListener('click', () => updateCategoryChart(category));
                 container.appendChild(btn);
             });

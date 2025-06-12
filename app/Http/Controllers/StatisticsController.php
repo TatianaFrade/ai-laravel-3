@@ -40,7 +40,7 @@ class StatisticsController extends Controller
             ];
             return view('statistics.board_basic', compact('data'));
         }
-        return abort(403, 'Unauthorized');
+        return abort(403, 'This action is unauthorized.');
     }
 
     public function advanced()
@@ -111,7 +111,7 @@ class StatisticsController extends Controller
             
             return view('statistics.board_advanced', compact('data'));
         }
-        return abort(403, 'Unauthorized');
+        return abort(403, 'This action is unauthorized.');
     }
 
 	public function exportSalesByCategory()
@@ -128,7 +128,7 @@ class StatisticsController extends Controller
 
 			return Excel::download(new SalesByCategoryExport($salesData), 'sales_by_category.xlsx');
 		}
-        return abort(403, 'Unauthorized');
+        return abort(403, 'This action is unauthorized.');
 	}
 	
 	public function exportUserSpending()
@@ -145,6 +145,6 @@ class StatisticsController extends Controller
 
 			return Excel::download(new UserSpendingExport($ordersByMonth), 'user_spending.xlsx');
 		}
-        return abort(403, 'Unauthorized');
+        return abort(403, 'This action is unauthorized.');
 	}
 }

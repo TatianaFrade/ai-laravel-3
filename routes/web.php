@@ -19,6 +19,8 @@ use App\Http\Controllers\CartController;
 
 use App\Http\Controllers\StatisticsController;
 
+use App\Http\Controllers\FavoriteController;
+
 use App\Models\Product;
 
 
@@ -58,6 +60,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 	Route::get('statistics/advanced', [StatisticsController::class, 'advanced'])->name('statistics.advanced');
 	Route::get('statistics/export/sales-by-category', [StatisticsController::class, 'exportSalesByCategory'])->name('statistics.export.category');
 	Route::get('statistics/export/user-spending', [StatisticsController::class, 'exportUserSpending'])->name('statistics.export.user_spending');
+
+    Route::get('favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('favorites/{product}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 });
 
 

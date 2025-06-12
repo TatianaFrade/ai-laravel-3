@@ -45,6 +45,7 @@
             <flux:navlist.item icon="academic-cap" :href="route('orders.index')" :current="request()->routeIs('orders.index')" wire:navigate>Orders</flux:navlist.item>
             <flux:navlist.item icon="academic-cap" :href="route('card.show')" :current="request()->routeIs('card.show')" wire:navigate>Virtual Card</flux:navlist.item>
             <flux:navlist.item icon="academic-cap" :href="route('operations.index')" :current="request()->routeIs('operations.index')" wire:navigate>Operations</flux:navlist.item>
+            <flux:navlist.item icon="academic-cap" :href="route('favorites.index')" :current="request()->routeIs('favorites.index')" wire:navigate>Favorites</flux:navlist.item>
         </flux:navlist.group>
     </flux:navlist>
 

@@ -1,3 +1,9 @@
+@php
+    use App\Models\Favorite;
+    $isFavorite = Favorite::isFavorite($product->id, auth()->id());
+    $numFavs = Favorite::countFavorites($product->id)
+@endphp
+
 <div class="rounded-xl shadow p-4 border bg-white dark:bg-gray-900 text-sm flex flex-col h-full">
 
     {{-- Imagem do produto --}}
@@ -11,7 +17,7 @@
 
     {{-- Preço e desconto --}}
     <div class="h-[3.5rem]"> {{-- Altura fixa para manter consistência --}}
-      <div class="text-sm font-bold {{ $product->discount ? 'text-green-600' : 'text-white' }}">
+      <div class="text-sm font-bold {{ $product->discount ? 'text-green-600' : 'text-gray-800 dark:text-white' }}">
           {{ number_format($product->price - ($product->discount ?? 0), 2) }} €
       </div>
       @if ($product->discount)
@@ -33,5 +39,29 @@
             Add to cart
         </button>
     </form>
+    @auth
+    <form method="POST" action="{{ route('favorites.toggle', ['product' => $product->id]) }}" class="mt-4">
+        @csrf
+        <button type="submit" class="bg-yellow-400 text-white py-1.5 px-3 text-sm rounded hover:bg-yellow-500 w-full flex items-center justify-center gap-2">
+            {{-- Ícone dinâmico --}}
+            @if ($isFavorite)
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            @else
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364 4.318 12.682a4.5 4.5 0 010-6.364z" />
+                </svg>
+            @endif
 
+            {{-- Texto dinâmico --}}
+            {{ $isFavorite ? 'Remove from Favorites' : 'Add to Favorites' }}
+
+            {{-- Badge de favoritos --}}
+            <span class="ml-2 bg-white text-yellow-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                {{ $numFavs > 0 ? $numFavs : '0' }}
+            </span>
+        </button>
+    </form>
+    @endauth
 </div>
