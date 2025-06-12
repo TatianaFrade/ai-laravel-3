@@ -119,78 +119,75 @@
                     @endif
  
                     {{-- Actions --}}
-                    @if($showView)
-                        <td class="ps-2 px-0.5">
-                            <a href="{{ route('products.show', $product) }}">
-                                <flux:icon.eye class="size-5 hover:text-green-600" />
-                            </a>
-                        </td>
-                    @endif
- 
-                   @if ($showEdit)
-                    <td class="px-0.5">
-                        <a href="{{ route('products.edit', ['product' => $product]) }}">
-                        <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
-                        </a>
+                    <td class="pr-2 py-2">
+                        <div class="flex items-center space-x-2">
+                            @if($showView)
+                                <a href="{{ route('products.show', $product) }}" class="inline-flex">
+                                    <flux:icon.eye class="size-5 hover:text-green-600" />
+                                </a>
+                            @endif
+
+                            @if($showEdit)
+                                <a href="{{ route('products.edit', ['product' => $product]) }}" class="inline-flex">
+                                    <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
+                                </a>
+                            @endif
+
+                            @if($showDelete)
+                                @if($product->trashed())
+                                    <form method="POST" action="{{ route('products.restore', ['product' => $product->id]) }}" class="inline-flex">
+                                        @csrf
+                                        <button type="submit" title="Restore product" class="inline-flex">
+                                            <flux:icon.arrow-path-rounded-square class="size-5 hover:text-green-600" />
+                                        </button>
+                                    </form>
+                                @else
+                                    <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline-flex">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" title="Delete product" class="inline-flex">
+                                            <flux:icon.trash class="size-5 hover:text-red-600" />
+                                        </button>
+                                    </form>
+                                @endif
+                            @endif
+
+                            @if($isCart)
+                                <form method="POST" action="{{ route('cart.decrease', $product) }}" class="inline-flex">
+                                    @csrf
+                                    <button type="submit" class="inline-flex">
+                                        <flux:icon.minus-circle class="size-5 hover:text-green-600" />
+                                    </button>
+                                </form>
+
+                                <form method="POST" action="{{ route('cart.increase', $product) }}" class="inline-flex">
+                                    @csrf
+                                    <button type="submit" class="inline-flex">
+                                        <flux:icon.plus-circle class="size-5 hover:text-green-600" />
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if($showAddToCart)
+                                <form method="POST" action="{{ route('cart.add', $product) }}" class="inline-flex">
+                                    @csrf
+                                    <button type="submit" class="inline-flex">
+                                        <flux:icon.shopping-cart class="size-5 hover:text-green-600" />
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if($showRemoveFromCart)
+                                <form method="POST" action="{{ route('cart.remove', $product) }}" class="inline-flex">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="inline-flex">
+                                        <flux:icon.trash class="size-5 hover:text-red-600" />
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     </td>
-                    @endif
- 
-                    @if($showDelete)
-                        <td class="px-0.5">
-                            <form method="POST" action="{{ route('products.destroy', $product) }}">
-                                @csrf @method('DELETE')
-                                <button type="submit">
-                                    <flux:icon.trash class="size-5 hover:text-red-600" />
-                                </button>
-                            </form>
-                        </td>
-                    @endif
- 
-                    @if ($isCart)
-                        <td class="pl-4">
-                            <form method="POST" action="{{ route('cart.decrease', $product) }}">
-                                @csrf
-                                <button type="submit">
-                                    <flux:icon.minus-circle class="size-5 hover:text-green-600" />
-                                </button>
-                            </form>
-                        </td>
-                        <td class="pl-4">
-                            <form method="POST" action="{{ route('cart.increase', $product) }}">
-                                @csrf
-                                <button type="submit">
-                                    <flux:icon.plus-circle class="size-5 hover:text-green-600" />
-                                </button>
-                            </form>
-                        </td>
-                    @endif
- 
-                    @if($showAddToCart)
-                        <td class="pl-4">
-                            <form method="POST" action="{{ route('cart.add', $product) }}">
-                                @csrf
-                                <button type="submit">
-                                    <flux:icon.shopping-cart class="size-5 hover:text-green-600" />
-                                </button>
-                            </form>
-                        </td>
-                    @endif
- 
-                    @if($showRemoveFromCart)
-                        <td class="pl-4">
-                            <form method="POST" action="{{ route('cart.remove', $product) }}">
-                                @csrf @method('DELETE')
-                                <button type="submit">
-                                    <flux:icon.trash class="size-5 hover:text-red-600" />
-                                </button>
-                            </form>
-                        </td>
-                    @endif
- 
- 
                 </tr>
             @endforeach
         </tbody>
     </table>
 </div>
- 

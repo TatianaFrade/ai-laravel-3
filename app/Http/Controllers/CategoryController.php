@@ -23,8 +23,10 @@ class CategoryController extends Controller
     
     public function index(Request $request): View
     {
-        $categoryQuery = Category::withTrashed()->withCount('products');
-
+        $this->authorize('viewAny', Category::class);
+        
+        $categoryQuery = Category::query();
+        
         $filterByName = $request->name;
         $orderName = $request->order;
         $orderProducts = $request->order_products;
@@ -44,7 +46,7 @@ class CategoryController extends Controller
             $categoryQuery->orderBy('products_count', 'desc');
         } elseif ($orderProducts === 'least') {
             $categoryQuery->orderBy('products_count', 'asc');
-        }
+        }        $categoryQuery->withTrashed();
 
         $allCategories = $categoryQuery->paginate(20)->withQueryString();
 
@@ -152,5 +154,17 @@ class CategoryController extends Controller
         return redirect()->back()->with('alert-type', 'warning')->with('alert-msg', 'Only deleted categories can be force deleted.');
     }
 
-
+    public function restore($id)
+    {
+        $category = Category::withTrashed()->findOrFail($id);
+        
+        $this->authorize('restore', $category);
+        
+        $category->restore();
+        
+        return redirect()
+            ->route('categories.index')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', "Category \"{$category->name}\" restored successfully.");
+    }
 }

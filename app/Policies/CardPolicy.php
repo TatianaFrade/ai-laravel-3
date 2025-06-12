@@ -25,18 +25,16 @@ class CardPolicy
 
     /**
      * Determina se o utilizador pode criar cartões.
-     */
-    public function create(User $user): bool
+     */    public function create(User $user): bool
     {
-        return $user->type === 'board';
+        return in_array($user->type, ['board', 'member']);
     }
 
     /**
      * Determina se o utilizador pode atualizar um cartão.
-     */
-    public function update(User $user, Card $card): bool
+     */    public function update(User $user, Card $card): bool
     {
-        return $user->type === 'board';
+        return $user->type === 'board' || ($user->type === 'member' && $user->id === $card->id);
     }
 
     /**

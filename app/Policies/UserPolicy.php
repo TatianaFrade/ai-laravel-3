@@ -69,9 +69,9 @@ class UserPolicy
 
 
 
-    public function restore(User $user, User $model): bool
+    public function restore(User $authUser, User $userToRestore): bool
     {
-        return false;
+        return $authUser->type === 'board' && $authUser->id !== $userToRestore->id;
     }
 
     public function forceDelete(User $user, User $userToDelete): bool

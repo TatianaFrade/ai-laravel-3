@@ -1,8 +1,7 @@
 <x-layouts.main-content :title="__('Categories')"
                         heading="List of Categories"
                         subheading="Manage the categories offered by the institution">
-  <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-    <div class="flex items-center gap-4 mb-4">
+  <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">    <div class="flex items-center justify-between gap-4 mb-4">
       <flux:button variant="primary" href="{{ route('categories.create') }}">Create a new category</flux:button>
     </div>
     <div class="flex justify-start">
@@ -42,18 +41,16 @@
                   {{ $category->name }}
                 </td>
                 {{-- <td class="px-3 py-2">{{ $category->type ?? '—' }}</td> --}}
-                <td class="px-3 py-2">{{ $category->products_count ?? '0' }}</td>
-                <td class="px-3 py-2 text-center">
-                  <div class="flex justify-center items-center gap-2">
-                    <a href="{{ route('categories.show', ['category' => $category]) }}" title="View">
-                      <flux:icon.eye class="size-5 hover:text-gray-600" />
-                    </a>
-                    <a href="{{ route('categories.edit', ['category' => $category]) }}" title="Edit">
-                      <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
-                    </a>
-
+                <td class="px-3 py-2">{{ $category->products_count ?? '0' }}</td>                <td class="px-3 py-2">
+                  <div class="flex justify-end items-center space-x-1">
                     @if (!$category->trashed())
-                      <form method="POST" action="{{ route('categories.destroy', ['category' => $category]) }}" class="inline-block">
+                      <a href="{{ route('categories.show', ['category' => $category]) }}" title="View" class="p-2">
+                        <flux:icon.eye class="size-5 hover:text-gray-600" />
+                      </a>
+                      <a href="{{ route('categories.edit', ['category' => $category]) }}" title="Edit" class="p-2">
+                        <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
+                      </a>
+                      <form method="POST" action="{{ route('categories.destroy', ['category' => $category]) }}" class="p-2">
                         @csrf
                         @method('DELETE')
                         <button type="submit" 
@@ -63,6 +60,19 @@
                           @else
                             <flux:icon.trash class="size-5 hover:text-red-600" />
                           @endif
+                        </button>
+                      </form>
+                    @else
+                      <div class="p-2">
+                        <flux:icon.eye class="size-5 text-gray-400" />
+                      </div>
+                      <div class="p-2">
+                        <flux:icon.pencil-square class="size-5 text-gray-400" />
+                      </div>
+                      <form method="POST" action="{{ route('categories.restore', ['category' => $category]) }}" class="p-2">
+                        @csrf
+                        <button type="submit" title="Restore category">
+                          <flux:icon.arrow-path-rounded-square class="size-5 hover:text-green-600" />
                         </button>
                       </form>
                     @endif

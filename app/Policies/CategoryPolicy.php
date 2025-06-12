@@ -37,12 +37,12 @@ class CategoryPolicy
     
     public function restore(User $user, Category $category): bool
     {
-        return false;
+        return $user->type === 'board';
     }
 
     public function forceDelete(User $user, Category $category): bool
     {
-        return false;
+        return $user->type === 'board';
     }
 }
 

@@ -14,13 +14,14 @@ use App\Http\Requests\CartConfirmationFormRequest;
 use Illuminate\Support\Facades\DB;
 use App\Models\ItemOrder;
 use App\Models\Order;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\MembershipExpiredMail;
 
 class CartController extends Controller
 {
     public function show(): View
     {
         $cart = session('cart', null);
-
         $shippingCosts = ShippingCost::all();
 
         return view('cart.show', compact('cart', 'shippingCosts'));
@@ -28,7 +29,7 @@ class CartController extends Controller
 
     public function addToCart(Request $request, Product $product): RedirectResponse
     {
-        $cart = session('cart', collect()); 
+        $cart = session('cart', collect());
 
         $existingProduct = $cart->firstWhere('id', $product->id);
 
@@ -80,7 +81,7 @@ class CartController extends Controller
             $request->session()->put('cart', $cart);
         }
 
-        return back()->with('alert-msg', "Quantidade de \"{$product->name}\" diminuída para " . (isset($existingProduct->quantity) ? $existingProduct->quantity : 0) . ".")
+        return back()->with('alert-msg', "Quantidade de \"{$product->name}\" diminuída para " . ($existingProduct->quantity ?? 0) . ".")
             ->with('alert-type', 'warning');
     }
 
@@ -88,74 +89,86 @@ class CartController extends Controller
     {
         $url = route('products.show', ['product' => $product]);
         $cart = session('cart', collect());
-        if ($cart->isEmpty()) {
-            $alertType = 'warning';
-            $htmlMessage = "Product <a href='$url'>#{$product->id}</a>
-                <strong>\"{$product->name}\"</strong> was not removed from the cart 
-                because cart is empty!";
-            return back()
-                ->with('alert-msg', $htmlMessage)
-                ->with('alert-type', $alertType);
-        } else {
-            $element = $cart->firstWhere('id', $product->id);
-            if ($element) {
-                $cart = $cart->reject(fn($item) => $item->id === $product->id);
-                if ($cart->count() == 0) {
-                    $request->session()->forget('cart');
-                } else {
-                    $request->session()->put('cart', $cart);
-                }
-                $alertType = 'success';
-                $htmlMessage = "Product <a href='$url'>#{$product->id}</a>
-                <strong>\"{$product->name}\"</strong> was removed from the cart.";
-                return back()
-                    ->with('alert-msg', $htmlMessage)
-                    ->with('alert-type', $alertType);
-            } else {
-                $alertType = 'warning';
-                $htmlMessage = "Product <a href='$url'>#{$product->id}</a>
-                <strong>\"{$product->name}\"</strong> was not removed from the cart 
-                because cart does not include it!";
-                return back()
-                    ->with('alert-msg', $htmlMessage)
-                    ->with('alert-type', $alertType);
-            }
-        }
-    }
 
+        if ($cart->isEmpty()) {
+            return back()
+                ->with('alert-msg', "Product <a href='$url'>#{$product->id}</a>
+                    <strong>\"{$product->name}\"</strong> was not removed from the cart 
+                    because cart is empty!")
+                ->with('alert-type', 'warning');
+        }
+
+        $element = $cart->firstWhere('id', $product->id);
+
+        if ($element) {
+            $cart = $cart->reject(fn($item) => $item->id === $product->id);
+            $cart->isEmpty()
+                ? $request->session()->forget('cart')
+                : $request->session()->put('cart', $cart);
+
+            return back()
+                ->with('alert-msg', "Product <a href='$url'>#{$product->id}</a>
+                    <strong>\"{$product->name}\"</strong> was removed from the cart.")
+                ->with('alert-type', 'success');
+        }
+
+        return back()
+            ->with('alert-msg', "Product <a href='$url'>#{$product->id}</a>
+                <strong>\"{$product->name}\"</strong> was not removed from the cart 
+                because cart does not include it!")
+            ->with('alert-type', 'warning');
+    }
 
     public function destroy(Request $request): RedirectResponse
     {
         $request->session()->forget('cart');
+
         return back()
             ->with('alert-type', 'success')
             ->with('alert-msg', 'Shopping Cart has been cleared');
     }
 
-
     public function confirm(CartConfirmationFormRequest $request): RedirectResponse
     {
         $cart = session('cart', null);
         if (!$cart || $cart->isEmpty()) {
-            return back()->with('alert-type', 'danger')->with('alert-msg', "O carrinho está vazio!");
+            return back()->with('alert-type', 'danger')->with('alert-msg', "The cart is empty!");
         }
 
         $user = auth()->user();
-        if (!$user) { //if (!$user || !$user->isRegular()) {
-            return $user ? back()->with('alert-type', 'danger')->with('alert-msg', "Apenas membros do clube podem fazer compras.")
-                : redirect()->route('login')->with('alert-msg', "Precisas de iniciar sessão para confirmar a compra.");
+
+        if (!$user) {
+            return redirect()->route('login')->with('alert-msg', "You need to login to confirm your purchase.");
         }
 
         $virtualCard = Card::where('id', $user->id)->first();
 
         if (!$virtualCard) {
-            return back()->with('alert-type', 'danger')->with('alert-msg', "Cartão virtual não encontrado para este utilizador.");
+            return redirect()->route('card.create')
+                ->with('alert-type', 'info')
+                ->with('alert-msg', "Please create a virtual card to proceed with your purchase.")
+                ->with('redirect_after', 'cart.confirm');
+        }
+
+        if ($user->type === 'member') {
+            // Check if user has ever paid membership fee
+            if (!$user->hasPaidMembership()) {
+                return redirect()->route('membershipfees.index')
+                    ->with('alert-type', 'danger')
+                    ->with('alert-msg', 'You need to pay the membership fee before making any purchases.');
+            }
+    
+            // Check if membership is expired
+            if ($user->isMembershipExpired()) {
+                Mail::to($user->email)->send(new MembershipExpiredMail($user));
+                return redirect()->route('membershipfees.index')
+                    ->with('alert-type', 'danger')
+                    ->with('alert-msg', 'Your membership has expired. Please renew it before making any purchases.');
+            }
         }
 
         $cardBalance = $virtualCard->balance;
-
         $totalItems = $cart->sum(fn($product) => ($product->price - ($product->discount ?? 0)) * $product->quantity);
-
         $totalCartItems = $cart->sum(fn($product) => $product->quantity);
 
         $shippingCosts = ShippingCost::where('min_value_threshold', '<=', $totalItems)
@@ -165,10 +178,16 @@ class CartController extends Controller
         $totalOrder = $totalItems + $shippingCosts;
 
         if ($cardBalance < $totalOrder) {
-            return back()->with('alert-type', 'danger')->with('alert-msg', "Saldo insuficiente no cartão virtual.");
+            return back()->with('alert-type', 'danger')->with('alert-msg', "Insufficient balance in your virtual card.");
         }
 
-        DB::transaction(function () use ($user, $cart, $totalCartItems, $shippingCosts, $totalOrder, $virtualCard) {
+        DB::transaction(function () use ($user, $cart, $totalCartItems, $shippingCosts, $totalOrder, $virtualCard, $request) {
+            if ($request->filled('default_delivery_address')) {
+                $user->update([
+                    'default_delivery_address' => $request->default_delivery_address
+                ]);
+            }
+
             $order = Order::create([
                 'member_id' => $user->id,
                 'status' => 'pending',
@@ -177,7 +196,7 @@ class CartController extends Controller
                 'shipping_cost' => $shippingCosts,
                 'total' => $totalOrder,
                 'nif' => $user->nif,
-                'delivery_address' => $user->default_delivery_address,
+                'delivery_address' => $request->default_delivery_address,
             ]);
 
             foreach ($cart as $product) {
@@ -191,7 +210,6 @@ class CartController extends Controller
                 ]);
             }
 
-            // Reload the card for update to avoid race conditions
             $card = Card::where('id', $virtualCard->id)->lockForUpdate()->first();
             $card->balance -= $totalOrder;
             $card->save();
@@ -202,16 +220,14 @@ class CartController extends Controller
                 'value' => $totalOrder,
                 'date' => now()->format('Y-m-d'),
                 'debit_type' => 'order',
-                'credit_type' => null,
-                'payment_type' => null,
-                'payment_reference' => null,
                 'order_id' => $order->id,
             ]);
         });
 
         $request->session()->forget('cart');
+
         return redirect()->route('products.index')
             ->with('alert-type', 'success')
-            ->with('alert-msg', "O pedido foi criado e está a ser preparado!");
+            ->with('alert-msg', "Your order has been created and is being prepared!");
     }
 }

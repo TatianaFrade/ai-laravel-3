@@ -34,7 +34,7 @@ class ProductController extends Controller
         $orderPrice = $request->input('order_price');
         $orderStock = $request->input('order_stock');
 
-        $productQuery = Product::withTrashed()->withCount('category');
+        $productQuery = Product::withTrashed()->with('category');
 
         if ($filterByName !== null) {
             $productQuery->where('name', 'LIKE', $filterByName . '%');
@@ -253,6 +253,19 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
             ->with('success', "Product <strong>{$product->name}</strong> deleted permanently.");
+    }
+
+    public function restore($id)
+    {
+        $product = Product::withTrashed()->findOrFail($id);
+        
+        $this->authorize('restore', $product);
+        
+        $product->restore();
+        
+        return redirect()
+            ->route('products.index')
+            ->with('success', "Product \"{$product->name}\" restored successfully.");
     }
 
 

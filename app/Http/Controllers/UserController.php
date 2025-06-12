@@ -50,9 +50,9 @@ class UserController extends Controller
         }
 
         $allUsers = $usersQuery
-            ->orderBy('email')
-            ->orderBy('type')
+            ->orderByRaw('CASE WHEN photo IS NOT NULL THEN 0 ELSE 1 END')
             ->orderBy('name')
+            ->orderBy('type')
             ->orderBy('gender')
             ->paginate(20)
             ->withQueryString();
@@ -265,11 +265,12 @@ class UserController extends Controller
     }
 
 
-    public function restore(User $user)
+    public function restore($id)
     {
+        $user = User::withTrashed()->findOrFail($id);
+        
         $this->authorize('restore', $user);
-
-        $user = User::withTrashed()->findOrFail($user->id);
+        
         $user->restore();
 
         return redirect()->route('users.index')->with('success', 'User restored successfully!');
