@@ -143,7 +143,7 @@
         @if ($forceReadonly || !$canEditAll)
             <input type="hidden" name="photo" value="{{ old('photo', $product->photo ?? '') }}">
         @else
-            <flux:input name="photo" label="{{ __('Product Photo') }}" type="file" accept="image/*" />
+            <flux:input name="photo" label="Product Photo" type="file" accept="image/*" />
         @endif
     </div>
 @endif

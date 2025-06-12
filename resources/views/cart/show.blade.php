@@ -67,8 +67,9 @@
                                     @csrf
                                     <flux:input name="nif" label="NIF"
                                         value="{{ old('nif', auth()->user()->nif ?? '') }}" />
-                                    <flux:input name="default_delivery_address" label="Delivery Address"
-                                        value="{{ old('default_delivery_address', auth()->user()->default_delivery_address ?? '') }}" />
+                                    <flux:input name="default_delivery_address" label="Delivery Address" required
+                                        value="{{ old('default_delivery_address', auth()->user()->default_delivery_address ?? '') }}" 
+                                        placeholder="Digite o endereço de entrega" />
                                     <flux:button variant="primary" type="submit" class="mt-[1.7rem]">Confirm</flux:button>
                                 </form>
                                 <form action="{{ route('cart.destroy') }}" method="post">

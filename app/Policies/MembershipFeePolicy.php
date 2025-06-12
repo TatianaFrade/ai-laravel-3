@@ -29,7 +29,7 @@ class MembershipFeePolicy
 
     public function pay(User $user, MembershipFee $membershipFee): bool
     {
-        return $user->blocked === 1;
+        return $user->type === 'member';
     }
 
     public function delete(User $user, MembershipFee $membershipFee): bool

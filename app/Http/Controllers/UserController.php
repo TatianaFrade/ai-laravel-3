@@ -32,13 +32,15 @@ class UserController extends Controller
 
         $usersQuery = User::withTrashed();
 
-        $filterByName = $request->name;
-        $filterByGender = $request->input('gender');
-        $filterByType = $request->input('type');
+        $filterByName = $request->get('name');
+        $filterByGender = $request->get('gender', '');
+        $filterByType = $request->get('type', '');
 
-        if ($filterByName !== null) {
-            $usersQuery->where('name', 'LIKE', $filterByName . '%')
-                ->orWhere('email', 'LIKE', $filterByName . '%');
+        if (!empty($filterByName)) {
+            $usersQuery->where(function($query) use ($filterByName) {
+                $query->where('name', 'LIKE', "%{$filterByName}%")
+                    ->orWhere('email', 'LIKE', "%{$filterByName}%");
+            });
         }
 
         if (!empty($filterByGender)) {
@@ -50,9 +52,9 @@ class UserController extends Controller
         }
 
         $allUsers = $usersQuery
-            ->orderBy('email')
-            ->orderBy('type')
+            ->orderByRaw('CASE WHEN photo IS NOT NULL THEN 0 ELSE 1 END')
             ->orderBy('name')
+            ->orderBy('type')
             ->orderBy('gender')
             ->paginate(20)
             ->withQueryString();
@@ -69,21 +71,44 @@ class UserController extends Controller
             'employee' => 'Employee',
         ];
 
-        return view('users.index', compact(
-            'allUsers',
-            'filterByName',
-            'filterByGender',
-            'filterByType',
-            'listGenders',
-            'listTypes',
-        ));
+        return view('users.index', [
+            'allUsers' => $allUsers,
+            'filterByName' => $filterByName,
+            'filterByGender' => $filterByGender,
+            'filterByType' => $filterByType,
+            'listGenders' => $listGenders,
+            'listTypes' => $listTypes,
+        ]);
     }
 
 
     public function show(User $user): View
     {
         $this->authorize('view', $user);
-        return view('users.show', compact('user'));
+
+        $fields = [
+            'name',
+            'email',
+            'type',
+            'gender',
+            'password',
+            'default_delivery_address',
+            'nif',
+            'default_payment_type',
+            'photo'
+        ];
+
+        $editableFields = [];
+        foreach ($fields as $field) {
+            if (auth()->user()->can('updateField', [$user, $field])) {
+                $editableFields[] = $field;
+            }
+        }
+
+        return view('users.show', [
+            'user' => $user,
+            'editableFields' => $editableFields
+        ]);
     }
 
     public function create(): View
@@ -256,26 +281,28 @@ class UserController extends Controller
     {
         $this->authorize('forceDelete', $user);
 
-        $this->deletePhoto($user, 'photo', 'users');
+        try {
+            $this->deletePhoto($user, 'photo', 'users');
+            $user->forceDelete();
 
-        $user->forceDelete();
-
-        return redirect()->route('users.index')
-            ->with('success', 'User deleted permanently.');
+            return redirect()->route('users.index')
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', "User <strong>{$user->name}</strong> was permanently deleted from the system.");
+        } catch (\Exception $error) {
+            return redirect()->back()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', "It was not possible to permanently delete the user <strong>{$user->name}</strong> due to an unexpected error.");
+        }
     }
 
-
-    public function restore(User $user)
+    public function restore($id)
     {
+        $user = User::withTrashed()->findOrFail($id);
+        
         $this->authorize('restore', $user);
-
-        $user = User::withTrashed()->findOrFail($user->id);
+        
         $user->restore();
 
         return redirect()->route('users.index')->with('success', 'User restored successfully!');
     }
-
-
-
-
 }
