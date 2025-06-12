@@ -24,33 +24,13 @@
 
                     <div class="flex mt-6">
                         <flux:button variant="primary" type="submit" class="uppercase">Save</flux:button>
-                        <flux:button class="uppercase ms-4" href="{{ url()->full() }}">Cancel</flux:button>
+                        <flux:button class="uppercase ms-4" href="{{ route('products.index') }}">Cancel</flux:button>
                     </div>
                 </form>
             </section>
         </div>
     </div>
 
-    {{-- validar que desconto só pode se stock >= quantidade mínima --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('product-form');
-            const stockInput = document.getElementById('stock');
-            const minQtyInput = document.getElementById('discount_min_qty');
-            const discountInput = document.getElementById('discount');
 
-            form.addEventListener('submit', function(e) {
-                const stock = parseInt(stockInput.value) || 0;
-                const minQty = parseInt(minQtyInput.value) || 0;
-                const discount = discountInput.value;
-
-                if (discount && stock < minQty) {
-                    alert('Desconto só pode ser aplicado se o stock for maior ou igual à quantidade mínima para desconto.');
-                    e.preventDefault();
-                    discountInput.focus();
-                }
-            });
-        });
-    </script> 
 
 </x-layouts.main-content>

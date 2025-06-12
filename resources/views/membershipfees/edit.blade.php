@@ -1,6 +1,6 @@
 <x-layouts.main-content :title="$membershipfee->name"
-                        heading="Edit membershipfee"
-                        :subheading="$membershipfee->name">
+                        heading="Edit Membership Fee"
+                        subheading="Value to be paid in order to complete purchases">
     <div class="flex flex-col space-y-6">
         <div class="max-full">
             <section>
@@ -20,13 +20,13 @@
 
                     <div class="mt-6 space-y-4">
                         @include('membershipfees.partials.fields', ['mode' => 'edit'])
-                    </div>
-
-                    <div class="flex mt-6">
+                    </div>                    <div class="flex mt-6">
                         <flux:button variant="primary" type="submit" class="uppercase">Save</flux:button>
-                        <flux:button class="uppercase ms-4" href="{{ url()->full() }}">Cancel</flux:button>
                     </div>
                 </form>
+                <div class="flex mt-4">
+                    <flux:button class="uppercase" href="{{ route('membershipfees.index') }}">Cancel</flux:button>
+                </div>
             </section>
         </div>
     </div>

@@ -41,8 +41,40 @@ class Order extends Model
         return true;
     }
 
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($order) {
+            $order->calculateTotal();
+        });
+        
+        static::updating(function ($order) {
+            $order->calculateTotal();
+        });
+    }
 
+    public function calculateTotal()
+    {
+        // Calculate total products with discount applied
+        $totalProducts = $this->items->sum(function ($item) {
+            $price = $item->product->price * $item->quantity;
+            $discount = $item->product->discount ?? 0;
+            return $price * (1 - ($discount / 100));
+        });
 
+        // Add shipping cost
+        $this->total = $totalProducts + ($this->shipping_cost ?? 0);
+        
+        return $this->total;
+    }
 
-    
+    public function getTotalProductsAttribute()
+    {
+        return $this->items->sum(function ($item) {
+            $price = $item->product->price * $item->quantity;
+            $discount = $item->product->discount ?? 0;
+            return $price * (1 - ($discount / 100));
+        });
+    }
 }

@@ -1,4 +1,4 @@
-<x-layouts.main-content :title="__('Products')" heading="List of Products">
+<x-layouts.main-content :title="__('Products')" heading="List of Products" subheading="All products available">
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl text-sm"> {{-- aplica redução global de texto --}}
 
     @if (request('view') !== 'public')

@@ -152,9 +152,7 @@ class CategoryController extends Controller
         }
 
         return redirect()->back()->with('alert-type', 'warning')->with('alert-msg', 'Only deleted categories can be force deleted.');
-    }
-
-    public function restore($id)
+    }    public function restore($id): RedirectResponse
     {
         $category = Category::withTrashed()->findOrFail($id);
         
@@ -165,6 +163,5 @@ class CategoryController extends Controller
         return redirect()
             ->route('categories.index')
             ->with('alert-type', 'success')
-            ->with('alert-msg', "Category \"{$category->name}\" restored successfully.");
-    }
+            ->with('alert-msg', "Category \"{$category->name}\" restored successfully.");    }
 }

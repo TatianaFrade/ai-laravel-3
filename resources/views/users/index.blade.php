@@ -50,39 +50,60 @@
                   <td class="px-2 py-2 text-left">{{ $user->type }}</td>
                   <td class="px-2 py-2 text-left">{{ $user->gender }}</td>
 
-               <td class="px-2 py-2 text-left">
-                    @can('update', $user)
+               <td class="px-2 py-2 text-left">                    @can('update', $user)
                         @if ($user->id !== Auth::id() && $user->type === 'member')
-                            <form action="{{ route('users.toggleBlocked', $user->id) }}" method="POST">
-                                @csrf
-                                @method('PATCH')
-                                <button 
-                                    type="submit" 
-                                    title="{{ $user->blocked ? 'Desbloquear utilizador' : 'Bloquear utilizador' }}"
-                                    class="text-sm text-white px-3 py-1 rounded 
-                                        {{ $user->blocked ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
+                            @if(Auth::user()->type === 'board')
+                                <form action="{{ route('users.toggleBlocked', $user->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button 
+                                        type="submit" 
+                                        title="{{ $user->blocked ? 'Desbloquear utilizador' : 'Bloquear utilizador' }}"
+                                        class="text-sm text-white px-3 py-1 rounded 
+                                            {{ $user->blocked ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
+                                        {{ $user->blocked ? 'Blocked' : 'Unblocked' }}
+                                    </button>
+                                </form>
+                            @else
+                                <div class="text-sm px-3 py-1 rounded bg-gray-400" title="{{ $user->blocked ? 'Blocked' : 'Unblocked' }} (Cannot modify)">
                                     {{ $user->blocked ? 'Blocked' : 'Unblocked' }}
-                                </button>
-                            </form>
+                                </div>
+                            @endif
                         @else
                             <div class="text-left text-gray-500">-</div>
                         @endif
                     @else
                         <div class="text-left text-gray-500">-</div>
                     @endcan
-                </td>                  <td class="px-2 py-2 text-right">                    <div class="flex items-center justify-end gap-2">
-                      @if (!$user->trashed())
+                </td>                  <td class="px-2 py-2 text-right">                    
+                    <div class="flex items-center justify-end gap-2">
+                      {{-- View button - always visible --}}
+                      @if (!$user->trashed() && Auth::user()->type === 'board')
                         <a href="{{ route('users.show', ['user' => $user]) }}" class="hover:text-gray-600" title="View">
                           <flux:icon.eye class="size-5" />
                         </a>
+                      @else
+                        <div class="inline-flex" title="View (Read-only)">
+                          <flux:icon.eye class="size-5 text-gray-400" />
+                        </div>
+                      @endif
 
-                        @can('update', $user)
+                      {{-- Edit button --}}
+                      @can('update', $user)
+                        @if (!$user->trashed() && Auth::user()->type === 'board')
                           <a href="{{ route('users.edit', ['user' => $user]) }}" title="Edit">
                             <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
                           </a>
-                        @endcan
+                        @else
+                          <div class="inline-flex" title="Edit ({{ $user->trashed() ? 'Read-only' : 'Unavailable' }})">
+                            <flux:icon.pencil-square class="size-5 text-gray-400" />
+                          </div>
+                        @endif
+                      @endcan
 
-                        @can('delete', $user)
+                      {{-- Cancel/Delete button --}}
+                      @can('delete', $user)
+                        @if (!$user->trashed() && Auth::user()->type === 'board')
                           <form method="POST" action="{{ route('users.destroy', ['user' => $user]) }}" class="flex items-center">
                             @csrf
                             @method('DELETE')
@@ -90,15 +111,28 @@
                               <flux:icon.cube class="size-5 hover:text-red-600" />
                             </button>
                           </form>
-                        @endcan
-                      @else
+                        @else
+                          <div class="inline-flex" title="Cancel membership ({{ $user->trashed() ? 'Read-only' : 'Unavailable' }})">
+                            <flux:icon.cube class="size-5 text-gray-400" />
+                          </div>
+                        @endif
+                      @endcan
+
+                      {{-- Restore button --}}
+                      @if ($user->trashed())
                         @can('restore', $user)
-                          <form method="POST" action="{{ route('users.restore', ['user' => $user]) }}" class="flex items-center">
-                            @csrf
-                            <button type="submit" title="Restore membership">
-                              <flux:icon.arrow-path-rounded-square class="size-5 hover:text-green-600" />
-                            </button>
-                          </form>
+                          @if (Auth::user()->type === 'board')
+                            <form method="POST" action="{{ route('users.restore', ['user' => $user]) }}" class="flex items-center">
+                              @csrf
+                              <button type="submit" title="Restore membership">
+                                <flux:icon.arrow-path-rounded-square class="size-5 hover:text-green-600" />
+                              </button>
+                            </form>
+                          @else
+                            <div class="inline-flex" title="Restore membership (Unavailable)">
+                              <flux:icon.arrow-path-rounded-square class="size-5 text-gray-400" />
+                            </div>
+                          @endif
                         @endcan
                       @endif
                     </div>

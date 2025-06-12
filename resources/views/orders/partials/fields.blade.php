@@ -3,6 +3,10 @@
     $readonly = $mode === 'show';
     $isCreate = $mode === 'create';
     $isEdit = $mode === 'edit';
+    // For employees, all fields except status should be read-only in edit mode
+    $isEmployee = auth()->user()->type === 'employee';
+    $readonly = $readonly || ($isEdit && $isEmployee);
+    $needsHiddenFields = $isEdit && $isEmployee;
 
     $dateValue = old('date', $order->date ?? now()->format('Y-m-d'));
     $cancelReason = old('cancel_reason', $order->cancel_reason ?? '');
@@ -17,16 +21,40 @@
         :disabled="$readonly" 
         :placeholder="__('Required')" 
     />
-    @if ($readonly)
+    @if ($readonly || $needsHiddenFields)
         <input type="hidden" name="member_id" value="{{ old('member_id', $order->member_id ?? '') }}">
     @endif
+
+    <flux:input 
+        name="member_name" 
+        label="Member name" 
+        value="{{ $order->user->name ?? '' }}" 
+        readonly 
+        class="mt-4"
+    />
+
+    <flux:input 
+        name="member_email" 
+        label="Member email" 
+        value="{{ $order->user->email ?? '' }}" 
+        readonly 
+        class="mt-4"
+    />
 </div>
 
-@if ($isCreate || $readonly)
+@if ($isCreate)
     <flux:input 
         name="status" 
         label="Status" 
         value="{{ old('status', $order->status ?? 'pending') }}" 
+        readonly 
+        :placeholder="__('Required')" 
+    />
+@elseif ($mode === 'show')
+    <flux:input 
+        name="status" 
+        label="Status" 
+        value="{{ old('status', $order->status ?? '') }}" 
         readonly 
         :placeholder="__('Required')" 
     />
@@ -77,6 +105,9 @@
     readonly 
     :placeholder="__('Required')" 
 />
+@if ($needsHiddenFields)
+    <input type="hidden" name="date" value="{{ $dateValue }}">
+@endif
 
 <flux:input 
     name="total_items" 
@@ -84,6 +115,30 @@
     value="{{ old('total_items', $order->total_items ?? '') }}" 
     :disabled="$readonly" 
     :placeholder="__('Required')" 
+/>
+@if ($needsHiddenFields)
+    <input type="hidden" name="total_items" value="{{ old('total_items', $order->total_items ?? '') }}">
+@endif
+
+<flux:input 
+    name="total_products" 
+    label="Total Products (with discounts)" 
+    value="{{ number_format($order->total_products ?? 0, 2) }}" 
+    readonly 
+/>
+
+<flux:input 
+    name="shipping_cost" 
+    label="Shipping Cost" 
+    value="{{ number_format($order->shipping_cost ?? 0, 2) }}" 
+    readonly 
+/>
+
+<flux:input 
+    name="total" 
+    label="Total (Products + Shipping)" 
+    value="{{ number_format($order->total ?? 0, 2) }}" 
+    readonly 
 />
 
 <flux:input 
@@ -93,6 +148,9 @@
     :disabled="$readonly" 
     :placeholder="__('Required')" 
 />
+@if ($needsHiddenFields)
+    <input type="hidden" name="nif" value="{{ old('nif', $order->nif ?? '') }}">
+@endif
 
 <flux:input 
     name="delivery_address" 
@@ -101,3 +159,6 @@
     :disabled="$readonly" 
     :placeholder="__('Required')" 
 />
+@if ($needsHiddenFields)
+    <input type="hidden" name="delivery_address" value="{{ old('delivery_address', $order->delivery_address ?? '') }}">
+@endif

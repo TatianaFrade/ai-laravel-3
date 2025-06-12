@@ -18,7 +18,7 @@ class StockAdjustmentController extends Controller
     {
         $this->authorize('viewAny', StockAdjustment::class);
 
-        $stockadjustments = StockAdjustment::with('product', 'user')->latest()->paginate(20);
+        $stockadjustments = StockAdjustment::with('product', 'user')->latest()->paginate(15);
 
         return view('stockadjustments.index')->with('stockadjustments', $stockadjustments);
     }

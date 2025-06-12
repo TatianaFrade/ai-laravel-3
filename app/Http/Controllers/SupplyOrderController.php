@@ -18,13 +18,11 @@ class SupplyOrderController extends Controller
     { 
         $this->authorizeResource(SupplyOrder::class, 'supplyorder');
     }
-
-
     public function index()
-    {
-         $allSupplyorders = SupplyOrder::with(['product','registeredByUser'])->paginate(10);
+    {         $allSupplyorders = SupplyOrder::with(['product','registeredByUser'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
         return view('supplyorders.index')->with('allSupplyorders', $allSupplyorders);
-
     }
     
     public function create()

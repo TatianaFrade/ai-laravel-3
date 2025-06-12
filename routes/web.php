@@ -76,13 +76,14 @@ Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->gro
 
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
+    Route::post('products/{id}/restore', [ProductController::class, 'restore'])->name('products.restore');
     Route::resource('shippingcosts', ShippingCostController::class);
     Route::resource('orders', OrderController::class);
     Route::resource('supplyorders', SupplyOrderController::class);
     Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
     
-    Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
-    
+    Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+
     //Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
     Route::post('/membershipfees/{membershipfee}/pay', [MembershipFeeController::class, 'pay'])
     ->name('membershipfees.pay');
@@ -91,7 +92,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->gro
     Route::get('card', [CardController::class, 'show'])->name('card.show');
 
 
-
+    
 
 
 

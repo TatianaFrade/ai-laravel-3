@@ -15,18 +15,19 @@
                 <th class="px-3 py-2 text-center"></th>
               </tr>
             </thead>
-            <tbody>
-              @foreach ($stockadjustments as $index => $stockadjustment)
+            <tbody>              @foreach ($stockadjustments as $stockadjustment)
                 <tr>
-                    <td class="px-3 py-2">{{ $index + 1 }}</td>
+                    <td class="px-3 py-2">{{ ($stockadjustments->currentPage() - 1) * $stockadjustments->perPage() + $loop->iteration }}</td>
                     <td class="px-3 py-2">{{ $stockadjustment->product->name ?? '—' }}</td>
                     <td class="px-3 py-2">{{ $stockadjustment->user->name ?? '—' }}</td>
                     <td class="px-3 py-2">{{ $stockadjustment->quantity_changed ?? '0' }}</td>
                 </tr>
-              @endforeach
-
-            </tbody>
+              @endforeach            </tbody>
           </table>
+
+          <div class="mt-4">
+              {{ $stockadjustments->links() }}
+          </div>
         </div>
       </div>
     </div>
