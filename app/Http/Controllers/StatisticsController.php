@@ -40,6 +40,7 @@ class StatisticsController extends Controller
             ];
             return view('statistics.board_basic', compact('data'));
         }
+        return abort(403, 'Unauthorized');
     }
 
     public function advanced()
@@ -110,6 +111,7 @@ class StatisticsController extends Controller
             
             return view('statistics.board_advanced', compact('data'));
         }
+        return abort(403, 'Unauthorized');
     }
 
 	public function exportSalesByCategory()
