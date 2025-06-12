@@ -9,6 +9,10 @@ use App\Models\Product;
 use App\Models\Card;
 use Illuminate\Support\Facades\DB;
 
+use App\Exports\SalesByCategoryExport;
+use App\Exports\UserSpendingExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 class StatisticsController extends Controller
 {
     // Página básica (chamado por statistics.basic)
@@ -36,6 +40,7 @@ class StatisticsController extends Controller
             ];
             return view('statistics.board_basic', compact('data'));
         }
+        return abort(403, 'Unauthorized');
     }
 
     public function advanced()
@@ -43,11 +48,13 @@ class StatisticsController extends Controller
         $user = auth()->user();
 
         if ($user->type === 'member') {
-            $ordersByMonth = Order::selectRaw("DATE_FORMAT(`date`, '%Y-%m') as month")
-                ->selectRaw("SUM(`total`) as total")
-                ->where('member_id', $user->id)
-                ->where('status', 'completed')
-                ->groupBy('month')
+            $ordersData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
+                ->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
+                ->join('products', 'items_orders.product_id', '=', 'products.id')
+                ->join('categories', 'products.category_id', '=', 'categories.id')
+                ->where('orders.member_id', $user->id)         // filtra pelo membro logado
+                ->where('orders.status', 'completed')
+                ->groupBy('month', 'categories.name')
                 ->orderBy('month')
                 ->get();
 
@@ -63,16 +70,17 @@ class StatisticsController extends Controller
                 ->get();
 
             $data = [
-                'orders_by_month'    => $ordersByMonth,
-                'frequent_products'  => $frequentProducts,
+                'sales_by_category' => $ordersData,
+                'frequent_products' => $frequentProducts,
             ];
 
             return view('statistics.member_advanced', compact('data'));
         } elseif ($user->type === 'board') {
-            $salesByMonth = Order::selectRaw("DATE_FORMAT(`date`, '%Y-%m') as month")
-                ->selectRaw("SUM(`total`) as total")
-                ->where('status', 'completed')
-                ->groupBy('month')
+            $salesData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
+                ->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
+                ->join('products', 'items_orders.product_id', '=', 'products.id')
+                ->join('categories', 'products.category_id', '=', 'categories.id')
+                ->groupBy('month', 'categories.name')
                 ->orderBy('month')
                 ->get();
 
@@ -96,12 +104,47 @@ class StatisticsController extends Controller
                 ->get();
 
             $data = [
-                'sales_by_month' => $salesByMonth,
+                'sales_by_category' => $salesData,
                 'top_products'   => $topProducts,
                 'top_spenders'   => $topSpenders
             ];
-
+            
             return view('statistics.board_advanced', compact('data'));
         }
+        return abort(403, 'Unauthorized');
     }
+
+	public function exportSalesByCategory()
+	{
+		$user = auth()->user();
+		if ($user != null && $user->type === 'board') {
+			$salesData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
+				->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
+				->join('products', 'items_orders.product_id', '=', 'products.id')
+				->join('categories', 'products.category_id', '=', 'categories.id')
+				->groupBy('month', 'categories.name')
+				->orderBy('month')
+				->get();
+
+			return Excel::download(new SalesByCategoryExport($salesData), 'sales_by_category.xlsx');
+		}
+        return abort(403, 'Unauthorized');
+	}
+	
+	public function exportUserSpending()
+	{
+		$user = auth()->user();
+		if ($user != null && $user->type === 'member') {
+			$ordersByMonth = \App\Models\Order::selectRaw("DATE_FORMAT(`date`, '%Y-%m') as month")
+				->selectRaw("SUM(`total`) as total")
+				->where('member_id', $user->id)
+				->where('status', 'completed')
+				->groupBy('month')
+				->orderBy('month')
+				->get();
+
+			return Excel::download(new UserSpendingExport($ordersByMonth), 'user_spending.xlsx');
+		}
+        return abort(403, 'Unauthorized');
+	}
 }

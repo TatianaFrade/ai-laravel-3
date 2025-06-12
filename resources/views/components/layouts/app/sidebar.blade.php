@@ -54,6 +54,7 @@
                 <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')" :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('categories.index')" :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
+				<flux:navlist.item icon="academic-cap" :href="route('statistics.basic')" :current="request()->routeIs('statistics.*')" wire:navigate>Statistics</flux:navlist.item>
             </flux:navlist.group>
         @endcan
     </flux:navlist>
@@ -97,6 +98,12 @@
                 </form>
             </flux:menu>
         </flux:dropdown>
+	@else
+		<flux:navlist variant="outline">
+			<flux:navlist.group :heading="'Authentication'" class="grid">
+				<flux:navlist.item icon="key" :href="route('login')" :current="request()->routeIs('login')" wire:navigate>Login</flux:navlist.item>
+			</flux:navlist.group>
+		</flux:navlist>
     @endauth
 
 </flux:sidebar>
@@ -141,7 +148,12 @@
                 </form>
             </flux:menu>
         </flux:dropdown>
+	@else
+		<flux:navbar>
+			<flux:navbar.item  icon="key" :href="route('login')" :current="request()->routeIs('login')" wire:navigate>Login</flux:navbar.item>
+		</flux:navbar>
     @endauth
+	
 </flux:header>
 
 {{ $slot }}
