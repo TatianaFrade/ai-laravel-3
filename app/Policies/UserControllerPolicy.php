@@ -65,19 +65,33 @@ class UserControllerPolicy
      */
     public function updateField(User $authUser, User $userToEdit, string $field): bool
     {
+        // Apenas membros do board podem editar usuários
         if ($authUser->type !== 'board') {
             return false;
         }
 
-        // Se estiver a criar um novo user (sem ID), assume que é employee
+        // Se estiver criando um novo usuário, permitir todos os campos
         $isCreating = !$userToEdit->exists;
-
-        // Se a criar ou editar um employee, só permite estes campos
-        if ($isCreating || $userToEdit->type === 'employee') {
-            return in_array($field, ['email', 'password', 'name', 'gender', 'photo']);
+        if ($isCreating) {
+            return true;
         }
 
-        // Ao editar um board ou member, permite tudo
+        // Caso específico para o campo 'type'
+        if ($field === 'type') {
+            // Board só pode alterar board para employee ou member para board
+            if ($userToEdit->type === 'board') {
+                // Só pode mudar board para employee
+                return true;
+            } elseif ($userToEdit->type === 'member') {
+                // Só pode mudar member para board
+                return true;
+            } else {
+                // Não pode mudar o type de employee
+                return false;
+            }
+        }
+
+        // Para todos os outros campos, permitir edição
         return true;
     }
 

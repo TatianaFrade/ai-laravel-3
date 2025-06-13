@@ -151,13 +151,15 @@ class UserController extends Controller
 
         $data = $request->validated();
 
-        $data['type'] = 'employee'; // board só pode criar employee
+        // Board só pode criar employee
+        $data['type'] = 'employee';
         $data['blocked'] = 0;   // employee nunca começa bloqueado
 
         if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         }
 
+        // Cria o usuário com todos os campos permitidos
         $user = new User($data);
         $user->save();
 
@@ -167,7 +169,7 @@ class UserController extends Controller
             $user->save();
         }
 
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
+        return redirect()->route('users.index')->with('success', 'Employee created successfully.');
     }
 
 
@@ -213,6 +215,34 @@ class UserController extends Controller
 
         $data = $request->validated();
         
+        // Validar alterações de tipo de usuário
+        if (isset($data['type']) && $data['type'] !== $user->type) {
+            $authUser = auth()->user();
+            
+            // Apenas board pode mudar tipos
+            if ($authUser->type !== 'board') {
+                return back()->withInput()->with('alert-type', 'danger')
+                    ->with('alert-msg', 'You are not authorized to change user types.');
+            }
+            
+            // Board só pode alterar board para employee
+            if ($user->type === 'board' && $data['type'] !== 'employee') {
+                return back()->withInput()->with('alert-type', 'danger')
+                    ->with('alert-msg', 'Board users can only be changed to employee type.');
+            }
+            
+            // Member só pode ser alterado para board
+            if ($user->type === 'member' && $data['type'] !== 'board') {
+                return back()->withInput()->with('alert-type', 'danger')
+                    ->with('alert-msg', 'Member users can only be changed to board type.');
+            }
+            
+            // Não pode alterar o tipo dos employees
+            if ($user->type === 'employee') {
+                unset($data['type']);
+            }
+        }
+        
         if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
@@ -220,18 +250,13 @@ class UserController extends Controller
         }
 
         if ($request->hasFile('photo')) {
-
             $this->deletePhoto($user, 'photo', 'users');
-
-
             $filename = $this->storePhoto($request->file('photo'), $user, 'photo', 'users');
-
             $data['photo'] = $filename;
         }
 
         $user->update($data);
         
-
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
 
