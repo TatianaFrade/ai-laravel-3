@@ -16,7 +16,6 @@
                                 <th class="px-3 py-2 text-center">Min value</th>
                                 <th class="px-3 py-2 text-center">Max value</th>
                                 <th class="px-3 py-2 text-center">Shipping cost</th>
-                                <th class="px-3 py-2 text-center">Status</th>
                                 <th class="px-3 py-2 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -27,13 +26,6 @@
                                     <td class="px-3 py-2 text-center">{{ $cost->min_value_threshold ?? '—' }}</td>
                                     <td class="px-3 py-2 text-center">{{ $cost->max_value_threshold ?? '—' }}</td>
                                     <td class="px-3 py-2 text-center">{{ $cost->shipping_cost ?? '—' }}</td>
-                                    <td class="px-3 py-2 text-center">
-                                        @if($cost->trashed())
-                                            <span class="text-red-600 font-semibold">Deleted</span>
-                                        @else
-                                            <span class="text-green-600">Active</span>
-                                        @endif
-                                    </td>
                                     <td class="px-2 py-2 text-center">
                                         <div class="flex items-center justify-center space-x-2">
                                             <a href="{{ route('shippingcosts.show', $cost) }}" title="View">
