@@ -3,9 +3,12 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\Category;
+use Illuminate\Auth\Access\HandlesAuthorization;
 
-class CategoryPolicy
+class CategoryControllerPolicy
 {
+    use HandlesAuthorization;
+
     public function viewAny(?User $user): bool
     {
         return $user->type === 'board';
@@ -31,10 +34,6 @@ class CategoryPolicy
         return $user->type === 'board';
     }
 
-
-
-
-    
     public function restore(User $user, Category $category): bool
     {
         return $user->type === 'board';
@@ -45,5 +44,3 @@ class CategoryPolicy
         return $user->type === 'board';
     }
 }
-
-

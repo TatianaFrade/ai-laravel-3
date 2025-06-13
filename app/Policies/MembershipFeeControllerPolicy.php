@@ -4,9 +4,12 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\MembershipFee;
+use Illuminate\Auth\Access\HandlesAuthorization;
 
-class MembershipFeePolicy
+class MembershipFeeControllerPolicy
 {
+    use HandlesAuthorization;
+
     public function viewAny(User $user): bool
     {
         return true;
