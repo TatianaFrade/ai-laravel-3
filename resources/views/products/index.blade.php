@@ -17,7 +17,14 @@
         </flux:button>
       @endcan
     </div>
-  @endif
+    @endif
+
+    @if (auth()->check() && auth()->user()->type === 'member')
+    <div class="flex gap-4">
+      <a href="{{ route('products.index') }}" class="px-4 py-2 bg-blue-600 text-white rounded">All Products</a>
+      <a href="{{ route('favorites.index') }}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">Favorites</a>
+    </div>
+    @endif
 
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
@@ -51,15 +58,10 @@
             :userType="$userType"
           />
         @else
-        <div class="flex gap-4 mb-6">
-            <a href="{{ route('products.index') }}" class="px-4 py-2 bg-blue-600 text-white rounded">All Products</a>
-            <a href="{{ route('favorites.index') }}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">Favorites</a>
-        </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @foreach ($allProducts as $product)
               @include('components.products.card', ['product' => $product])
             @endforeach
-
           </div>
         @endcan
 

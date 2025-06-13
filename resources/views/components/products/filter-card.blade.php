@@ -9,24 +9,28 @@
 
             <!-- Input nome ou categoria -->
             <div class="grow flex flex-col space-y-2">
-                <label for="name" class="block text-sm font-medium text-gray-300">Search by name or category</label>
+                <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Search by name or category
+                </label>
                 <input 
                     type="text" 
                     name="name" 
                     id="name"
                     value="{{ $filterByName }}" 
                     placeholder="All"
-                    class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-2 rounded w-full placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
             </div>
 
             <!-- Dropdown ordenação por preço -->
             <div class="w-48 flex flex-col space-y-2">
-                <label for="order_price" class="block text-sm font-medium text-gray-300">Order by price</label>
+                <label for="order_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Order by price
+                </label>
                 <select 
                     name="order_price" 
                     id="order_price" 
-                    class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >                    
                     <option value="">All</option>
                     <option value="asc" {{ $orderPrice === 'asc' ? 'selected' : '' }}>Asc</option>
@@ -38,11 +42,13 @@
                 @if(Auth::user()->type === 'board')
                     <!-- Dropdown ordenação por stock (apenas para board) -->
                     <div class="w-48 flex flex-col space-y-2">
-                        <label for="order_stock" class="block text-sm font-medium text-gray-300">Order by stock</label>
+                        <label for="order_stock" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Order by stock
+                        </label>
                         <select 
                             name="order_stock" 
                             id="order_stock" 
-                            class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >                            
                             <option value="">All</option>
                             <option value="asc" {{ $orderStock === 'asc' ? 'selected' : '' }}>Asc</option>
@@ -59,7 +65,7 @@
                 </button>
             </div>
             <div class="grow-0 flex flex-col space-y-3 justify-start pt-6">
-                <a href="{{ $resetUrl }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-center">
+                <a href="{{ $resetUrl }}" class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded text-center">
                     Cancel
                 </a>
             </div>

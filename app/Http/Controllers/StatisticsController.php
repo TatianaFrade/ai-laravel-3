@@ -27,7 +27,7 @@ class StatisticsController extends Controller
                 'total_spent' => Order::where('member_id', $user->id)->sum('total')
             ];
             return view('statistics.member_basic', compact('data'));
-        } elseif ($user->type === 'board')  {
+        } elseif ($user->type === 'board' || $user->type === 'employee')  {
             $data = [
                 'total_users' => User::count(),
                 'users_by_type' => User::select('type')->selectRaw('count(*) as total')->groupBy('type')->get(),
@@ -75,7 +75,7 @@ class StatisticsController extends Controller
             ];
 
             return view('statistics.member_advanced', compact('data'));
-        } elseif ($user->type === 'board') {
+        } elseif ($user->type === 'board' || $user->type === 'employee') {
             $salesData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
                 ->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
                 ->join('products', 'items_orders.product_id', '=', 'products.id')
