@@ -18,11 +18,22 @@ class ProductController extends Controller
     
     public function __construct()
     {
-        $this->authorizeResource(Product::class, 'product');
+        // Only authorize for non-public routes
+        // We'll handle authorization for index and show separately to allow public access
+        $this->authorizeResource(Product::class, 'product', [
+            'except' => ['index', 'show']
+        ]);
     }
     
     public function index(Request $request): View
     {
+        // Skip policy check for public access
+        if (!auth()->check()) {
+            // No need to authorize for guests
+        } else {
+            $this->authorize('viewAny', Product::class);
+        }
+    
         $filterByName = $request->get('name');
         $orderPrice = $request->get('order_price');
         $orderStock = $request->get('order_stock');
@@ -261,7 +272,13 @@ class ProductController extends Controller
  
     public function showcase(): View
     {
-        $this->authorize('viewShowCase', Product::class);
+        // Skip policy check for public access
+        if (!auth()->check()) {
+            // No need to authorize for guests
+        } else {
+            $this->authorize('viewShowCase', Product::class);
+        }
+        
         // Forward to the index view with public view parameter
         $products = Product::with('category')->orderBy('name')->paginate(15);
         return view('products.index', [
@@ -272,6 +289,13 @@ class ProductController extends Controller
  
     public function show(Product $product): View
     {
+        // Skip policy check for public access
+        if (!auth()->check()) {
+            // No need to authorize for guests
+        } else {
+            $this->authorize('view', $product);
+        }
+        
         $categories = Category::all();
  
         $tr = new GoogleTranslate('en');

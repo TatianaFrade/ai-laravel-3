@@ -9,11 +9,23 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class ProductControllerPolicy
 {
     use HandlesAuthorization;
+    
+    /**
+     * Allow guests to view products
+     */
+    public function before(?User $user, $ability)
+    {
+        if (in_array($ability, ['viewAny', 'view', 'viewShowCase']) && is_null($user)) {
+            return true;
+        }
+        
+        return null;
+    }
 
     /**
      * Determine if the user can view any products.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user = null): bool
     {
         return true;
     }
@@ -21,7 +33,7 @@ class ProductControllerPolicy
     /**
      * Determine if the user can view a product.
      */
-    public function view(User $user, Product $product): bool
+    public function view(?User $user = null, Product $product): bool
     {
         return true;
     }
@@ -53,7 +65,7 @@ class ProductControllerPolicy
     /**
      * Custom method found in ProductController
      */
-    public function viewShowCase(User $user): bool
+    public function viewShowCase(?User $user = null): bool
     {
         return true;
     }
@@ -63,7 +75,7 @@ class ProductControllerPolicy
      */
     public function viewTable(User $user): bool
     {
-        return true;
+        return in_array($user->type, ['board', 'employee']);
     }
 
     /**
