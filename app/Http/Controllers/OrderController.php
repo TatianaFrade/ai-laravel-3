@@ -262,6 +262,19 @@ class OrderController extends Controller
                 if ($card) {
                     $card->balance += $order->total;
                     $card->save();
+
+                    $card->operations()->create([
+                        'card_id' => $card->id,
+                        'type' => 'credit',
+                        'value' => $order->total,
+                        'date' => now()->format('Y-m-d'),
+                        'debit_type' => null,
+                        'credit_type' => 'order_cancellation',
+                        'payment_type' => null,
+                        'payment_reference' => null,
+                        'order_id' => $order->id,
+                    ]);
+
                 } else {
                     \Log::warning('Card not found for user_id: ' . $order->user->id);
                 }

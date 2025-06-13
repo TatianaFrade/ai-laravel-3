@@ -61,9 +61,9 @@ class CartController extends Controller
  
         $request->session()->put('cart', $cart);        $alertType = 'success';
         $url = route('products.show', ['product' => $product]);
-        $htmlMessage = "Product <a href='$url'>#{$product->id}
+        $htmlMessage = "Product <a href='$url'></a>
             <strong>\"{$product->name}\"</strong></a> has been added to the cart.";
-
+ 
         return back()
             ->with('alert-msg', $htmlMessage)
             ->with('alert-type', $alertType);

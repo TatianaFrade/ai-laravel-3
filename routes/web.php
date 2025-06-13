@@ -21,6 +21,8 @@ use App\Http\Controllers\StatisticsController;
 
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
 
 
 
@@ -32,7 +34,7 @@ Route::get('test-membership-check', function () {
         echo 'Board User #561: ' . $board561->name . ' (Type: ' . $board561->type . ')' . "<br>";
         echo 'Has Paid Membership: ' . ($board561->hasPaidMembership() ? 'Yes' : 'No') . "<br>";
         echo 'Membership Expired: ' . ($board561->isMembershipExpired() ? 'Yes' : 'No') . "<br>";
-        
+
         // Simulate the CartController logic
         if (!$board561->hasPaidMembership()) {
             echo 'CHECKOUT RESULT: Redirect to membership payment due to never having paid.';
@@ -77,6 +79,16 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckIfUserBlocked::
 
     //Route::post('/orders', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::get('/operations', [OperationController::class, 'index'])->name('operations.index');
+
+    Route::get('/receipt/{filename}', function ($filename) {
+        $path = storage_path("app/private/receipts/{$filename}");
+
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return Response::file($path);
+    })->middleware('auth');
 
     // Statistics routes - restricted to staff members only
     Route::middleware('can:staff')->group(function () {
@@ -148,13 +160,13 @@ Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->gro
 
     //Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
     Route::post('/membershipfees/{membershipfee}/pay', [MembershipFeeController::class, 'pay'])
-    ->name('membershipfees.pay');
+        ->name('membershipfees.pay');
 
-    
+
     Route::get('card', [CardController::class, 'show'])->name('card.show');
 
 
-    
+
 
 
 
