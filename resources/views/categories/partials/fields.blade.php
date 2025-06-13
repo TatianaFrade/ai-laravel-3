@@ -1,9 +1,4 @@
-@php
-    $imagePath = 'storage/categories/' . ($category->image ?? '');
-    $mode = $mode ?? 'create';
-    $readonly = $mode === 'show';
-    $disableImage = $readonly;
-@endphp
+{{-- Variables are now passed from the controller --}}
 
 @if($mode !== 'create')
     <div class="flex items-start gap-4">

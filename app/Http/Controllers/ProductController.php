@@ -18,11 +18,22 @@ class ProductController extends Controller
     
     public function __construct()
     {
-        $this->authorizeResource(Product::class, 'product');
+        // Only authorize for non-public routes
+        // We'll handle authorization for index and show separately to allow public access
+        $this->authorizeResource(Product::class, 'product', [
+            'except' => ['index', 'show']
+        ]);
     }
     
     public function index(Request $request): View
     {
+        // Skip policy check for public access
+        if (!auth()->check()) {
+            // No need to authorize for guests
+        } else {
+            $this->authorize('viewAny', Product::class);
+        }
+    
         $filterByName = $request->get('name');
         $orderPrice = $request->get('order_price');
         $orderStock = $request->get('order_stock');
@@ -67,10 +78,32 @@ class ProductController extends Controller
     public function create(): View
     {
         $categories = Category::all();
+        $product = new Product();
+        
+        // Prepare variables for the view
+        $mode = 'create';
+        $readonly = false;
+        $isCreate = true;
+        $isEdit = false;
+        
+        $userType = auth()->user()->type ?? 'guest';
+        $canEditAll = !$readonly && $userType === 'board';
+        $canEditStockOnly = !$readonly && $userType === 'employee';
+        $forceReadonly = $readonly || (!$canEditAll && !$canEditStockOnly);
+        $isEmployeeEditing = $userType === 'employee' && $mode === 'edit';
+        
         return view('products.create', [
-            'mode' => 'create',
-            'product' => new Product(),
-            'categories' => $categories
+            'mode' => $mode,
+            'product' => $product,
+            'categories' => $categories,
+            'readonly' => $readonly,
+            'isCreate' => $isCreate,
+            'isEdit' => $isEdit,
+            'userType' => $userType,
+            'canEditAll' => $canEditAll,
+            'canEditStockOnly' => $canEditStockOnly,
+            'forceReadonly' => $forceReadonly,
+            'isEmployeeEditing' => $isEmployeeEditing
         ]);
     }
  
@@ -97,7 +130,7 @@ class ProductController extends Controller
         $this->createSupplyOrderIfNeeded($product);
  
         return redirect()->route('products.index')
-            ->with('success', 'Produto criado com sucesso.');
+            ->with('success', 'Product created successfully.');
     }
  
     public function edit(Product $product): View
@@ -107,12 +140,30 @@ class ProductController extends Controller
  
         $tr = new GoogleTranslate('en');
         $product->description_translated = $tr->translate($product->description);
+        
+        // Prepare variables for the view
+        $mode = 'edit';
+        $readonly = false;
+        $isCreate = false;
+        $isEdit = true;
+        
+        $canEditAll = !$readonly && $userType === 'board';
+        $canEditStockOnly = !$readonly && $userType === 'employee';
+        $forceReadonly = $readonly || (!$canEditAll && !$canEditStockOnly);
+        $isEmployeeEditing = $userType === 'employee' && $mode === 'edit';
  
         return view('products.edit', [
-            'mode' => 'edit',
+            'mode' => $mode,
             'product' => $product,
             'categories' => $categories,
-            'userType' => $userType
+            'userType' => $userType,
+            'readonly' => $readonly,
+            'isCreate' => $isCreate,
+            'isEdit' => $isEdit,
+            'canEditAll' => $canEditAll,
+            'canEditStockOnly' => $canEditStockOnly,
+            'forceReadonly' => $forceReadonly,
+            'isEmployeeEditing' => $isEmployeeEditing
         ]);
     }
  
@@ -227,7 +278,7 @@ class ProductController extends Controller
                 // Se já foi vendido, faz soft delete
                 $product->delete();
                 $alertType = 'success';
-                $alertMsg = "O produto {$product->name} possui vendas associadas e foi movido para a lixeira.";
+                $alertMsg = "Product {$product->name} has associated sales and has been moved to trash.";
             } else {
                 // Se nunca foi vendido, tenta remover permanentemente (mesmo que tenha supply orders)
                 try {
@@ -241,17 +292,17 @@ class ProductController extends Controller
                     $product->forceDelete();
                     
                     $alertType = 'success';
-                    $alertMsg = "O produto {$product->name} foi eliminado permanentemente.";
+                    $alertMsg = "Product {$product->name} has been permanently deleted.";
                 } catch (\Exception $e) {
                     // Se ocorrer algum erro na exclusão permanente, fazemos soft delete como fallback
                     $product->delete();
                     $alertType = 'warning';
-                    $alertMsg = "O produto {$product->name} não pôde ser eliminado permanentemente e foi movido para a lixeira. Detalhes: " . $e->getMessage();
+                    $alertMsg = "Product {$product->name} could not be permanently deleted and was moved to trash. Details: " . $e->getMessage();
                 }
             }
         } catch (\Exception $e) {
             $alertType = 'danger';
-            $alertMsg = "Erro ao tentar eliminar o produto {$product->name}: " . $e->getMessage();
+            $alertMsg = "Error while trying to delete product {$product->name}: " . $e->getMessage();
         }
  
         return back()
@@ -261,7 +312,13 @@ class ProductController extends Controller
  
     public function showcase(): View
     {
-        $this->authorize('viewShowCase', Product::class);
+        // Skip policy check for public access
+        if (!auth()->check()) {
+            // No need to authorize for guests
+        } else {
+            $this->authorize('viewShowCase', Product::class);
+        }
+        
         // Forward to the index view with public view parameter
         $products = Product::with('category')->orderBy('name')->paginate(15);
         return view('products.index', [
@@ -272,15 +329,42 @@ class ProductController extends Controller
  
     public function show(Product $product): View
     {
+        // Skip policy check for public access
+        if (!auth()->check()) {
+            // No need to authorize for guests
+        } else {
+            $this->authorize('view', $product);
+        }
+        
         $categories = Category::all();
  
         $tr = new GoogleTranslate('en');
         $product->description_translated = $tr->translate($product->description);
+        
+        // Prepare variables for the view
+        $mode = 'show';
+        $readonly = true;
+        $isCreate = false;
+        $isEdit = false;
+        
+        $userType = auth()->user()->type ?? 'guest';
+        $canEditAll = !$readonly && $userType === 'board';
+        $canEditStockOnly = !$readonly && $userType === 'employee';
+        $forceReadonly = $readonly || (!$canEditAll && !$canEditStockOnly);
+        $isEmployeeEditing = false;
  
         return view('products.show', [
             'product' => $product,
             'categories' => $categories,
-            'mode' => 'show'
+            'mode' => $mode,
+            'readonly' => $readonly,
+            'isCreate' => $isCreate,
+            'isEdit' => $isEdit,
+            'userType' => $userType,
+            'canEditAll' => $canEditAll,
+            'canEditStockOnly' => $canEditStockOnly,
+            'forceReadonly' => $forceReadonly,
+            'isEmployeeEditing' => $isEmployeeEditing
         ]);
     }
  
@@ -291,7 +375,7 @@ class ProductController extends Controller
         try {
             $product->restore();
             $alertType = 'success';
-            $alertMsg = "O produto {$product->name} foi restaurado com sucesso.";
+            $alertMsg = "Product {$product->name} has been successfully restored.";
         } catch (\Exception $e) {
             $alertType = 'danger';
             $alertMsg = "Erro ao tentar restaurar o produto {$product->name}: " . $e->getMessage();
@@ -318,12 +402,12 @@ class ProductController extends Controller
             
             return redirect()->route('products.index')
                 ->with('alert-type', 'success')
-                ->with('alert-msg', "O produto {$product->name} foi eliminado permanentemente.");
+                ->with('alert-msg', "Product {$product->name} has been permanently deleted.");
                 
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('alert-type', 'danger')
-                ->with('alert-msg', "Erro ao tentar eliminar permanentemente o produto: " . $e->getMessage());
+                ->with('alert-msg', "Error while trying to permanently delete the product: " . $e->getMessage());
         }
     }
  
@@ -395,7 +479,7 @@ class ProductController extends Controller
     private function createSupplyOrderIfNeeded(Product $product): void
     {
         if ($product->stock <= $product->stock_lower_limit) {
-            // Verifica se já existe uma supply order pendente
+            // Check if a pending supply order already exists
             $existingOrder = \App\Models\SupplyOrder::where('product_id', $product->id)
                 ->where('status', 'requested')
                 ->exists();

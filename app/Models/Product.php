@@ -97,4 +97,28 @@ class Product extends Model
         $quantity = $this->quantity ?? 1;
         return $this->price_after_discount * $quantity;
     }
+
+    /**
+     * Get the effective price after applying applicable discounts
+     * 
+     * @return float
+     */
+    public function getDiscountedPriceAttribute(): float
+    {
+        if ($this->discount_min_qty < $this->stock && $this->discount && $this->discount > 0) {
+            return $this->price - $this->discount;
+        }
+        
+        return $this->price;
+    }
+
+    /**
+     * Calculate the total price for this product in the cart
+     * 
+     * @return float
+     */
+    public function getCartTotalAttribute(): float
+    {
+        return $this->discounted_price * ($this->quantity ?? 1);
+    }
 }

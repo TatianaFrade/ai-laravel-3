@@ -1,8 +1,4 @@
-@php
-    $mode = $mode ?? 'edit'; 
-    $isEdit = $mode === 'edit';
-    $forceReadonly = $isEdit || $readonly;
-@endphp
+{{-- Mode variables are now passed from the controller --}}
 
 
 

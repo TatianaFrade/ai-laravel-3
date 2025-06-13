@@ -23,8 +23,27 @@ class CartController extends Controller
     {
         $cart = session('cart', null);
         $shippingCosts = ShippingCost::all();
+        
+        $cartTotals = null;
+        if ($cart && !$cart->isEmpty()) {
+            // Calculate product totals
+            $totalProductPrice = $cart->sum(function($product) {
+                return $product->cart_total;
+            });
+            
+            // Get shipping cost
+            $shippingCost = ShippingCost::getShippingCostForTotal($totalProductPrice);
+            
+            $cartTotals = [
+                'totalProductPrice' => $totalProductPrice,
+                'shippingCost' => $shippingCost,
+                'finalTotal' => $totalProductPrice + $shippingCost
+            ];
+        }
+        
+        $userType = auth()->user()->type ?? 'guest';
  
-        return view('cart.show', compact('cart', 'shippingCosts'));
+        return view('cart.show', compact('cart', 'shippingCosts', 'cartTotals', 'userType'));
     }
  
     public function addToCart(Request $request, Product $product): RedirectResponse
@@ -40,12 +59,10 @@ class CartController extends Controller
             $cart->push($product);
         }
  
-        $request->session()->put('cart', $cart);
- 
-        $alertType = 'success';
+        $request->session()->put('cart', $cart);        $alertType = 'success';
         $url = route('products.show', ['product' => $product]);
-        $htmlMessage = "Product <a href='$url'>#{$product->id}
-            <strong>\"{$product->name}\"</strong></a> foi adicionado ao carrinho.";
+        $htmlMessage = "Product <a href='$url'></a>
+            <strong>\"{$product->name}\"</strong></a> has been added to the cart.";
  
         return back()
             ->with('alert-msg', $htmlMessage)
@@ -63,7 +80,7 @@ class CartController extends Controller
             $request->session()->put('cart', $cart);
         }
  
-        return back()->with('alert-msg', "Quantidade de \"{$product->name}\" aumentada para {$existingProduct->quantity}.")
+        return back()->with('alert-msg', "Quantity of \"{$product->name}\" increased to {$existingProduct->quantity}.")
             ->with('alert-type', 'success');
     }
  
@@ -81,7 +98,7 @@ class CartController extends Controller
             $request->session()->put('cart', $cart);
         }
  
-        return back()->with('alert-msg', "Quantidade de \"{$product->name}\" diminuída para " . ($existingProduct->quantity ?? 0) . ".")
+        return back()->with('alert-msg', "Quantity of \"{$product->name}\" decreased to " . ($existingProduct->quantity ?? 0) . ".")
             ->with('alert-type', 'warning');
     }
  
@@ -167,22 +184,15 @@ class CartController extends Controller
  
         $cardBalance = $virtualCard->balance;
         
-        // Calculate the total cost of items with discounts properly applied
-        $totalItems = 0;
-        foreach ($cart as $product) {
-            $discountedPrice = $product->price - ($product->discount ?? 0);
-            $totalItems += round($discountedPrice * $product->quantity, 2);
-        }
+        // Calculate totals using model methods
+        $totalItems = $cart->sum(function($product) {
+            return $product->cart_total;
+        });
+        
+        $shippingCosts = ShippingCost::getShippingCostForTotal($totalItems);
+        $totalOrder = $totalItems + $shippingCosts;
         
         $totalCartItems = $cart->sum(fn($product) => $product->quantity);
- 
-        // Find appropriate shipping cost based on order total
-        $shippingCosts = ShippingCost::where('min_value_threshold', '<=', $totalItems)
-            ->where('max_value_threshold', '>=', $totalItems)
-            ->value('shipping_cost') ?? 0.00;
- 
-        // Calculate final order total with proper precision
-        $totalOrder = round($totalItems + $shippingCosts, 2);
  
         if ($cardBalance < $totalOrder) {
             return back()->with('alert-type', 'danger')->with('alert-msg', "Insufficient balance in your virtual card.");

@@ -57,9 +57,17 @@ class CategoryController extends Controller
 
     public function show(Category $category): View
     {
+        $mode = 'show';
+        $readonly = true;
+        $disableImage = $readonly;
+        $imagePath = 'storage/categories/' . ($category->image ?? '');
+        
         return view('categories.show', [
             'category' => $category,
-            'mode' => 'show'
+            'mode' => $mode,
+            'readonly' => $readonly,
+            'disableImage' => $disableImage,
+            'imagePath' => $imagePath
         ]);
     }
 
@@ -67,7 +75,18 @@ class CategoryController extends Controller
     public function create(): View
     {
         $category = new Category();
-        return view('categories.create')->with('category', $category);
+        $mode = 'create';
+        $readonly = false;
+        $disableImage = false;
+        $imagePath = '';
+        
+        return view('categories.create', [
+            'category' => $category,
+            'mode' => $mode,
+            'readonly' => $readonly,
+            'disableImage' => $disableImage,
+            'imagePath' => $imagePath
+        ]);
     }
 
     public function store(CategoryFormRequest $request): RedirectResponse
@@ -88,8 +107,18 @@ class CategoryController extends Controller
 
     public function edit(Category $category): View
     {
-       
-        return view('categories.edit')->with('category', $category);
+        $mode = 'edit';
+        $readonly = false;
+        $disableImage = false;
+        $imagePath = 'storage/categories/' . ($category->image ?? '');
+        
+        return view('categories.edit', [
+            'category' => $category,
+            'mode' => $mode,
+            'readonly' => $readonly,
+            'disableImage' => $disableImage,
+            'imagePath' => $imagePath
+        ]);
     }
 
     public function update(CategoryFormRequest $request, Category $category): RedirectResponse

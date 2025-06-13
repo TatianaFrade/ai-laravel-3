@@ -1,8 +1,8 @@
-<x-layouts.main-content :title="'Meu Cartão'" :heading="'Operações'" subheading='Histórico de operações.'>
+<x-layouts.main-content :title="'My Card'" :heading="'Operations'" subheading='Operations history.'>
     <div class="flex flex-col space-y-6">
         <div class="w-full">
             <section class="bg-gray-800 text-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-bold text-gray-200 mb-4">Histórico de Operações</h2>
+                <h2 class="text-2xl font-bold text-gray-200 mb-4">Operations History</h2>
 
                 <div class="bg-gray-700 rounded-md shadow-sm border border-gray-600">
                     <table class="w-full">
@@ -17,6 +17,7 @@
                                 <th class="p-3 border border-gray-600">Payment Type</th>
                                 <th class="p-3 border border-gray-600">Payment Reference</th>
                                 <th class="p-3 border border-gray-600">Order ID</th>
+                                <th class="p-3 border border-gray-600">Receipt PDF</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -25,7 +26,7 @@
                                     <td class="p-3 border border-gray-600">{{ $item->card_id }}</td>
                                     <td class="p-3 border border-gray-600">{{ $item->type }}</td>
                                     <td class="p-3 border border-gray-600">{{ $item->value }}</td>
-                                    <td class="p-3 border border-gray-600">{{ date('d/m/Y', strtotime($item->date)) }}</td>
+                                    <td class="p-3 border border-gray-600">{{ date('m/d/Y', strtotime($item->date)) }}</td>
                                     <td class="p-3 border border-gray-600">
                                         @if ($item->debit_type === 'order')
                                             Order
@@ -47,6 +48,14 @@
                                     <td class="p-3 border border-gray-600">{{ $item->payment_type }}</td>
                                     <td class="p-3 border border-gray-600">{{ $item->payment_reference }}</td>
                                     <td class="p-3 border border-gray-600">{{ $item->order_id }}</td>
+                                    <td class="p-3 border border-gray-600">
+                                        @if ($item->type === 'debit' && $item->debit_type === 'order' && isset($completedOrders[$item->order_id]))
+                                            <a href="{{ $completedOrders[$item->order_id] }}" target="_blank"
+                                                class="text-blue-400 underline">PDF</a>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
