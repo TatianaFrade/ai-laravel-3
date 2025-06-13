@@ -1,4 +1,4 @@
-<div class="rounded-xl shadow p-4 border bg-white dark:bg-gray-900 text-sm flex flex-col h-full {{ $product->discount && $product->discount > 0 && $product->discount_min_qty < $product->stock ? 'relative border-green-500 border-2' : ($product->stock <= 0 ? 'relative border-red-500 border-2' : ($product->stock_lower_limit && $product->stock <= $product->stock_lower_limit ? 'relative border-amber-500 border-2' : '')) }}">
+<div class="rounded-xl shadow p-4 border bg-white dark:bg-gray-900 text-sm flex flex-col h-full {{ request('view') !== 'public' ? ($product->discount && $product->discount > 0 && $product->discount_min_qty < $product->stock ? 'relative border-green-500 border-2' : ($product->stock <= 0 ? 'relative border-red-500 border-2' : ($product->stock_lower_limit && $product->stock <= $product->stock_lower_limit ? 'relative border-amber-500 border-2' : ''))) : '' }}">
     
     @if($product->discount && $product->discount > 0 && $product->discount_min_qty < $product->stock)
         <div class="absolute -top-3 -right-3 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md transform rotate-12">

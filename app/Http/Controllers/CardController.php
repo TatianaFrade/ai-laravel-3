@@ -90,7 +90,8 @@ class CardController extends Controller
             ->exists();
     
         $user = auth()->user();
-        if ($user->type === 'member' && !$hasMembershipFee && $card->balance >= $membershipFee) {
+        // Todos os tipos de usuários precisam pagar a taxa de adesão pelo menos uma vez
+        if (!$hasMembershipFee && $card->balance >= $membershipFee) {
             // Deduct membership fee automatically if sufficient balance
             $card->balance -= $membershipFee;
             $card->operations()->create([
@@ -111,7 +112,7 @@ class CardController extends Controller
             return redirect()->back()
                 ->with('alert-msg', $htmlMessage)
                 ->with('alert-type', $alertType);
-        } else if ($user->type === 'member' && !$hasMembershipFee && $card->balance < $membershipFee) {
+        } else if (!$hasMembershipFee && $card->balance < $membershipFee) {
             $amountNeeded = $membershipFee - $card->balance;
             
             $alertType = 'warning';
@@ -191,47 +192,37 @@ class CardController extends Controller
             $card->balance = $data['amount'];
             $card->save();
             
-            // Check and process membership fee for new members
-            if ($user->type === 'member') {
-                $membershipFee = MembershipFee::latest()->value('membership_fee');
+            // Check and process membership fee for all new users
+            $membershipFee = MembershipFee::latest()->value('membership_fee');
+            
+            if ($card->balance >= $membershipFee) {
+                // Deduct membership fee
+                $card->balance -= $membershipFee;
+                $card->operations()->create([
+                    'card_id' => $card->id,
+                    'type' => 'debit',
+                    'value' => $membershipFee,
+                    'date' => now()->format('Y-m-d'),
+                    'debit_type' => 'membership_fee',
+                    'credit_type' => null,
+                    'payment_type' => null,
+                    'payment_reference' => null,
+                    'order_id' => null,
+                ]);
+                $card->save();
                 
-                if ($card->balance >= $membershipFee) {
-                    // Deduct membership fee
-                    $card->balance -= $membershipFee;
-                    $card->operations()->create([
-                        'card_id' => $card->id,
-                        'type' => 'debit',
-                        'value' => $membershipFee,
-                        'date' => now()->format('Y-m-d'),
-                        'debit_type' => 'membership_fee',
-                        'credit_type' => null,
-                        'payment_type' => null,
-                        'payment_reference' => null,
-                        'order_id' => null,
-                    ]);
-                    $card->save();
-                    
-                    $message = "Virtual card created successfully! Note: Your membership fee (€" . number_format($membershipFee, 2) . ") was automatically deducted from your initial balance. Current balance: €" . number_format($card->balance, 2);
-                    $redirectRoute = session('redirect_after') ?: 'card.show';
-                } else {
-                    // If balance is insufficient for membership fee, redirect to membership fee payment
-                    $amountNeeded = $membershipFee - $card->balance;
-                    $message = "Virtual card created but requires additional €" . number_format($amountNeeded, 2, '.', ',') . " to pay membership fee.";
-                    $redirectRoute = 'membershipfees.index';
-                }
-            } else {
-                $message = 'Virtual card created successfully!' . ($data['amount'] > 0 ? ' Initial balance added.' : '');
+                $message = "Virtual card created successfully! Note: Your membership fee (€" . number_format($membershipFee, 2) . ") was automatically deducted from your initial balance. Current balance: €" . number_format($card->balance, 2);
                 $redirectRoute = session('redirect_after') ?: 'card.show';
+            } else {
+                // If balance is insufficient for membership fee, redirect to membership fee payment
+                $amountNeeded = $membershipFee - $card->balance;
+                $message = "Virtual card created but requires additional €" . number_format($amountNeeded, 2, '.', ',') . " to pay membership fee.";
+                $redirectRoute = 'membershipfees.index';
             }
         } else {
-            // No initial balance
-            if ($user->type === 'member') {
-                $message = 'Virtual card created successfully. Please add funds to pay the membership fee.';
-                $redirectRoute = 'membershipfees.index';
-            } else {
-                $message = 'Virtual card created successfully!';
-                $redirectRoute = session('redirect_after') ?: 'card.show';
-            }
+            // No initial balance - all users need to pay membership fee
+            $message = 'Virtual card created successfully. Please add funds to pay the membership fee.';
+            $redirectRoute = 'membershipfees.index';
         }
 
         return redirect()->route($redirectRoute)

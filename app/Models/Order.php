@@ -34,11 +34,34 @@ class Order extends Model
     public function canBeCompleted(): bool
     {
         foreach ($this->items as $item) {
+            // Check if there's enough stock
             if ($item->product->stock < $item->quantity) {
+                return false;
+            }
+            
+            // Check if this will exceed the product's upper limit
+            if ($item->product->stock_upper_limit && 
+                ($item->product->stock > $item->product->stock_upper_limit)) {
                 return false;
             }
         }
         return true;
+    }
+    
+    public function getStockUpperLimitExceededProducts(): array
+    {
+        $exceededProducts = [];
+        foreach ($this->items as $item) {
+            if ($item->product->stock_upper_limit && 
+                ($item->product->stock > $item->product->stock_upper_limit)) {
+                $exceededProducts[] = [
+                    'product' => $item->product,
+                    'current_stock' => $item->product->stock,
+                    'upper_limit' => $item->product->stock_upper_limit
+                ];
+            }
+        }
+        return $exceededProducts;
     }
 
     protected static function boot()

@@ -145,15 +145,18 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isMembershipExpired(): bool
     {
-        if ($this->type !== 'member') {
-            return false;
-        }
-
         // First check if membership was ever paid
         if (!$this->hasPaidMembership()) {
+            // All users (including board and employee) need to pay the membership fee at least once
             return true;
         }
 
+        // For board and employee users, they only need to pay once
+        if (in_array($this->type, ['board', 'employee'])) {
+            return false;
+        }
+
+        // For regular members, check if it's been more than a year since last payment
         $lastPayment = $this->lastMembershipPaymentDate();
         if (!$lastPayment) {
             return true;
@@ -168,13 +171,27 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function showMembershipPayButton(): bool
     {
-        // Only show for members that can pay
-        if (!in_array($this->type, ['member'])) {
-            return false;
+        // Show for all users who haven't paid at all
+        if (!$this->hasPaidMembership()) {
+            return true;
         }
+        
+        // For regular members, also show if the membership is expired
+        if ($this->type === 'member') {
+            $lastPayment = $this->lastMembershipPaymentDate();
+            if (!$lastPayment) {
+                return true;
+            }
 
-        // If they haven't paid or membership is expired, show the button
-        return !$this->hasPaidMembership() || $this->isMembershipExpired();
+            $now = new \DateTime('now', new \DateTimeZone(date_default_timezone_get()));
+            $expiryDate = clone $lastPayment;
+            $expiryDate->modify('+1 year');
+            
+            return $now > $expiryDate;
+        }
+        
+        // For board and employee users, don't show the button once they've paid
+        return false;
     }
 
 }

@@ -118,7 +118,7 @@
                         @endif
                       @endcan
 
-                      {{-- Restore button --}}
+                      {{-- Restore button (only for soft deleted users) --}}
                       @if ($user->trashed())
                         @can('restore', $user)
                           @if (Auth::user()->type === 'board')
@@ -135,6 +135,19 @@
                           @endif
                         @endcan
                       @endif
+                      
+                      {{-- Permanent Delete button (only for board users to delete employees, regardless of soft delete status) --}}
+                      @can('forceDelete', $user)
+                        @if (Auth::user()->type === 'board' && $user->type === 'employee')
+                          <form method="POST" action="{{ route('users.forceDestroy', ['id' => $user->id]) }}" class="flex items-center" onsubmit="return confirm('Are you sure you want to permanently delete this employee? This action cannot be undone.')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" title="Permanently delete employee">
+                              <flux:icon.trash class="size-5 hover:text-red-700" />
+                            </button>
+                          </form>
+                        @endif
+                      @endcan
                     </div>
                   </td>
 

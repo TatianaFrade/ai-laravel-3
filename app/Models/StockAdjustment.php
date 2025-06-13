@@ -10,15 +10,14 @@ class StockAdjustment extends Model
 {
     use HasFactory;
 
-    protected $table = 'stock_adjustments';
-
- 
-    protected $fillable = [
+    protected $table = 'stock_adjustments';    protected $fillable = [
         'product_id',
         'registered_by_user_id',
-        'quantity_changed',
-        'quantity',
+        'quantity_changed'
     ];
+    
+    // Ensure no other attributes are filled
+    protected $guarded = ['id', 'created_at', 'updated_at'];
 
     public function product()
     {
@@ -30,8 +29,21 @@ class StockAdjustment extends Model
         return $this->belongsTo(User::class, 'registered_by_user_id');
     }
 
-
-
-
-
+    /**
+     * Override the create method to ensure only valid attributes are used
+     * 
+     * @param array $attributes
+     * @return \App\Models\StockAdjustment
+     */
+    public static function create(array $attributes = [])
+    {
+        // Only keep allowed attributes
+        $validAttributes = array_intersect_key($attributes, array_flip([
+            'product_id',
+            'registered_by_user_id', 
+            'quantity_changed'
+        ]));
+        
+        return static::query()->create($validAttributes);
+    }
 }

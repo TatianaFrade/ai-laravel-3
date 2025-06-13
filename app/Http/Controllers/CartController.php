@@ -150,21 +150,19 @@ class CartController extends Controller
                 ->with('redirect_after', 'cart.confirm');
         }
 
-        if ($user->type === 'member') {
-            // Check if user has ever paid membership fee
-            if (!$user->hasPaidMembership()) {
-                return redirect()->route('membershipfees.index')
-                    ->with('alert-type', 'danger')
-                    ->with('alert-msg', 'You need to pay the membership fee before making any purchases.');
-            }
-    
-            // Check if membership is expired
-            if ($user->isMembershipExpired()) {
-                Mail::to($user->email)->send(new MembershipExpiredMail($user));
-                return redirect()->route('membershipfees.index')
-                    ->with('alert-type', 'danger')
-                    ->with('alert-msg', 'Your membership has expired. Please renew it before making any purchases.');
-            }
+        // For all user types, check if they've ever paid a membership fee
+        if (!$user->hasPaidMembership()) {
+            return redirect()->route('membershipfees.index')
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', 'You need to pay the membership fee before making any purchases.');
+        }
+        
+        // For regular members, also check if membership is expired
+        if ($user->type === 'member' && $user->isMembershipExpired()) {
+            Mail::to($user->email)->send(new MembershipExpiredMail($user));
+            return redirect()->route('membershipfees.index')
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', 'Your membership has expired. Please renew it before making any purchases.');
         }
 
         $cardBalance = $virtualCard->balance;

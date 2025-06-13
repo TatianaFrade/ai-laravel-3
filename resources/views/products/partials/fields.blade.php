@@ -9,6 +9,9 @@
     $canEditAll = !$readonly && $userType === 'board';
     $canEditStockOnly = !$readonly && $userType === 'employee';
     $forceReadonly = $readonly || (!$canEditAll && !$canEditStockOnly);
+    
+    // For employees, make everything except stock readonly
+    $isEmployeeEditing = $userType === 'employee' && $mode === 'edit';
 @endphp
 
 

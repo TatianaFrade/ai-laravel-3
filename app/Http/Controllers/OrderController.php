@@ -175,17 +175,49 @@ class OrderController extends Controller
             if (empty($data['cancel_reason'])) {
                 return back()->withErrors(['cancel_reason' => 'É necessário indicar o motivo do cancelamento.']);
             }
+            
+            try {
+                // Use database transaction to ensure atomic operations
+                \DB::beginTransaction();
+                
+                $order->cancel_reason = $data['cancel_reason'];
 
-            $order->cancel_reason = $data['cancel_reason'];
+                $card = $order->user->card;
+                //dd($order->user, $order->user->card);
 
+                if ($card) {
+                    $card->balance += $order->total;
+                    $card->save();
+                } else {
+                    \Log::warning('Cartão não encontrado para user_id: ' . $order->user->id);
+                }
+                
+                \DB::commit();
+            } catch (\Exception $e) {
+                \DB::rollBack();
+                \Log::error('Erro ao cancelar encomenda: ' . $e->getMessage());
+                return back()->withErrors(['status' => 'Erro ao processar o cancelamento: ' . $e->getMessage()]);
+            }
+        } else if ($newStatus === 'pending' && $currentStatus === 'canceled') {
+            // Handle transition from canceled back to pending
+            if ($user->type !== 'board') {
+                return back()->withErrors(['status' => 'Apenas membros do tipo board podem reativar encomendas canceladas.']);
+            }
+            
+            // Remove the cancel reason
+            $order->cancel_reason = null;
+            
+            // Deduct the money from card again
             $card = $order->user->card;
-            //dd($order->user, $order->user->card);
-
             if ($card) {
-                $card->balance += $order->total;
+                if ($card->balance < $order->total) {
+                    return back()->withErrors(['status' => 'Saldo insuficiente no cartão para reativar a encomenda.']);
+                }
+                $card->balance -= $order->total;
                 $card->save();
             } else {
                 \Log::warning('Cartão não encontrado para user_id: ' . $order->user->id);
+                return back()->withErrors(['status' => 'Cartão do utilizador não encontrado.']);
             }
         } else {
             $order->cancel_reason = null;
@@ -194,8 +226,24 @@ class OrderController extends Controller
         $statusChangedToCompleted = $newStatus === 'completed' && $currentStatus !== 'completed';
 
         if ($statusChangedToCompleted) {
+            // Check if the order can be completed
             if (!$order->canBeCompleted()) {
-                return back()->withErrors(['status' => 'Não pode marcar como completed: stock insuficiente em algum produto.']);
+                // Check if there are products exceeding upper limit
+                $exceededProducts = $order->getStockUpperLimitExceededProducts();
+                
+                if (!empty($exceededProducts)) {
+                    $productList = [];
+                    foreach ($exceededProducts as $item) {
+                        $productList[] = "{$item['product']->name} (current: {$item['current_stock']}, upper limit: {$item['upper_limit']})";
+                    }
+                    
+                    $errorMessage = 'Não pode marcar como completed: os seguintes produtos excederiam o limite superior de stock: ' . 
+                                   implode(', ', $productList);
+                    
+                    return back()->withErrors(['status' => $errorMessage]);
+                } else {
+                    return back()->withErrors(['status' => 'Não pode marcar como completed: stock insuficiente em algum produto.']);
+                }
             }
         }
 
@@ -278,17 +326,31 @@ class OrderController extends Controller
         if (empty($cancelReason)) {
             return back()->withErrors(['cancel_reason' => 'É necessário indicar o motivo do cancelamento.']);
         }
+        
+        try {
+            // Use database transaction to ensure atomic operations
+            \DB::beginTransaction();
+            
+            $order->cancel_reason = $cancelReason;
+            $order->status = 'canceled';
+            $order->save();
 
-        $order->cancel_reason = $cancelReason;
-        $order->status = 'canceled';
-        $order->save();
-
-        $card = $order->user->card ?? null;
-        if ($card) {
-            $card->balance += $order->total;
-            $card->save();
-        } else {
-            \Log::warning('Cartão não encontrado para user_id: ' . $order->user->id);
+            $card = $order->user->card ?? null;
+            if ($card) {
+                $card->balance += $order->total;
+                $card->save();
+                
+                // Log the refund operation
+                \Log::info("Order #{$order->id} canceled. Refunded {$order->total} to user #{$order->user->id}'s card.");
+            } else {
+                \Log::warning("Order #{$order->id} canceled but card not found for user_id: {$order->user->id}");
+            }
+            
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Erro ao cancelar encomenda: ' . $e->getMessage());
+            return back()->withErrors(['status' => 'Erro ao processar o cancelamento: ' . $e->getMessage()]);
         }
 
         return redirect()->route('orders.index')->with('success', 'Encomenda cancelada com sucesso.');
