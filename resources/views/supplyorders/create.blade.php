@@ -19,10 +19,9 @@
 
                     <div class="mt-6 space-y-4">
                         @include('supplyorders.partials.fields', ['mode' => 'create'])
-                    </div>
-
-                    <div class="flex mt-6">
+                    </div>                    <div class="flex mt-6">
                         <flux:button variant="primary" type="submit" class="uppercase">Save</flux:button>
+                        <flux:button href="{{ route('supplyorders.index') }}" class="uppercase ml-4">Cancel</flux:button>
                     </div>
                 </form>
             </section>
