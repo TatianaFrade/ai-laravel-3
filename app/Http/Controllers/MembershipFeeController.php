@@ -7,7 +7,7 @@ use App\Http\Requests\MembershipFeeFormRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Card;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\DB;
 class MembershipFeeController extends Controller
 {
     use AuthorizesRequests;
@@ -56,16 +56,32 @@ class MembershipFeeController extends Controller
         }
 
         if ($card->balance < $feeValue) {
-            return redirect()->back()->withErrors(['card' => 'Saldo insuficiente para pagar a taxa de adesão.']);
+            return redirect()->back()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', 'Saldo insuficiente no cartão para pagar a taxa de adesão. Saldo atual: €' . number_format($card->balance, 2) . '. Valor necessário: €' . number_format($feeValue, 2));
         }
 
-        $card->balance -= $feeValue;
-        $card->save();
+        DB::transaction(function () use ($card, $feeValue, $user) {
+            // Atualiza saldo
+            $card->balance -= $feeValue;
+            $card->save();
 
-        $user->blocked = 0;
-        $user->save();
+            // Regista operação de débito
+            \App\Models\Operation::create([
+                'card_id' => $card->id,
+                'type' => 'debit',
+                'value' => $feeValue,
+                'date' => now()->toDateString(),
+                'debit_type' => 'membership_fee',
+            ]);
+
+            // Desbloqueia o utilizador
+            $user->blocked = 0;
+            $user->save();
+        });
 
         return redirect()->back()->with('success', 'Taxa de adesão paga com sucesso. A sua conta foi desbloqueada.');
     }
+
 
 }

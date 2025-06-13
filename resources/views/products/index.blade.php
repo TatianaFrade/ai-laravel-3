@@ -1,4 +1,4 @@
-<x-layouts.main-content :title="__('Products')" heading="List of Products">
+<x-layouts.main-content :title="__('Products')" heading="List of Products" subheading="All products available">
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl text-sm"> {{-- aplica redução global de texto --}}
 
     @if (request('view') !== 'public')
@@ -22,13 +22,15 @@
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
 
-        @can('viewFilter', App\Models\Product::class)
-          <x-products.filter-card 
+        {{-- Exibir filtros para todos os usuários, mesmo não registrados --}}
+        <x-products.filter-card 
           class="mb-6"
-            :filterAction="route('categories.index')" 
-            :resetUrl="route('categories.index')" 
-          />
-        @endcan
+          :filterAction="request('view') === 'public' ? route('products.index', ['view' => 'public']) : route('products.index')" 
+          :resetUrl="request('view') === 'public' ? route('products.index', ['view' => 'public']) : route('products.index')"
+          :filter-by-name="$filterByName"
+          :order-price="$orderPrice"
+          :order-stock="$orderStock"
+        />
 
         @can('viewTable', App\Models\Product::class)
          <x-products.table 

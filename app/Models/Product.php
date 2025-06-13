@@ -54,4 +54,47 @@ class Product extends Model
         }
     }
 
+    /**
+     * Check if the product has an active discount
+     *
+     * @return bool
+     */
+    public function getHasActiveDiscountAttribute()
+    {
+        return $this->discount && $this->discount > 0 && (
+            $this->discount_min_qty < $this->stock || 
+            $this->stock <= $this->stock_lower_limit
+        );
+    }
+
+    /**
+     * Get the price after applying any active discount
+     *
+     * @return float
+     */
+    public function getPriceAfterDiscountAttribute()
+    {
+        return $this->has_active_discount ? $this->price - $this->discount : $this->price;
+    }
+
+    /**
+     * Get the discount percentage if there is an active discount
+     *
+     * @return float
+     */
+    public function getDiscountPercentageAttribute()
+    {
+        return $this->has_active_discount ? ($this->discount / $this->price) * 100 : 0;
+    }
+
+    /**
+     * Get total price for cart items
+     *
+     * @return float
+     */
+    public function getTotalPriceAttribute()
+    {
+        $quantity = $this->quantity ?? 1;
+        return $this->price_after_discount * $quantity;
+    }
 }

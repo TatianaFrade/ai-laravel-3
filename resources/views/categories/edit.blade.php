@@ -20,11 +20,9 @@
 
                     <div class="mt-6 space-y-4">
                         @include('categories.partials.fields', ['mode' => 'edit'])
-                    </div>
-
-                    <div class="flex mt-6">
+                    </div>                    <div class="flex mt-6">
                         <flux:button variant="primary" type="submit" class="uppercase">Save</flux:button>
-                        <flux:button class="uppercase ms-4" href="{{ url()->full() }}">Cancel</flux:button>
+                        <flux:button class="uppercase ms-4" href="{{ route('categories.index') }}">Cancel</flux:button>
                     </div>
                 </form>
             </section>

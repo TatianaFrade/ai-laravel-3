@@ -4,9 +4,12 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\MembershipFee;
+use Illuminate\Auth\Access\HandlesAuthorization;
 
-class MembershipFeePolicy
+class MembershipFeeControllerPolicy
 {
+    use HandlesAuthorization;
+
     public function viewAny(User $user): bool
     {
         return true;
@@ -29,7 +32,9 @@ class MembershipFeePolicy
 
     public function pay(User $user, MembershipFee $membershipFee): bool
     {
-        return $user->blocked === 1;
+        // All user types (member, board, employee) must be able to pay the membership fee at least once
+        // For members, they also need to renew annually
+        return true;
     }
 
     public function delete(User $user, MembershipFee $membershipFee): bool

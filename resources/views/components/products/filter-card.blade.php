@@ -1,5 +1,10 @@
+@props(['filterAction', 'resetUrl', 'filterByName' => '', 'orderPrice' => '', 'orderStock' => ''])
+
 <div {{ $attributes }}>
-    <form method="GET" action="{{ route('products.index') }}">
+    <form method="GET" action="{{ $filterAction }}">
+        @if(request('view'))
+            <input type="hidden" name="view" value="{{ request('view') }}">
+        @endif
         <div class="flex justify-between space-x-3">
 
             <!-- Input nome ou categoria -->
@@ -9,7 +14,7 @@
                     type="text" 
                     name="name" 
                     id="name"
-                    value="{{ old('name', $filterByName ?? '') }}" 
+                    value="{{ $filterByName }}" 
                     placeholder="All"
                     class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -22,10 +27,10 @@
                     name="order_price" 
                     id="order_price" 
                     class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    <option value="" @selected(empty($orderPrice))>All</option>
-                    <option value="asc" @selected(($orderPrice ?? '') === 'asc')>Asc</option>
-                    <option value="desc" @selected(($orderPrice ?? '') === 'desc')>Desc</option>
+                >                    
+                    <option value="">All</option>
+                    <option value="asc" {{ $orderPrice === 'asc' ? 'selected' : '' }}>Asc</option>
+                    <option value="desc" {{ $orderPrice === 'desc' ? 'selected' : '' }}>Desc</option>
                 </select>
             </div>
 
@@ -38,10 +43,10 @@
                             name="order_stock" 
                             id="order_stock" 
                             class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="" @selected(empty($orderStock))>All</option>
-                            <option value="asc" @selected(($orderStock ?? '') === 'asc')>Asc</option>
-                            <option value="desc" @selected(($orderStock ?? '') === 'desc')>Desc</option>
+                        >                            
+                            <option value="">All</option>
+                            <option value="asc" {{ $orderStock === 'asc' ? 'selected' : '' }}>Asc</option>
+                            <option value="desc" {{ $orderStock === 'desc' ? 'selected' : '' }}>Desc</option>
                         </select>
                     </div>
                 @endif
@@ -54,7 +59,7 @@
                 </button>
             </div>
             <div class="grow-0 flex flex-col space-y-3 justify-start pt-6">
-                <a href="{{ route('products.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-center">
+                <a href="{{ $resetUrl }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-center">
                     Cancel
                 </a>
             </div>

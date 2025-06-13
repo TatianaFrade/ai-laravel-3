@@ -29,6 +29,21 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         $this->ensureIsNotRateLimited();
 
+        // First check if the user exists and their status
+        $user = \App\Models\User::withTrashed()->where('email', $this->email)->first();
+        
+        if ($user && $user->trashed()) {
+            throw ValidationException::withMessages([
+                'email' => 'Your membership has been cancelled. Please contact a board member if you think this is a mistake.',
+            ]);
+        }
+        
+        if ($user && $user->blocked) {
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been blocked. Please contact support.',
+            ]);
+        }
+
         if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 

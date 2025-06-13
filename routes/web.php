@@ -22,9 +22,31 @@ use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\FavoriteController;
 
 use App\Models\Product;
+use App\Models\User;
 
 
 
+
+// Test route to verify the fix for board/employee membership fee requirement
+Route::get('test-membership-check', function () {
+    $board561 = User::find(561);
+    if ($board561) {
+        echo 'Board User #561: ' . $board561->name . ' (Type: ' . $board561->type . ')' . "<br>";
+        echo 'Has Paid Membership: ' . ($board561->hasPaidMembership() ? 'Yes' : 'No') . "<br>";
+        echo 'Membership Expired: ' . ($board561->isMembershipExpired() ? 'Yes' : 'No') . "<br>";
+        
+        // Simulate the CartController logic
+        if (!$board561->hasPaidMembership()) {
+            echo 'CHECKOUT RESULT: Redirect to membership payment due to never having paid.';
+        } elseif ($board561->isMembershipExpired()) {
+            echo 'CHECKOUT RESULT: Redirect to membership payment due to expired membership.';
+        } else {
+            echo 'CHECKOUT RESULT: Proceed with order.';
+        }
+    } else {
+        echo 'User not found.';
+    }
+});
 
 
 /* ----- PUBLIC ROUTES ----- */
@@ -42,7 +64,7 @@ Route::post('cart/{product}/increase', [CartController::class, 'increaseQuantity
 Route::post('cart/{product}/decrease', [CartController::class, 'decreaseQuantity'])->name('cart.decrease');
 
 /* ----- VERIFIED USERS ONLY ----- */
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckIfUserBlocked::class])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
     Route::redirect('settings', 'settings/profile');
@@ -51,6 +73,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 
     Route::get('/card', [CardController::class, 'show'])->name('card.show');
+    Route::get('/card/create', [CardController::class, 'create'])->name('card.create');
+    Route::post('/card/create', [CardController::class, 'store'])->name('card.store');
     Route::post('/card/update', [CardController::class, 'update'])->name('balance.update');
 
     //Route::post('/orders', [OrderController::class, 'cancel'])->name('orders.cancel');
@@ -69,7 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
 /* ----- AUTHENTICATED USERS (verificados ou não) ----- */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->group(function () {
      Route::resource('users', UserController::class);
 //     Route::get('/users', [UserController::class, 'index'])->name('users.index')
 //     ->can('viewAny-user');
@@ -79,10 +103,14 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
+    Route::post('products/{id}/restore', [ProductController::class, 'restore'])->name('products.restore');
     Route::resource('shippingcosts', ShippingCostController::class);
     Route::resource('orders', OrderController::class);
     Route::resource('supplyorders', SupplyOrderController::class);
     Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
+    
+    Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+
     //Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
     Route::post('/membershipfees/{membershipfee}/pay', [MembershipFeeController::class, 'pay'])
     ->name('membershipfees.pay');
@@ -91,7 +119,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('card', [CardController::class, 'show'])->name('card.show');
 
 
-
+    
 
 
 
@@ -99,19 +127,24 @@ Route::middleware(['auth'])->group(function () {
    
     Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
     Route::patch('products/{product}/stock', [ProductController::class, 'updateStock'])
-    ->name('products.updateStock');
+        ->name('products.updateStock');
 
+    Route::get('products/trashed', [ProductController::class, 'trashed'])
+        ->name('products.trashed');
+    Route::post('products/{product}/restore', [ProductController::class, 'restore'])
+        ->name('products.restore');
 
-
-    Route::delete('/users/{user}/force', [UserController::class, 'forceDestroy'])->name('users.forceDestroy');
-    Route::delete('/category/{category}/force', [UserController::class, 'forceDestroy'])->name('categories.forceDestroy');
-    Route::delete('/product/{product}/force', [UserController::class, 'forceDestroy'])->name('products.forceDestroy');
+    Route::delete('/users/{id}/force', [UserController::class, 'forceDestroy'])->name('users.forceDestroy');
+    Route::delete('/category/{category}/force', [CategoryController::class, 'forceDestroy'])->name('categories.forceDestroy');
+    Route::delete('/product/{id}/force', [ProductController::class, 'forceDestroy'])->name('products.forceDestroy');
 
 
     
     Route::get('/stockadjustments', [StockAdjustmentController::class, 'index'])->name('stockadjustments.index');
 });
 
+Route::post('shippingcosts/{shippingcost}/restore', [ShippingCostController::class, 'restore'])
+    ->name('shippingcosts.restore');
 
 
 /* ----- NON-VERIFIED USERS PUBLIC ROUTES----- */

@@ -18,13 +18,11 @@ class SupplyOrderController extends Controller
     { 
         $this->authorizeResource(SupplyOrder::class, 'supplyorder');
     }
-
-
     public function index()
-    {
-         $allSupplyorders = SupplyOrder::with(['product','registeredByUser'])->paginate(10);
+    {         $allSupplyorders = SupplyOrder::with(['product','registeredByUser'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
         return view('supplyorders.index')->with('allSupplyorders', $allSupplyorders);
-
     }
     
     public function create()
@@ -108,10 +106,21 @@ class SupplyOrderController extends Controller
         $statusChangedToCompleted = $currentStatus === 'requested' && $newStatus === 'completed';
 
         if ($statusChangedToCompleted) {
-            $product = SupplyOrder::find($supplyorder->product_id);
+            // Get the related product using the correct relationship
+            $product = $supplyorder->product;
 
             if ($product) {
-                $product->stock += $supplyorder->quantity;
+                // Check if adding the supply quantity would exceed the upper limit
+                $newStock = $product->stock + $supplyorder->quantity;
+                
+                if ($product->stock_upper_limit && $newStock > $product->stock_upper_limit) {
+                    return redirect()->route('supplyorders.index')
+                        ->with('alert-type', 'error')
+                        ->with('alert-msg', "Cannot complete this supply order: The resulting stock ({$newStock}) would exceed the product's upper limit ({$product->stock_upper_limit}).");
+                }
+                
+                // Update the product stock
+                $product->stock = $newStock;
                 $product->save();
             }
         }
