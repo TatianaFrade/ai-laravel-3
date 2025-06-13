@@ -1,17 +1,4 @@
-@php
-    $mode = $mode ?? 'edit'; // modos: create, edit, show
-    $readonly = $mode === 'show';
-    $isCreate = $mode === 'create';
-    $isEdit = $mode === 'edit';
-    // For employees, all fields except status should be read-only in edit mode
-    $isEmployee = auth()->user()->type === 'employee';
-    $readonly = $readonly || ($isEdit && $isEmployee);
-    $needsHiddenFields = $isEdit && $isEmployee;
-
-    $dateValue = old('date', $order->date ?? now()->format('Y-m-d'));
-    $cancelReason = old('cancel_reason', $order->cancel_reason ?? '');
-    $cancelReasonOther = old('cancel_reason_other', $order->cancel_reason_other ?? '');
-@endphp
+{{-- Variables are now passed from the controller --}}
 
 <div class="w-full sm:w-96">
     <flux:input 

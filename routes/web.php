@@ -131,7 +131,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->gro
 
     // Product routes
     Route::resource('products', ProductController::class)->except(['index', 'show'])->middleware('can:staff');
-    Route::post('products/{id}/restore', [ProductController::class, 'restore'])->name('products.restore')->middleware('can:staff');
+    Route::post('products/{id}/restore', [ProductController::class, 'restore'])->name('products.restore')->middleware('can:board');
     Route::patch('products/{product}/stock', [ProductController::class, 'updateStock'])->name('products.updateStock')->middleware('can:staff');
 
     // Shipping costs routes
@@ -166,17 +166,12 @@ Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->gro
         ->name('users.restore')
         ->middleware('can:board');
         
-    // This route is duplicated - already defined above
     /* Route::patch('products/{product}/stock', [ProductController::class, 'updateStock'])
         ->name('products.updateStock'); */
 
     Route::get('products/trashed', [ProductController::class, 'trashed'])
         ->name('products.trashed')
         ->middleware('can:staff');
-        
-    // This route is duplicated - already defined above
-    /* Route::post('products/{product}/restore', [ProductController::class, 'restore'])
-        ->name('products.restore'); */
 
     Route::delete('/users/{id}/force', [UserController::class, 'forceDestroy'])
         ->name('users.forceDestroy')

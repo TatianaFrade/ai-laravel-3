@@ -1,11 +1,12 @@
+{{-- Mode and permissions are now handled by the controller --}}
 @php
-    $mode = $mode ?? 'edit';
-    $readonly = $mode === 'show';
-
-    // Permissões baseadas nos campos editáveis
+    // Helper function moved from the controller
     function canEdit($field, $editableFields) {
         return in_array($field, $editableFields);
     }
+    
+    // Set readonly flag based on mode
+    $readonly = $mode ?? 'edit' === 'show';
 @endphp
 
 <div class="w-full sm:w-96">

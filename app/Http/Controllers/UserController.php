@@ -60,9 +60,9 @@ class UserController extends Controller
             ->withQueryString();
 
         $listGenders = [
-            'F' => 'Feminino',
-            'M' => 'Masculino',
-            'O' => 'Outro',
+            'F' => 'Female',
+            'M' => 'Male',
+            'O' => 'Other',
         ];
 
         $listTypes = [
@@ -279,12 +279,12 @@ class UserController extends Controller
 
     public function forceDestroy($id): RedirectResponse
     {
-        // Buscar o usuário com ou sem soft delete
+        // Find the user with or without soft delete
         $user = User::withTrashed()->findOrFail($id);
         
         $this->authorize('forceDelete', $user);
 
-        // Verificar se é um employee
+        // Check if it's an employee
         if ($user->type !== 'employee') {
             return redirect()->back()
                 ->with('alert-type', 'danger')

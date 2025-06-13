@@ -17,46 +17,19 @@
                                 :showDelete="false" 
                                 :showAddToCart="false" 
                                 :showRemoveFromCart="true"
-                                :isCart="true" />
+                                :isCart="true"
+                                :userType="$userType" />
                             </div>
                         </div>
                         <div class="mt-12">
                             <div class="mb-6 flex flex-col gap-2">
                                 <div class="flex justify-between text-lg font-semibold">
                                     <span>Total Price:</span>
-                                    @php 
-                                        $totalPrices = 0; 
-                                        $shippingCartCosts = 0;
-                                    @endphp
-                                    @foreach ($cart as $product)
-                                        @php
-                                            if ($product->discount_min_qty < $product->stock) {
-                                                $hasDiscount = $product->discount && $product->discount > 0;
-                                                $priceAfterDiscount = $hasDiscount
-                                                    ? $product->price - $product->discount
-                                                    : $product->price;
-                                            } else {
-                                                $hasDiscount = false;
-                                                $priceAfterDiscount = $product->price;
-                                            }
-
-                                            $totalPrice = ($hasDiscount ? $priceAfterDiscount : $product->price) * $product->quantity;
-                                            $totalPrices += $totalPrice;
-                                        @endphp
-                                    @endforeach
-                                    @php
-                                        foreach ($shippingCosts as $cost) {
-                                            if ($totalPrices >= $cost->min_value_threshold && $totalPrices <= $cost->max_value_threshold) {
-                                                $shippingCartCosts = $cost->shipping_cost;
-                                            }
-                                        }
-                                    @endphp
-                                    <span>{{ number_format($totalPrices + $shippingCartCosts, 2) }} €</span>
+                                    <span>{{ number_format($cartTotals['finalTotal'], 2) }} €</span>
                                 </div>
                                 <div class="flex justify-between text-base">
                                     <span>Shipping Cost:</span>
-                                    {{-- Shipping Cost --}}
-                                    <span>{{ number_format($shippingCartCosts, 2) }} €</span>
+                                    <span>{{ number_format($cartTotals['shippingCost'], 2) }} €</span>
                                 </div>
                             </div>
                             <div>
