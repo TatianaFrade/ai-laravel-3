@@ -46,6 +46,7 @@
             <flux:navlist.item icon="academic-cap" :href="route('card.show')" :current="request()->routeIs('card.show')" wire:navigate>Virtual Card</flux:navlist.item>
             <flux:navlist.item icon="academic-cap" :href="route('operations.index')" :current="request()->routeIs('operations.index')" wire:navigate>Operations</flux:navlist.item>
             <flux:navlist.item icon="academic-cap" :href="route('favorites.index')" :current="request()->routeIs('favorites.index')" wire:navigate>Favorites</flux:navlist.item>
+            <flux:navlist.item icon="academic-cap" :href="route('statistics.basic')" :current="request()->routeIs('statistics.*')" wire:navigate>Statistics</flux:navlist.item>
         </flux:navlist.group>
     </flux:navlist>
  
@@ -56,7 +57,6 @@
                 <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('supplyorders.index')" :current="request()->routeIs('supplyorders.index')" wire:navigate>Supply Orders</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('categories.index')" :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
-				<flux:navlist.item icon="academic-cap" :href="route('statistics.basic')" :current="request()->routeIs('statistics.*')" wire:navigate>Statistics</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>Users</flux:navlist.item>
             </flux:navlist.group>
         @endcan
