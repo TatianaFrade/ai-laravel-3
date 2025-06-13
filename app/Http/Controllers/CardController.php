@@ -19,7 +19,7 @@ class CardController extends Controller
         $user = auth()->user();
         $card = $user->card;
 
- 
+
         if ($card) {
             $this->authorize('view', $card);
         }
@@ -34,43 +34,58 @@ class CardController extends Controller
         if ($user->card) {
             return redirect()->route('card.show');
         }
-        
+
         $this->authorize('create', Card::class);
-        
+
         return view('card.create');
     }
 
     public function update(CardFormRequest $request)
     {
         $data = $request->validated();
-        
+
         $card = Card::findOrFail(auth()->id());
         $this->authorize('update', $card);
-        
-        $payment = new Payment(); 
+
+        $payment = new Payment();
 
         switch ($data['type']) {
             case 'Visa':
                 if (!$payment->payWithVisa($data['card_num'], $data['cvc'])) {
-                    return redirect()->back()->withErrors('Error processing Visa payment.');
+                    $alertType = 'warning';
+                    $htmlMessage = "Error processing Visa payment. Please verify your card number and CVC.";
+
+                    return back()
+                        ->with('alert-msg', $htmlMessage)
+                        ->with('alert-type', $alertType);
                 }
                 break;
             case 'PayPal':
                 if (!$payment->payWithPaypal($data['email'])) {
-                    return redirect()->back()->withErrors('Error processing PayPal payment.');
+                    $alertType = 'warning';
+                    $htmlMessage = "Error processing PayPal payment. Please verify your email.";
+
+                    return back()
+                        ->with('alert-msg', $htmlMessage)
+                        ->with('alert-type', $alertType);
                 }
                 break;
             case 'MB WAY':
                 if (!$payment->payWithMBway($data['phone_number'])) {
-                    return redirect()->back()->withErrors('Error processing MB WAY payment.');
+                    $alertType = 'warning';
+                    $htmlMessage = "Error processing MB WAY payment. Please veeify your phone number.";
+
+                    return back()
+
+                        ->with('alert-msg', $htmlMessage)
+                        ->with('alert-type', $alertType);
                 }
                 break;
             default:
                 abort(400, 'Invalid payment method.');
         }
-
         $card = Card::findOrFail(auth()->id());
-        
+
         // Record credit operation
         $card->operations()->create([
             'card_id' => $card->id,
@@ -93,7 +108,7 @@ class CardController extends Controller
         $hasMembershipFee = $card->operations()
             ->where('debit_type', 'membership_fee')
             ->exists();
-    
+
         $user = auth()->user();
         // Todos os tipos de usuários precisam pagar a taxa de adesão pelo menos uma vez
         if (!$hasMembershipFee && $card->balance >= $membershipFee) {
@@ -119,7 +134,7 @@ class CardController extends Controller
                 ->with('alert-type', $alertType);
         } else if (!$hasMembershipFee && $card->balance < $membershipFee) {
             $amountNeeded = $membershipFee - $card->balance;
-            
+
             $alertType = 'warning';
             $htmlMessage = "Balance updated, but insufficient to pay the membership fee. To pay the membership fee, please add " . number_format($amountNeeded, 2, '.', ',') . "€ to your card.";
             return redirect()->back()
@@ -141,38 +156,55 @@ class CardController extends Controller
         }
 
         return redirect()->back()
-                ->with('alert-msg', $htmlMessage)
-                ->with('alert-type', $alertType);
+            ->with('alert-msg', $htmlMessage)
+            ->with('alert-type', $alertType);
     }
 
     public function store(CardFormRequest $request)
     {
         $data = $request->validated();
         $user = auth()->user();
-        
+
         if ($user->card) {
             return redirect()->route('card.show');
         }
-        
+
         $this->authorize('create', Card::class);
 
         $payment = new Payment();
 
         // Validate payment method
+
         switch ($data['type']) {
             case 'Visa':
                 if (!$payment->payWithVisa($data['card_num'], $data['cvc'])) {
-                    return redirect()->back()->withErrors('Error processing Visa payment.');
+                    $alertType = 'warning';
+                    $htmlMessage = "Error processing Visa payment. Please verify your card number and CVC.";
+
+                    return back()
+                        ->with('alert-msg', $htmlMessage)
+                        ->with('alert-type', $alertType);
                 }
                 break;
             case 'PayPal':
                 if (!$payment->payWithPaypal($data['email'])) {
-                    return redirect()->back()->withErrors('Error processing PayPal payment.');
+                    $alertType = 'warning';
+                    $htmlMessage = "Error processing PayPal payment. Please verify your email.";
+
+                    return back()
+                        ->with('alert-msg', $htmlMessage)
+                        ->with('alert-type', $alertType);
                 }
                 break;
             case 'MB WAY':
                 if (!$payment->payWithMBway($data['phone_number'])) {
-                    return redirect()->back()->withErrors('Error processing MB WAY payment.');
+                    $alertType = 'warning';
+                    $htmlMessage = "Error processing MB WAY payment. Please veeify your phone number.";
+
+                    return back()
+
+                        ->with('alert-msg', $htmlMessage)
+                        ->with('alert-type', $alertType);
                 }
                 break;
             default:
@@ -181,7 +213,7 @@ class CardController extends Controller
 
         // Create the card
         $card = Card::createForUser($user);
-        
+
         // Create initial balance operation if amount provided
         if (isset($data['amount']) && $data['amount'] > 0) {
             $card->operations()->create([
@@ -198,10 +230,10 @@ class CardController extends Controller
 
             $card->balance = $data['amount'];
             $card->save();
-            
+
             // Check and process membership fee for all new users
             $membershipFee = MembershipFee::latest()->value('membership_fee');
-            
+
             if ($card->balance >= $membershipFee) {
                 // Deduct membership fee
                 $card->balance -= $membershipFee;
@@ -217,7 +249,7 @@ class CardController extends Controller
                     'order_id' => null,
                 ]);
                 $card->save();
-                
+
                 $message = "Virtual card created successfully! Note: Your membership fee (€" . number_format($membershipFee, 2) . ") was automatically deducted from your initial balance. Current balance: €" . number_format($card->balance, 2);
                 $redirectRoute = session('redirect_after') ?: 'card.show';
             } else {

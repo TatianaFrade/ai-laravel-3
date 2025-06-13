@@ -23,7 +23,7 @@ class CartController extends Controller
     {
         $cart = session('cart', null);
         $shippingCosts = ShippingCost::all();
- 
+        
         return view('cart.show', compact('cart', 'shippingCosts'));
     }
  
@@ -44,8 +44,8 @@ class CartController extends Controller
  
         $alertType = 'success';
         $url = route('products.show', ['product' => $product]);
-        $htmlMessage = "Product <a href='$url'>#{$product->id}
-            <strong>\"{$product->name}\"</strong></a> foi adicionado ao carrinho.";
+        $htmlMessage = "Product <a href='$url'></a>
+            <strong>\"{$product->name}\"</strong></a> has been added to the cart.";
  
         return back()
             ->with('alert-msg', $htmlMessage)
@@ -63,7 +63,7 @@ class CartController extends Controller
             $request->session()->put('cart', $cart);
         }
  
-        return back()->with('alert-msg', "Quantidade de \"{$product->name}\" aumentada para {$existingProduct->quantity}.")
+        return back()->with('alert-msg', "Quantity of \"{$product->name}\" increased to {$existingProduct->quantity}.")
             ->with('alert-type', 'success');
     }
  
@@ -81,7 +81,7 @@ class CartController extends Controller
             $request->session()->put('cart', $cart);
         }
  
-        return back()->with('alert-msg', "Quantidade de \"{$product->name}\" diminuída para " . ($existingProduct->quantity ?? 0) . ".")
+        return back()->with('alert-msg', "Quantity of \"{$product->name}\" decreased to " . ($existingProduct->quantity ?? 0) . ".")
             ->with('alert-type', 'warning');
     }
  

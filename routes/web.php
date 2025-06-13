@@ -21,6 +21,8 @@ use App\Http\Controllers\StatisticsController;
 
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
 
 
 
@@ -32,7 +34,7 @@ Route::get('test-membership-check', function () {
         echo 'Board User #561: ' . $board561->name . ' (Type: ' . $board561->type . ')' . "<br>";
         echo 'Has Paid Membership: ' . ($board561->hasPaidMembership() ? 'Yes' : 'No') . "<br>";
         echo 'Membership Expired: ' . ($board561->isMembershipExpired() ? 'Yes' : 'No') . "<br>";
-        
+
         // Simulate the CartController logic
         if (!$board561->hasPaidMembership()) {
             echo 'CHECKOUT RESULT: Redirect to membership payment due to never having paid.';
@@ -78,10 +80,21 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckIfUserBlocked::
     //Route::post('/orders', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::get('/operations', [OperationController::class, 'index'])->name('operations.index');
 
-	Route::get('statistics/basic', [StatisticsController::class, 'basic'])->name('statistics.basic');
-	Route::get('statistics/advanced', [StatisticsController::class, 'advanced'])->name('statistics.advanced');
-	Route::get('statistics/export/sales-by-category', [StatisticsController::class, 'exportSalesByCategory'])->name('statistics.export.category');
-	Route::get('statistics/export/user-spending', [StatisticsController::class, 'exportUserSpending'])->name('statistics.export.user_spending');
+    Route::get('statistics/basic', [StatisticsController::class, 'basic'])->name('statistics.basic');
+    Route::get('statistics/advanced', [StatisticsController::class, 'advanced'])->name('statistics.advanced');
+    Route::get('statistics/export/sales-by-category', [StatisticsController::class, 'exportSalesByCategory'])->name('statistics.export.category');
+    Route::get('statistics/export/user-spending', [StatisticsController::class, 'exportUserSpending'])->name('statistics.export.user_spending');
+
+    
+    Route::get('/receipt/{filename}', function ($filename) {
+        $path = storage_path("app/private/receipts/{$filename}");
+
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return Response::file($path);
+    })->middleware('auth');
 });
 
 
@@ -89,11 +102,11 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckIfUserBlocked::
 
 /* ----- AUTHENTICATED USERS (verificados ou não) ----- */
 Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->group(function () {
-     Route::resource('users', UserController::class);
-//     Route::get('/users', [UserController::class, 'index'])->name('users.index')
+    Route::resource('users', UserController::class);
+    //     Route::get('/users', [UserController::class, 'index'])->name('users.index')
 //     ->can('viewAny-user');
 
-// Route::get('/users/{user}', [UserController::class, 'show']) ->name('users.show')
+    // Route::get('/users/{user}', [UserController::class, 'show']) ->name('users.show')
 //     ->can('view-user', 'user');
 
     Route::resource('categories', CategoryController::class);
@@ -103,23 +116,23 @@ Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->gro
     Route::resource('orders', OrderController::class);
     Route::resource('supplyorders', SupplyOrderController::class);
     Route::resource('membershipfees', MembershipFeeController::class)->except(['show']);
-    
+
     Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
 
     //Route::get('card', [CardController::class, 'showUserCard'])->name('card.show');
     Route::post('/membershipfees/{membershipfee}/pay', [MembershipFeeController::class, 'pay'])
-    ->name('membershipfees.pay');
+        ->name('membershipfees.pay');
 
-    
+
     Route::get('card', [CardController::class, 'show'])->name('card.show');
 
 
-    
+
 
 
 
     Route::patch('/users/{user}/toggle-blocked', [UserController::class, 'toggleBlocked'])->name('users.toggleBlocked');
-   
+
     Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
     Route::patch('products/{product}/stock', [ProductController::class, 'updateStock'])
         ->name('products.updateStock');
@@ -134,7 +147,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->gro
     Route::delete('/product/{id}/force', [ProductController::class, 'forceDestroy'])->name('products.forceDestroy');
 
 
-    
+
     Route::get('/stockadjustments', [StockAdjustmentController::class, 'index'])->name('stockadjustments.index');
 });
 
