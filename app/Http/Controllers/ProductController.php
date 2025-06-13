@@ -21,7 +21,15 @@ class ProductController extends Controller
         $orderPrice = $request->get('order_price');
         $orderStock = $request->get('order_stock');
  
-        $productQuery = Product::withTrashed()->with('category');
+        // Only show trashed products to staff members and on non-public routes
+        $userType = auth()->check() ? auth()->user()->type : 'member';
+        $isPublicView = request('view') === 'public';
+        $productQuery = Product::query()->with('category');
+        
+        // Nunca mostrar produtos soft-deleted na rota pública
+        if (in_array($userType, ['employee', 'board']) && !$isPublicView) {
+            $productQuery->withTrashed();
+        }
  
         if ($filterByName) {
             $productQuery->where(function ($query) use ($filterByName) {
@@ -46,8 +54,6 @@ class ProductController extends Controller
         foreach ($allProducts as $product) {
             $product->description_translated = $tr->translate($product->description);
         }
- 
-        $userType = auth()->check() ? auth()->user()->type : 'guest';
  
         return view('products.index', compact('allProducts', 'orderPrice', 'orderStock', 'filterByName', 'userType'));
     }
@@ -106,6 +112,51 @@ class ProductController extends Controller
  
     public function update(Request $request, Product $product): RedirectResponse
     {
+        $this->authorize('update', $product);
+        
+        // For employees, only allow stock updates
+        $userType = auth()->user()->type;
+        if ($userType === 'employee') {
+            $validated = $request->validate([
+                'stock' => 'required|integer|min:0',
+            ]);
+            
+            $oldStock = $product->stock;
+            $newStock = $validated['stock'];
+            
+            try {
+                // Use a transaction to ensure both operations succeed
+                \DB::beginTransaction();
+                
+                // Update product stock
+                $product->stock = $newStock;
+                $product->save();
+                
+                // Record in stock_adjustments table
+                $product->stockAdjustments()->create([
+                    'registered_by_user_id' => auth()->id(),
+                    'quantity_changed' => $newStock - $oldStock
+                ]);
+                
+                \DB::commit();
+                
+                // Verifica se precisa criar supply order 
+                $this->createSupplyOrderIfNeeded($product);
+                
+                return redirect()->route('products.index')
+                    ->with('alert-type', 'success')
+                    ->with('alert-msg', 'Stock updated successfully.');
+                    
+            } catch (\Exception $e) {
+                \DB::rollBack();
+                return back()
+                    ->withInput()
+                    ->with('alert-type', 'danger')
+                    ->with('alert-msg', 'Error updating stock: ' . $e->getMessage());
+            }
+        }
+        
+        // Board user - full product update
         $validated = $this->validateProduct($request, $product->id);
         
         // Validação adicional específica do produto
@@ -123,14 +174,39 @@ class ProductController extends Controller
             
             unset($validated['photo']);
         }
- 
-        $product->update($validated);
         
-        // Verifica se precisa criar supply order
-        $this->createSupplyOrderIfNeeded($product);
- 
-        return redirect()->route('products.index')
-            ->with('success', 'Produto atualizado com sucesso.');
+        try {
+            \DB::beginTransaction();
+            
+            // Check if stock is being updated
+            $oldStock = $product->stock;
+            $newStock = $validated['stock'] ?? $oldStock;
+            
+            // Update product
+            $product->update($validated);                // If stock was changed, record it in stock_adjustments
+            if ($oldStock != $newStock) {
+                $product->stockAdjustments()->create([
+                    'registered_by_user_id' => auth()->id(),
+                    'quantity_changed' => $newStock - $oldStock
+                ]);
+            }
+            
+            \DB::commit();
+            
+            // Verifica se precisa criar supply order
+            $this->createSupplyOrderIfNeeded($product);
+            
+            return redirect()->route('products.index')
+                ->with('alert-type', 'success')
+                ->with('alert-msg', 'Product updated successfully.');
+                
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()
+                ->withInput()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', 'Error updating product: ' . $e->getMessage());
+        }
     }
  
     public function destroy(Product $product): RedirectResponse
@@ -145,13 +221,27 @@ class ProductController extends Controller
                 // Se já foi vendido, faz soft delete
                 $product->delete();
                 $alertType = 'success';
-                $alertMsg = "O produto {$product->name} já tem vendas associadas e foi movido para a lixeira.";
+                $alertMsg = "O produto {$product->name} possui vendas associadas e foi movido para a lixeira.";
             } else {
-                // Se nunca foi vendido, remove a foto e deleta permanentemente
-                $this->deletePhoto($product, 'photo', 'products');
-                $product->forceDelete();
-                $alertType = 'success';
-                $alertMsg = "O produto {$product->name} foi eliminado permanentemente.";
+                // Se nunca foi vendido, tenta remover permanentemente (mesmo que tenha supply orders)
+                try {
+                    // Primeiro removemos qualquer ordem de fornecimento associada
+                    \DB::table('supply_orders')->where('product_id', $product->id)->delete();
+                    
+                    // Removemos a foto associada ao produto
+                    $this->deletePhoto($product, 'photo', 'products');
+                    
+                    // Agora podemos excluir permanentemente
+                    $product->forceDelete();
+                    
+                    $alertType = 'success';
+                    $alertMsg = "O produto {$product->name} foi eliminado permanentemente.";
+                } catch (\Exception $e) {
+                    // Se ocorrer algum erro na exclusão permanente, fazemos soft delete como fallback
+                    $product->delete();
+                    $alertType = 'warning';
+                    $alertMsg = "O produto {$product->name} não pôde ser eliminado permanentemente e foi movido para a lixeira. Detalhes: " . $e->getMessage();
+                }
             }
         } catch (\Exception $e) {
             $alertType = 'danger';
@@ -166,7 +256,12 @@ class ProductController extends Controller
     public function showcase(): View
     {
         $this->authorize('viewShowCase', Product::class);
-        return view('products.showcase');
+        // Forward to the index view with public view parameter
+        $products = Product::with('category')->orderBy('name')->paginate(15);
+        return view('products.index', [
+            'products' => $products,
+            'view' => 'public'
+        ]);
     }
  
     public function show(Product $product): View
@@ -201,6 +296,34 @@ class ProductController extends Controller
             ->with('alert-msg', $alertMsg);
     }
  
+    public function forceDestroy(int $id): RedirectResponse
+    {
+        try {
+            $product = Product::withTrashed()->findOrFail($id);
+            
+            // Primeiro verificamos e removemos todas as relações com supply_orders
+            \DB::table('supply_orders')->where('product_id', $id)->delete();
+            
+            // Removemos a foto associada ao produto
+            $this->deletePhoto($product, 'photo', 'products');
+            
+            // Agora podemos excluir permanentemente
+            $product->forceDelete();
+            
+            return redirect()->route('products.index')
+                ->with('alert-type', 'success')
+                ->with('alert-msg', "O produto {$product->name} foi eliminado permanentemente.");
+                
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', "Erro ao tentar eliminar permanentemente o produto: " . $e->getMessage());
+        }
+    }
+ 
+    /**
+     * This method is no longer needed as the stock update logic is in the main update method
+     */
     private function validateProduct(Request $request, ?int $productId = null): array
     {
         return $request->validate([
@@ -286,4 +409,3 @@ class ProductController extends Controller
         }
     }
 }
- 

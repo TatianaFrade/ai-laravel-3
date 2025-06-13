@@ -55,7 +55,9 @@
                                                             <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
                                                         </a>
                                                     @else
-                                                        <span class="size-5 inline-block"></span>
+                                                        <span title="Completed orders cannot be edited" class="cursor-not-allowed opacity-60">
+                                                            <flux:icon.pencil-square class="size-5" />
+                                                        </span>
                                                     @endif
                                                 @else
                                                     <span class="size-5 inline-block"></span>

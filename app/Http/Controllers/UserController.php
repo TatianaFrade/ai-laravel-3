@@ -277,9 +277,19 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Blocked status updated.');
     }
 
-    public function forceDestroy(User $user): RedirectResponse
+    public function forceDestroy($id): RedirectResponse
     {
+        // Buscar o usuário com ou sem soft delete
+        $user = User::withTrashed()->findOrFail($id);
+        
         $this->authorize('forceDelete', $user);
+
+        // Verificar se é um employee
+        if ($user->type !== 'employee') {
+            return redirect()->back()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', "Only employee accounts can be permanently deleted.");
+        }
 
         try {
             $this->deletePhoto($user, 'photo', 'users');

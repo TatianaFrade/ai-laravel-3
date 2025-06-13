@@ -66,8 +66,11 @@
         </flux:select>
     @elseif ($user->type === 'board')
         <flux:select name="status" :label="__('Status')">
-            <option value="canceled" @selected($cancelReason !== '' && old('status', $order->status) === 'canceled')>Canceled</option>
-            <option value="{{ $order->status }}" selected hidden>{{ ucfirst($order->status) }}</option>
+            <option value="pending" @selected(old('status', $order->status) === 'pending')>Pending</option>
+            <option value="canceled" @selected(old('status', $order->status) === 'canceled')>Canceled</option>
+            @if ($order->status !== 'pending' && $order->status !== 'canceled')
+                <option value="{{ $order->status }}" selected>{{ ucfirst($order->status) }}</option>
+            @endif
         </flux:select>
 
         {{-- Mostrar dropdown e campo "other" com Alpine.js --}}

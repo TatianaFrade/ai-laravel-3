@@ -20,9 +20,31 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\StatisticsController;
 
 use App\Models\Product;
+use App\Models\User;
 
 
 
+
+// Test route to verify the fix for board/employee membership fee requirement
+Route::get('test-membership-check', function () {
+    $board561 = User::find(561);
+    if ($board561) {
+        echo 'Board User #561: ' . $board561->name . ' (Type: ' . $board561->type . ')' . "<br>";
+        echo 'Has Paid Membership: ' . ($board561->hasPaidMembership() ? 'Yes' : 'No') . "<br>";
+        echo 'Membership Expired: ' . ($board561->isMembershipExpired() ? 'Yes' : 'No') . "<br>";
+        
+        // Simulate the CartController logic
+        if (!$board561->hasPaidMembership()) {
+            echo 'CHECKOUT RESULT: Redirect to membership payment due to never having paid.';
+        } elseif ($board561->isMembershipExpired()) {
+            echo 'CHECKOUT RESULT: Redirect to membership payment due to expired membership.';
+        } else {
+            echo 'CHECKOUT RESULT: Proceed with order.';
+        }
+    } else {
+        echo 'User not found.';
+    }
+});
 
 
 /* ----- PUBLIC ROUTES ----- */
@@ -107,9 +129,9 @@ Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->gro
     Route::post('products/{product}/restore', [ProductController::class, 'restore'])
         ->name('products.restore');
 
-    Route::delete('/users/{user}/force', [UserController::class, 'forceDestroy'])->name('users.forceDestroy');
+    Route::delete('/users/{id}/force', [UserController::class, 'forceDestroy'])->name('users.forceDestroy');
     Route::delete('/category/{category}/force', [CategoryController::class, 'forceDestroy'])->name('categories.forceDestroy');
-    Route::delete('/product/{product}/force', [UserController::class, 'forceDestroy'])->name('products.forceDestroy');
+    Route::delete('/product/{id}/force', [ProductController::class, 'forceDestroy'])->name('products.forceDestroy');
 
 
     

@@ -29,7 +29,9 @@ class MembershipFeePolicy
 
     public function pay(User $user, MembershipFee $membershipFee): bool
     {
-        return $user->type === 'member';
+        // All user types (member, board, employee) must be able to pay the membership fee at least once
+        // For members, they also need to renew annually
+        return true;
     }
 
     public function delete(User $user, MembershipFee $membershipFee): bool

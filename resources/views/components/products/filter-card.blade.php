@@ -2,6 +2,9 @@
 
 <div {{ $attributes }}>
     <form method="GET" action="{{ $filterAction }}">
+        @if(request('view'))
+            <input type="hidden" name="view" value="{{ request('view') }}">
+        @endif
         <div class="flex justify-between space-x-3">
 
             <!-- Input nome ou categoria -->
