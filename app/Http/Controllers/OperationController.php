@@ -5,9 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Operation;
 use App\Models\Card;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class OperationController extends Controller
 {
+    use AuthorizesRequests;
+    public function __construct()
+    {
+        $this->authorizeResource(Operation::class, 'operation');
+    }
+    
     public function index()
     {
         $operations = Operation::where('card_id', auth()->id())

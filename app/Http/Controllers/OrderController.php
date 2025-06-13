@@ -12,16 +12,24 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderCompletedMail;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 
 
 class OrderController extends Controller
 {
+    use AuthorizesRequests;
+    
     public string $email = '';
+    
+    public function __construct()
+    {
+        $this->authorizeResource(Order::class, 'order');
+    }
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Order::class); 
+        // $this->authorize('viewAny', Order::class); // Using authorizeResource now
         
         $user = Auth::user();
         $onlyOwnOrders = $request->boolean('mine');

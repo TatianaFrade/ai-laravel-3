@@ -16,7 +16,6 @@ class CardController extends Controller
 {
     public function show()
     {
-
         $user = auth()->user();
         $card = $user->card;
 
@@ -36,12 +35,18 @@ class CardController extends Controller
             return redirect()->route('card.show');
         }
         
+        $this->authorize('create', Card::class);
+        
         return view('card.create');
     }
 
     public function update(CardFormRequest $request)
     {
         $data = $request->validated();
+        
+        $card = Card::findOrFail(auth()->id());
+        $this->authorize('update', $card);
+        
         $payment = new Payment(); 
 
         switch ($data['type']) {
@@ -148,6 +153,8 @@ class CardController extends Controller
         if ($user->card) {
             return redirect()->route('card.show');
         }
+        
+        $this->authorize('create', Card::class);
 
         $payment = new Payment();
 

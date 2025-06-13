@@ -15,6 +15,12 @@ use App\Traits\PhotoFileStorage;
 class ProductController extends Controller
 {
     use PhotoFileStorage;
+    
+    public function __construct()
+    {
+        $this->authorizeResource(Product::class, 'product');
+    }
+    
     public function index(Request $request): View
     {
         $filterByName = $request->get('name');
