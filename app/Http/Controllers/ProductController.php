@@ -21,7 +21,13 @@ class ProductController extends Controller
         $orderPrice = $request->get('order_price');
         $orderStock = $request->get('order_stock');
  
-        $productQuery = Product::withTrashed()->with('category');
+        // Only show trashed products to staff members
+        $userType = auth()->check() ? auth()->user()->type : 'member';
+        $productQuery = Product::query()->with('category');
+        
+        if (in_array($userType, ['employee', 'board'])) {
+            $productQuery->withTrashed();
+        }
  
         if ($filterByName) {
             $productQuery->where(function ($query) use ($filterByName) {
@@ -46,8 +52,6 @@ class ProductController extends Controller
         foreach ($allProducts as $product) {
             $product->description_translated = $tr->translate($product->description);
         }
- 
-        $userType = auth()->check() ? auth()->user()->type : 'guest';
  
         return view('products.index', compact('allProducts', 'orderPrice', 'orderStock', 'filterByName', 'userType'));
     }

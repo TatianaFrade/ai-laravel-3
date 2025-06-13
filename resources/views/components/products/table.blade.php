@@ -3,7 +3,7 @@
         @php
             use Illuminate\Support\Facades\Auth;
  
-            $userType = Auth::user()->type ?? 'guest';
+            $userType = Auth::user()->type ?? 'member';
         @endphp
  
         <thead>
