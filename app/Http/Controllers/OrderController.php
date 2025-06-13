@@ -55,30 +55,47 @@ class OrderController extends Controller
                         ->orderByDesc('created_at')
                         ->paginate(20);
         } else {
-            abort(403, 'Acesso não autorizado');
+            abort(403, 'Unauthorized access');
         }
 
-        return view('orders.index', ['allOrders' => $orders]);
+        // Determine if the user is a member (for view conditionals)
+        $isMember = $user->type === 'member';
+        
+        return view('orders.index', [
+            'allOrders' => $orders,
+            'isMember' => $isMember,
+        ]);
     }
 
 
     public function create()
     {
-    //     // // Exemplo: total estimado no create pode ser 0 ou default, no edit usar o valor real do order
-    //     // $total = 0;
+        $user = Auth::user();
+        
+        // Prepare field configurations
+        $mode = 'create';
+        $readonly = false;
+        $isCreate = true;
+        $isEdit = false;
+        $isEmployee = $user->type === 'employee';
+        $needsHiddenFields = false;
 
-    //     // // Busca o custo de envio conforme o total
-    //     // $shippingCost = ShippingCost::where('min_value_threshold', '<=', $total)
-    //     //                             ->where('max_value_threshold', '>', $total)
-    //     //                             ->first();
-
-    //     // $calculatedShippingCost = $shippingCost ? $shippingCost->shipping_cost : 0;
-
-    //     // return view('orders.create', [
-    //     //     'shipping_cost' => $calculatedShippingCost,
-    //     //     'mode' => 'create',
-           
-    //     // ]);
+        $dateValue = old('date', now()->format('Y-m-d'));
+        $cancelReason = old('cancel_reason', '');
+        $cancelReasonOther = old('cancel_reason_other', '');
+        
+        return view('orders.create', [
+            'user' => $user,
+            'mode' => $mode,
+            'readonly' => $readonly,
+            'isCreate' => $isCreate,
+            'isEdit' => $isEdit,
+            'isEmployee' => $isEmployee,
+            'needsHiddenFields' => $needsHiddenFields,
+            'dateValue' => $dateValue,
+            'cancelReason' => $cancelReason,
+            'cancelReasonOther' => $cancelReasonOther,
+        ]);
     // }
 
 
@@ -144,15 +161,64 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-         return view('orders.show', ['order' => $order]);
+        $user = Auth::user();
+        
+        // Prepare field configurations for show mode
+        $mode = 'show';
+        $readonly = true;
+        $isCreate = false;
+        $isEdit = false;
+        $isEmployee = $user->type === 'employee';
+        $needsHiddenFields = false;
+
+        $dateValue = $order->date;
+        $cancelReason = $order->cancel_reason ?? '';
+        $cancelReasonOther = $order->cancel_reason_other ?? '';
+        
+        return view('orders.show', [
+            'order' => $order,
+            'user' => $user,
+            'mode' => $mode,
+            'readonly' => $readonly,
+            'isCreate' => $isCreate,
+            'isEdit' => $isEdit,
+            'isEmployee' => $isEmployee,
+            'needsHiddenFields' => $needsHiddenFields,
+            'dateValue' => $dateValue,
+            'cancelReason' => $cancelReason,
+            'cancelReasonOther' => $cancelReasonOther,
+        ]);
     }
 
     public function edit(Order $order)
     {
-        $user = Auth::user(); // pega o utilizador autenticado
+        $user = Auth::user(); // get authenticated user
+        
+        // Prepare field configurations
+        $mode = 'edit';
+        $readonly = false;
+        $isCreate = false;
+        $isEdit = true;
+        $isEmployee = $user->type === 'employee';
+        $readonly = $isEdit && $isEmployee;
+        $needsHiddenFields = $isEdit && $isEmployee;
+
+        $dateValue = old('date', $order->date ?? now()->format('Y-m-d'));
+        $cancelReason = old('cancel_reason', $order->cancel_reason ?? '');
+        $cancelReasonOther = old('cancel_reason_other', $order->cancel_reason_other ?? '');
+        
         return view('orders.edit', [
             'order' => $order,
             'user' => $user,
+            'mode' => $mode,
+            'readonly' => $readonly,
+            'isCreate' => $isCreate,
+            'isEdit' => $isEdit,
+            'isEmployee' => $isEmployee,
+            'needsHiddenFields' => $needsHiddenFields,
+            'dateValue' => $dateValue,
+            'cancelReason' => $cancelReason,
+            'cancelReasonOther' => $cancelReasonOther,
         ]);
     }
 
@@ -172,16 +238,16 @@ class OrderController extends Controller
         // Validação para cancelar encomenda
         if ($newStatus === 'canceled') {
             if ($user->type !== 'board') {
-                return back()->withErrors(['status' => 'Apenas membros do tipo board podem cancelar encomendas.']);
+                return back()->withErrors(['status' => 'Only board members can cancel orders.']);
             }
 
 
             if ($currentStatus !== 'pending') {
-                return back()->withErrors(['status' => 'Só é possível cancelar encomendas com status "pending".']);
+                return back()->withErrors(['status' => 'Only orders with "pending" status can be canceled.']);
             }
 
             if (empty($data['cancel_reason'])) {
-                return back()->withErrors(['cancel_reason' => 'É necessário indicar o motivo do cancelamento.']);
+                return back()->withErrors(['cancel_reason' => 'You must provide a reason for cancellation.']);
             }
             
             try {
@@ -210,7 +276,7 @@ class OrderController extends Controller
                     ]);
 
                 } else {
-                    \Log::warning('Cartão não encontrado para user_id: ' . $order->user->id);
+                    \Log::warning('Card not found for user_id: ' . $order->user->id);
                 }
                 
                 \DB::commit();
@@ -222,7 +288,7 @@ class OrderController extends Controller
         } else if ($newStatus === 'pending' && $currentStatus === 'canceled') {
             // Handle transition from canceled back to pending
             if ($user->type !== 'board') {
-                return back()->withErrors(['status' => 'Apenas membros do tipo board podem reativar encomendas canceladas.']);
+                return back()->withErrors(['status' => 'Only board members can reactivate canceled orders.']);
             }
             
             // Remove the cancel reason
@@ -232,13 +298,13 @@ class OrderController extends Controller
             $card = $order->user->card;
             if ($card) {
                 if ($card->balance < $order->total) {
-                    return back()->withErrors(['status' => 'Saldo insuficiente no cartão para reativar a encomenda.']);
+                    return back()->withErrors(['status' => 'Insufficient balance in card to reactivate the order.']);
                 }
                 $card->balance -= $order->total;
                 $card->save();
             } else {
-                \Log::warning('Cartão não encontrado para user_id: ' . $order->user->id);
-                return back()->withErrors(['status' => 'Cartão do utilizador não encontrado.']);
+                \Log::warning('Card not found for user_id: ' . $order->user->id);
+                return back()->withErrors(['status' => 'User card not found.']);
             }
         } else {
             $order->cancel_reason = null;
@@ -258,12 +324,12 @@ class OrderController extends Controller
                         $productList[] = "{$item['product']->name} (current: {$item['current_stock']}, upper limit: {$item['upper_limit']})";
                     }
                     
-                    $errorMessage = 'Não pode marcar como completed: os seguintes produtos excederiam o limite superior de stock: ' . 
+                    $errorMessage = 'Cannot mark as completed: the following products would exceed the upper stock limit: ' . 
                                    implode(', ', $productList);
                     
                     return back()->withErrors(['status' => $errorMessage]);
                 } else {
-                    return back()->withErrors(['status' => 'Não pode marcar como completed: stock insuficiente em algum produto.']);
+                    return back()->withErrors(['status' => 'Cannot mark as completed: insufficient stock in some products.']);
                 }
             }
         }
@@ -286,8 +352,8 @@ class OrderController extends Controller
             $order->load(['user', 'items.product']);
 
             if (!$order->user) {
-                \Log::error('Utilizador não encontrado para order id: ' . $order->id . ', member_id: ' . $order->member_id);
-                return back()->withErrors(['user' => 'Utilizador associado não encontrado para esta encomenda.']);
+                \Log::error('User not found for order id: ' . $order->id . ', member_id: ' . $order->member_id);
+                return back()->withErrors(['user' => 'Associated user not found for this order.']);
             }
 
             foreach ($order->items as $item) {
@@ -296,13 +362,13 @@ class OrderController extends Controller
                     $product->stock = max(0, $product->stock - $item->quantity);
                     $product->save();
                 } else {
-                    \Log::warning('Produto não encontrado para item id: ' . $item->id);
+                    \Log::warning('Product not found for item id: ' . $item->id);
                 }
             }
 
             $pdf = Pdf::loadView('pdfs.order_receipt', ['order' => $order]);
 
-            $fileName = 'recibo_' . $order->id . '_' . uniqid() . '.pdf';
+            $fileName = 'receipt_' . $order->id . '_' . uniqid() . '.pdf';
             $pdfPath = storage_path('app/public/orders/' . $fileName);
 
             if (!file_exists(dirname($pdfPath))) {
@@ -336,16 +402,16 @@ class OrderController extends Controller
         $user = auth()->user();
 
         if ($user->type !== 'board') {
-            return back()->withErrors(['status' => 'Apenas membros do tipo board podem cancelar encomendas.']);
+            return back()->withErrors(['status' => 'Only board members can cancel orders.']);
         }
 
         if ($order->status !== 'pending') {
-            return back()->withErrors(['status' => 'Só é possível cancelar encomendas com status "pending".']);
+            return back()->withErrors(['status' => 'Only orders with "pending" status can be canceled.']);
         }
 
         $cancelReason = request('cancel_reason');
         if (empty($cancelReason)) {
-            return back()->withErrors(['cancel_reason' => 'É necessário indicar o motivo do cancelamento.']);
+            return back()->withErrors(['cancel_reason' => 'You must provide a reason for cancellation.']);
         }
         
         try {
@@ -370,10 +436,10 @@ class OrderController extends Controller
             \DB::commit();
         } catch (\Exception $e) {
             \DB::rollBack();
-            \Log::error('Erro ao cancelar encomenda: ' . $e->getMessage());
-            return back()->withErrors(['status' => 'Erro ao processar o cancelamento: ' . $e->getMessage()]);
+            \Log::error('Error canceling order: ' . $e->getMessage());
+            return back()->withErrors(['status' => 'Error processing cancellation: ' . $e->getMessage()]);
         }
 
-        return redirect()->route('orders.index')->with('success', 'Encomenda cancelada com sucesso.');
+        return redirect()->route('orders.index')->with('success', 'Order canceled successfully.');
     }
 }

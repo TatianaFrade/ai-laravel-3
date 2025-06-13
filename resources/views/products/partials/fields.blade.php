@@ -1,18 +1,4 @@
-@php
-    $mode = $mode ?? 'edit';
-    $readonly = $mode === 'show';
-    $isCreate = $mode === 'create';
-    $isEdit = $mode === 'edit';
-
-    $userType = auth()->user()->type ?? 'guest';
-
-    $canEditAll = !$readonly && $userType === 'board';
-    $canEditStockOnly = !$readonly && $userType === 'employee';
-    $forceReadonly = $readonly || (!$canEditAll && !$canEditStockOnly);
-    
-    // For employees, make everything except stock readonly
-    $isEmployeeEditing = $userType === 'employee' && $mode === 'edit';
-@endphp
+{{-- All variables are now passed from the controller --}}
 
 
 

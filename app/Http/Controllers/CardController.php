@@ -110,7 +110,7 @@ class CardController extends Controller
             ->exists();
 
         $user = auth()->user();
-        // Todos os tipos de usuários precisam pagar a taxa de adesão pelo menos uma vez
+        // All types of users need to pay the membership fee at least once
         if (!$hasMembershipFee && $card->balance >= $membershipFee) {
             // Deduct membership fee automatically if sufficient balance
             $card->balance -= $membershipFee;
@@ -273,7 +273,7 @@ class CardController extends Controller
 // $alertType = 'success';
 //         $url = route('products.show', ['product' => $product]);
 //         $htmlMessage = "Product <a href='$url'>#{$product->id}
-//             <strong>\"{$product->name}\"</strong></a> foi adicionado ao carrinho.";
+//             <strong>\"{$product->name}\"</strong></a> has been added to cart.";
 
 //         return back()
 //             ->with('alert-msg', $htmlMessage)

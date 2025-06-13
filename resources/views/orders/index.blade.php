@@ -1,8 +1,4 @@
-@php
-    use Illuminate\Support\Facades\Auth;
- 
-    $isMember = Auth::user()->type === 'member';
-@endphp
+{{-- $isMember variable is now passed from the controller --}}
  
 <x-layouts.main-content :title="__('Orders')" :heading="$isMember ? 'My Orders' : (request()->boolean('mine') ? 'My Orders' : 'List of Orders')" :subheading="$isMember ? 'Here are your orders' : (request()->boolean('mine') ? 'Here are your orders' : 'Manage the orders of all users')">
  

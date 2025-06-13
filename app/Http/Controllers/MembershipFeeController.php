@@ -20,18 +20,29 @@ class MembershipFeeController extends Controller
     
     public function index()
     {
-        $membershipfee = MembershipFee::first(); // ou ->latest()->first()
+        $membershipfee = MembershipFee::first(); // or ->latest()->first()
 
         return view('membershipfees.index', [
             'membershipfee' => $membershipfee,
-            'isPublicView' => request()->boolean('view'), // <- isto define se está na vista pública
+            'isPublicView' => request()->boolean('view'), // <- this defines if it's in the public view
         ]);
     }
 
 
     public function edit(MembershipFee $membershipfee)
     {
-        return view('membershipfees.edit')->with('membershipfee', $membershipfee);
+        $mode = 'edit';
+        $readonly = false;
+        $isEdit = true;
+        $forceReadonly = $isEdit || $readonly;
+        
+        return view('membershipfees.edit', [
+            'membershipfee' => $membershipfee,
+            'mode' => $mode,
+            'readonly' => $readonly,
+            'isEdit' => $isEdit,
+            'forceReadonly' => $forceReadonly
+        ]);
     }
 
 
@@ -52,21 +63,21 @@ class MembershipFeeController extends Controller
         $card = Card::where('id', $user->id)->first();
 
         if (!$card) {
-            return redirect()->back()->withErrors(['card' => 'Cartão não encontrado.']);
+            return redirect()->back()->withErrors(['card' => 'Card not found.']);
         }
 
         if ($card->balance < $feeValue) {
             return redirect()->back()
                 ->with('alert-type', 'danger')
-                ->with('alert-msg', 'Saldo insuficiente no cartão para pagar a taxa de adesão. Saldo atual: €' . number_format($card->balance, 2) . '. Valor necessário: €' . number_format($feeValue, 2));
+                ->with('alert-msg', 'Insufficient balance in card to pay the membership fee. Current balance: €' . number_format($card->balance, 2) . '. Required amount: €' . number_format($feeValue, 2));
         }
 
         DB::transaction(function () use ($card, $feeValue, $user) {
-            // Atualiza saldo
+            // Update balance
             $card->balance -= $feeValue;
             $card->save();
 
-            // Regista operação de débito
+            // Register debit operation
             \App\Models\Operation::create([
                 'card_id' => $card->id,
                 'type' => 'debit',
@@ -75,12 +86,12 @@ class MembershipFeeController extends Controller
                 'debit_type' => 'membership_fee',
             ]);
 
-            // Desbloqueia o utilizador
+            // Unblock the user
             $user->blocked = 0;
             $user->save();
         });
 
-        return redirect()->back()->with('success', 'Taxa de adesão paga com sucesso. A sua conta foi desbloqueada.');
+        return redirect()->back()->with('success', 'Membership fee paid successfully. Your account has been unblocked.');
     }
 
 

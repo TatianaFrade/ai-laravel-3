@@ -32,8 +32,15 @@
           :order-stock="$orderStock"
         />
 
-        @can('viewTable', App\Models\Product::class)
-         <x-products.table 
+        @if (request('view') === 'public')
+          {{-- Always show card layout for view=public, regardless of user type --}}
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            @foreach ($allProducts as $product)
+              @include('components.products.card', ['product' => $product])
+            @endforeach
+          </div>
+        @elseif (auth()->check() && auth()->user()->can('viewTable', App\Models\Product::class))
+          <x-products.table 
             :products="$allProducts" 
             :showView="true"
             :showEdit="in_array($userType, ['board', 'employee'])"
@@ -41,13 +48,13 @@
             :showAddToCart="false"
             :showRemoveFromCart="false"
             :isCart="false"
+            :userType="$userType"
           />
-
         @else
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-           @foreach ($allProducts as $product)
-            @include('components.products.card', ['product' => $product])
-          @endforeach
+            @foreach ($allProducts as $product)
+              @include('components.products.card', ['product' => $product])
+            @endforeach
 
           </div>
         @endcan
