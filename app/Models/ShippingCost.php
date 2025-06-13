@@ -22,4 +22,18 @@ class ShippingCost extends Model
         'shipping_cost',
     ];
 
+    /**
+     * Find the appropriate shipping cost for a given order total
+     *
+     * @param float $orderTotal
+     * @return float
+     */
+    public static function getShippingCostForTotal(float $orderTotal): float
+    {
+        $shippingCost = self::where('min_value_threshold', '<=', $orderTotal)
+            ->where('max_value_threshold', '>=', $orderTotal)
+            ->value('shipping_cost');
+            
+        return $shippingCost ?? 0.0;
+    }
 }

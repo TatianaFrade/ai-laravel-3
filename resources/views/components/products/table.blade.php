@@ -1,10 +1,6 @@
 <div {{ $attributes }}>
     <table class="table-auto border-collapse">
-        @php
-            use Illuminate\Support\Facades\Auth;
- 
-            $userType = Auth::user()->type ?? 'member';
-        @endphp
+        {{-- User type should be passed as a prop --}}
  
         <thead>
             <tr class="border-b-2 border-b-gray-400 dark:border-b-gray-500 bg-gray-100 dark:bg-gray-800">
