@@ -67,9 +67,15 @@ class MembershipFeeController extends Controller
         }
 
         if ($card->balance < $feeValue) {
+
+            $url = route('card.show');
             return redirect()->back()
                 ->with('alert-type', 'danger')
-                ->with('alert-msg', 'Insufficient balance in card to pay the membership fee. Current balance: €' . number_format($card->balance, 2) . '. Required amount: €' . number_format($feeValue, 2));
+                ->with('alert-msg', 'Insufficient balance in card to pay the membership fee. 
+                                                Current balance: €' . number_format($card->balance, 2) . 
+                                                '. Required amount: €' . number_format($feeValue, 2) . '.
+                                                Please <a href="' . $url . '" style=" text-decoration: underline; font-weight: 
+                                                bold;">top up your card</a> before proceeding.');
         }
 
         DB::transaction(function () use ($card, $feeValue, $user) {
