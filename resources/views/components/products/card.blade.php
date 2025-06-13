@@ -7,9 +7,9 @@
     @endif
  
     {{-- Imagem do produto --}}
-    <div class="w-full h-48 mb-3">
+    <a href="{{ route('products.show', ['product' => $product->id]) }}" class="block w-full h-48 mb-3">
         <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover rounded" />
-    </div>
+    </a>
  
     {{-- Nome e categoria --}}
     <div class="text-sm font-semibold mb-1">{{ $product->name }}</div>
