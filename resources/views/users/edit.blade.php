@@ -7,16 +7,6 @@
                     @csrf
                     @method('PUT')
 
-                    @if ($errors->any())
-                        <div class="mb-4 p-4 bg-red-900 text-red-300 rounded border border-red-700 shadow-md">
-                            <ul class="list-disc list-inside space-y-1">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
                     <div class="mt-6 space-y-4">
                         @include('users.partials.fields', [
                             'mode' => 'edit',

@@ -70,11 +70,6 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckIfUserBlocked::
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 
-    Route::get('/card', [CardController::class, 'show'])->name('card.show');
-    Route::get('/card/create', [CardController::class, 'create'])->name('card.create');
-    Route::post('/card/create', [CardController::class, 'store'])->name('card.store');
-    Route::post('/card/update', [CardController::class, 'update'])->name('balance.update');
-
     //Route::post('/orders', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::get('/operations', [OperationController::class, 'index'])->name('operations.index');
 
@@ -152,8 +147,9 @@ Route::middleware(['auth', \App\Http\Middleware\CheckIfUserBlocked::class])->gro
 
     
     Route::get('card', [CardController::class, 'show'])->name('card.show');
-
-
+    Route::get('/card/create', [CardController::class, 'create'])->name('card.create');
+    Route::post('/card/create', [CardController::class, 'store'])->name('card.store');
+    Route::post('/card/update', [CardController::class, 'update'])->name('balance.update');
     
 
 

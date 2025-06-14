@@ -35,9 +35,9 @@
  
                                         <td class="px-3 py-2">{{ $order->status }}</td>
                                         <td class="px-3 py-2">{{ $order->date }}</td>
-                                        <td class="px-3 py-2">{{ $order->total_items }}</td>
-                                        <td class="px-3 py-2">{{ $order->shipping_cost }}</td>
-                                        <td class="px-3 py-2">{{ $order->total }}</td>
+                                        <td class="px-3 py-2">{{ number_format($order->total_items, 2) }}</td>
+                                        <td class="px-3 py-2">{{ number_format($order->shipping_cost, 2) }}</td>
+                                        <td class="px-3 py-2">{{ number_format($order->total, 2) }}</td>
  
                                         <td class="px-3 py-2 text-center">
                                             <div class="flex justify-center items-center gap-2">

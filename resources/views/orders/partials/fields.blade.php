@@ -103,10 +103,12 @@
     name="total_items" 
     label="Total Items" 
     value="{{ old('total_items', $order->total_items ?? '') }}" 
-    :disabled="$readonly" 
+    :disabled="$readonly || ($order->status !== 'pending' && !$isCreate)" 
+    type="number" 
+    step="0.01" 
     :placeholder="__('Required')" 
 />
-@if ($needsHiddenFields)
+@if ($needsHiddenFields || ($order->status !== 'pending' && !$isCreate))
     <input type="hidden" name="total_items" value="{{ old('total_items', $order->total_items ?? '') }}">
 @endif
 
@@ -120,9 +122,15 @@
 <flux:input 
     name="shipping_cost" 
     label="Shipping Cost" 
-    value="{{ number_format($order->shipping_cost ?? 0, 2) }}" 
-    readonly 
+    value="{{ old('shipping_cost', $order->shipping_cost ?? 0) }}" 
+    :disabled="$readonly || ($order->status !== 'pending' && !$isCreate)"
+    type="number" 
+    step="0.01" 
+    :placeholder="__('Required')" 
 />
+@if ($needsHiddenFields || ($order->status !== 'pending' && !$isCreate))
+    <input type="hidden" name="shipping_cost" value="{{ old('shipping_cost', $order->shipping_cost ?? 0) }}">
+@endif
 
 <flux:input 
     name="total" 

@@ -10,6 +10,7 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\UserFormRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Traits\PhotoFileStorage;
 
 
@@ -253,6 +254,13 @@ class UserController extends Controller
         } catch (\Exception $error) {
             $message = $error->getMessage();
 
+            // Log the exception
+            Log::error('Error deleting user: ' . $message, [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'exception' => $error
+            ]);
+
             if (str_contains($message, 'Integrity constraint violation: 1451')) {
                 $alertMsg = "Cannot delete the user <strong>{$user->name}</strong> because they are associated with one or more supply orders.";
             } else {
@@ -292,16 +300,62 @@ class UserController extends Controller
         }
 
         try {
-            $this->deletePhoto($user, 'photo', 'users');
+            // Use database transaction to ensure all operations are atomic
+            \DB::beginTransaction();
+            
+            // 1. Delete StockAdjustments related to this user
+            \DB::table('stock_adjustments')
+                ->where('registered_by_user_id', $user->id)
+                ->delete();
+            
+            // 2. Delete SupplyOrders related to this user
+            \DB::table('supply_orders')
+                ->where('registered_by_user_id', $user->id)
+                ->delete();
+            
+            // 3. Delete Operations related to this user through the card relation
+            \DB::table('operations')
+                ->where('card_id', $user->id)
+                ->delete();
+            
+            // 4. Delete the user's card (if exists)
+            \DB::table('cards')
+                ->where('id', $user->id)
+                ->delete();
+            
+            // 5. Delete any orders related to this user
+            \DB::table('orders')
+                ->where('member_id', $user->id)
+                ->delete();
+                
+            // 6. Finally, delete the photo if it exists
+            if ($user->photo) {
+                // Use deletePhotoFile which takes a string path instead of a model
+                $this->deletePhotoFile($user->photo, 'users');
+            }
+            
+            // 7. Permanently delete the user
             $user->forceDelete();
-
+            
+            \DB::commit();
+            
             return redirect()->route('users.index')
                 ->with('alert-type', 'danger')
                 ->with('alert-msg', "User <strong>{$user->name}</strong> was permanently deleted from the system.");
         } catch (\Exception $error) {
+            \DB::rollBack();
+            
+            // Log the exception
+            Log::error('Error permanently deleting user', [
+                'user_id' => $id,
+                'user_name' => $user->name,
+                'error_message' => $error->getMessage(),
+                'error_trace' => $error->getTraceAsString()
+            ]);
+            
             return redirect()->back()
                 ->with('alert-type', 'danger')
-                ->with('alert-msg', "It was not possible to permanently delete the user <strong>{$user->name}</strong> due to an unexpected error.");
+                ->with('alert-msg', "It was not possible to permanently delete the user <strong>{$user->name}</strong> due to an unexpected error: {$error->getMessage()}");
         }
     }
 

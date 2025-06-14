@@ -7,6 +7,9 @@ class ItemOrder extends Model
 {
     protected $table = 'items_orders';
     
+    
+    protected $with = ['product'];
+    
     protected $fillable = [
         'order_id', 
         'product_id', 

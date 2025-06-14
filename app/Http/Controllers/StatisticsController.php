@@ -23,7 +23,7 @@ class StatisticsController extends Controller
         if ($user->type === 'member') {
             $data = [
                 'total_orders' => Order::where('member_id', $user->id)->count(),
-                'last_order' => Order::where('member_id', $user->id)->latest('date')->first(),
+                'last_order' => Order::where('member_id', $user->id)->with('items.product')->latest('date')->first(),
                 'total_spent' => Order::where('member_id', $user->id)->sum('total')
             ];
             return view('statistics.member_basic', compact('data'));

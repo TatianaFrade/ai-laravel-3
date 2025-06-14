@@ -7,7 +7,9 @@ use App\Models\User;
  
 class Order extends Model
 {
- 
+   
+    protected $with = ['user'];
+    
     protected $fillable = [
         'member_id',
         'status',
@@ -79,18 +81,32 @@ class Order extends Model
  
     public function calculateTotal()
     {
+        // If we have total_items set directly, use that instead of calculating from items
+        if (isset($this->attributes['total_items']) && is_numeric($this->attributes['total_items'])) {
+            // Use the total_items value and add shipping cost
+            $totalItems = (float)$this->attributes['total_items'];
+            $shippingCost = (float)($this->attributes['shipping_cost'] ?? 0);
+            
+            // Set the total
+            $this->attributes['total'] = round($totalItems + $shippingCost, 2);
+            
+            return $this->attributes['total'];
+        }
+        
+        // Otherwise try to calculate from items if they're loaded
         if ($this->relationLoaded('items')) {
             $totalProducts = $this->items->sum(function ($item) {
                 return $item->subtotal;
             });
-        } else {
-            return $this->total;
+            
+            // Add shipping cost and round to 2 decimal places
+            $this->attributes['total'] = round($totalProducts + ($this->attributes['shipping_cost'] ?? 0), 2);
+            
+            return $this->attributes['total'];
         }
- 
-        // Add shipping cost and round to 2 decimal places
-        $this->total = round($totalProducts + ($this->shipping_cost ?? 0), 2);
         
-        return $this->total;
+        // If neither direct total_items nor items relation is available, keep current total
+        return $this->attributes['total'] ?? 0;
     }
  
     public function getTotalProductsAttribute()

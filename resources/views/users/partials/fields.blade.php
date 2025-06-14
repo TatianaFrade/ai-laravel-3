@@ -6,7 +6,7 @@
     }
     
     // Set readonly flag based on mode
-    $readonly = $mode ?? 'edit' === 'show';
+    $readonly = ($mode ?? 'edit') === 'show';
 @endphp
 
 <div class="w-full sm:w-96">

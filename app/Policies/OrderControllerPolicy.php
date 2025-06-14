@@ -31,7 +31,7 @@ class OrderControllerPolicy
      */
     public function create(User $user): bool
     {
-        return $user->type === 'board';
+        return in_array($user->type, ['board', 'employee']);
     }
 
     /**

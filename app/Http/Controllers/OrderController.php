@@ -36,6 +36,7 @@ class OrderController extends Controller
 
        if ($user->type === 'employee') {
             $orders = Order::query()
+                ->with('user')  // Eager load user relationship
                 ->when($onlyOwnOrders, fn($query) => $query->where('member_id', $user->id))
                 ->when(!$onlyOwnOrders, fn($query) => $query->where('status', 'pending'))
                 ->orderByDesc('created_at')
@@ -44,14 +45,18 @@ class OrderController extends Controller
 
         } elseif ($user->type === 'board') {
             if ($onlyOwnOrders) {
-                $orders = Order::where('member_id', $user->id)
+                $orders = Order::with('user')  // Eager load user relationship
+                            ->where('member_id', $user->id)
                             ->orderByDesc('created_at')
                             ->paginate(20);
             } else {
-                $orders = Order::orderByDesc('created_at')->paginate(20);
+                $orders = Order::with('user')  // Eager load user relationship
+                            ->orderByDesc('created_at')
+                            ->paginate(20);
             }
         } elseif ($user->type === 'member') {
-            $orders = Order::where('member_id', $user->id)
+            $orders = Order::with('user')  // Eager load user relationship
+                        ->where('member_id', $user->id)
                         ->orderByDesc('created_at')
                         ->paginate(20);
         } else {
@@ -96,60 +101,87 @@ class OrderController extends Controller
             'cancelReason' => $cancelReason,
             'cancelReasonOther' => $cancelReasonOther,
         ]);
-    // }
+    }
 
 
-    // public function store(OrderFormRequest $request)
-    // {
-    //     // Pega os dados validados
-    //     $validated = $request->validated();
+    public function store(OrderFormRequest $request)
+    {
+        // Get validated data
+        $validated = $request->validated();
 
-    //     // Garante que a data seja preenchida com a atual se não vier do formulário
-    //     $validated['date'] = $validated['date'] ?? now();
+        // Ensure date is filled with current date if not provided
+        $validated['date'] = $validated['date'] ?? now();
 
-    //     // Define o ID do utilizador autenticado
-    //     $validated['user_id'] = auth()->id();
+        // Set the authenticated user's ID
+        $validated['member_id'] = $validated['member_id'] ?? auth()->id();
 
-    //     // 🧾 Obter utilizador autenticado
-    //     $user = User::find($validated['user_id']);
+        // Get the authenticated user
+        $user = User::find($validated['member_id']);
 
-    //     if (!$user) {
-    //         return back()->withErrors(['user_id' => 'Utilizador não encontrado.']);
-    //     }
+        if (!$user) {
+            return back()->withErrors(['member_id' => 'User not found.']);
+        }
 
-    //     // Busca o shipping_cost conforme o total_items nas definições
-    //     $totalItems = $validated['total_items'] ?? 0;
+        // Get total_items from form or default to 0
+        $totalItems = isset($validated['total_items']) ? (float)$validated['total_items'] : 0;
+        
+        // If shipping_cost was provided in the form, use it directly
+        if (isset($validated['shipping_cost'])) {
+            $shippingCost = (float)$validated['shipping_cost'];
+        } else {
+            // Otherwise calculate based on shipping cost rules
+            $shippingCostRecord = ShippingCost::where('min_value_threshold', '<=', $totalItems)
+                ->where('max_value_threshold', '>=', $totalItems)
+                ->first();
+            $shippingCost = $shippingCostRecord ? (float)$shippingCostRecord->shipping_cost : 0;
+        }
 
-    //     $shippingCost = ShippingCost::query()
-    //         ->where('min_value_threshold', '<=', $totalItems)
-    //         ->where('max_value_threshold', '>', $totalItems)
-    //         ->value('shipping_cost') ?? 0;
+        // Calculate the total
+        $validated['shipping_cost'] = $shippingCost;
+        $validated['total_items'] = $totalItems;
+        $validated['total'] = $totalItems + $shippingCost;
 
-    //     // Calcula o total
-    //     $validated['shipping_cost'] = $shippingCost;
-    //     $validated['total'] = $totalItems + $shippingCost;
+        \Log::info("Creating new order with totals: items={$totalItems}, shipping={$shippingCost}, total={$validated['total']}");
 
-    //     // Define o status como 'pending'
-    //     $validated['status'] = 'pending';
+        // Set the status as 'pending'
+        $validated['status'] = 'pending';
 
-      
-    //     $card = Card::find($user->id);
+        // Find the user's card
+        $card = Card::find($user->id);
 
-    //     if (!$card) {
-    //         return back()->withErrors(['card' => 'Cartão não encontrado para o utilizador.']);
-    //     }
+        if (!$card) {
+            return back()->withErrors(['card' => 'Card not found for the user.']);
+        }
     
-    //     if ($card->balance < $validated['total']) {
-    //         return back()->withErrors(['card' => 'Saldo insuficiente no cartão.']);
-    //     }
+        if ($card->balance < $validated['total']) {
+            return back()->withErrors(['card' => 'Insufficient balance on the card.']);
+        }
 
-    //     $card->balance -= $validated['total'];
-    //     $card->save();
+        // Start transaction to ensure atomicity
+        \DB::beginTransaction();
+        try {
+            // Create order model
+            $order = new Order($validated);
+            
+            // Ensure total is calculated using our model method
+            $calculatedTotal = $order->calculateTotal();
+            \Log::info("New order: Calculated total = {$calculatedTotal}");
+            
+            // Save the order
+            $order->save();
+            
+            // Deduct the total from the card balance
+            $card->balance -= $order->total;
+            $card->save();
+            
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error("Error creating order: " . $e->getMessage());
+            return back()->withErrors(['error' => 'Error creating order: ' . $e->getMessage()]);
+        }
 
-    //     // Cria a encomenda com os dados completos
-    //     Order::create($validated);
-
-    //     return redirect()->route('orders.index')->with('success', 'Order created successfully.');
+        return redirect()->route('orders.index')->with('success', 'Order created successfully.');
     }
 
 
@@ -162,6 +194,9 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $user = Auth::user();
+        
+        // Eager load the user relationship
+        $order->load('user', 'items.product');
         
         // Prepare field configurations for show mode
         $mode = 'show';
@@ -193,6 +228,9 @@ class OrderController extends Controller
     public function edit(Order $order)
     {
         $user = Auth::user(); // get authenticated user
+        
+        // Eager load the user relationship and items with their products
+        $order->load('user', 'items.product');
         
         // Prepare field configurations
         $mode = 'edit';
@@ -321,19 +359,57 @@ class OrderController extends Controller
             }
         }
 
-        $totalItems = $data['total_items'] ?? $order->total_items ?? 0;
+        // Handle the recalculation of totals if order is editable (pending status)
+        if ($currentStatus === 'pending') {
+            // Get the total_items from the form if provided, otherwise use existing
+            $totalItems = isset($data['total_items']) ? (float)$data['total_items'] : (float)($order->total_items ?? 0);
+            
+            // If shipping_cost was provided in the form, use it directly
+            if (isset($data['shipping_cost'])) {
+                $shippingCost = (float)$data['shipping_cost'];
+            } else {
+                // Otherwise calculate from the shipping cost rules
+                $shippingCostRecord = ShippingCost::where('min_value_threshold', '<=', $totalItems)
+                    ->where('max_value_threshold', '>=', $totalItems)
+                    ->first();
+                $shippingCost = $shippingCostRecord ? (float)$shippingCostRecord->shipping_cost : 0;
+            }
 
-        $shippingCostRecord = ShippingCost::where('min_value_threshold', '<=', $totalItems)
-            ->where('max_value_threshold', '>=', $totalItems)
-            ->first();
+            // Update the data array with the calculated values
+            $data['shipping_cost'] = $shippingCost;
+            $data['total_items'] = $totalItems;
+            
+            // Calculate total (total_items + shipping_cost)
+            // We'll handle actual total in a database transaction to make sure it's properly updated
+            $data['total'] = $totalItems + $shippingCost;
 
-        $shippingCost = $shippingCostRecord ? $shippingCostRecord->shipping_cost : 0;
+            \Log::info("Updating order #{$order->id} with new totals: items={$totalItems}, shipping={$shippingCost}, total={$data['total']}");
+        } else {
+            // For non-editable orders (not in pending status), use existing values
+            $data['total_items'] = $order->total_items;
+            $data['shipping_cost'] = $order->shipping_cost;
+            $data['total'] = $order->total;
+        }
 
-        $data['shipping_cost'] = $shippingCost;
-        $data['total'] = $totalItems + $shippingCost;
-
-        // Atualizar a encomenda
-        $order->update($data);
+        // Use DB transaction to ensure atomicity
+        \DB::beginTransaction();
+        try {
+            // Set the values directly on the model for proper calculation
+            $order->fill($data);
+            
+            // Force calculation of totals
+            if ($currentStatus === 'pending') {
+                $calculatedTotal = $order->calculateTotal();
+                \Log::info("Order #{$order->id}: Calculated total = {$calculatedTotal}");
+            }
+            
+            $order->save();
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error("Error updating order #{$order->id}: " . $e->getMessage());
+            return back()->withErrors(['error' => 'Error updating order: ' . $e->getMessage()]);
+        }
 
         if ($statusChangedToCompleted) {
             $order->load(['user', 'items.product']);
