@@ -17,7 +17,7 @@ class UserSpendingExport implements \Maatwebsite\Excel\Concerns\FromCollection, 
     {
         return $this->data->map(function ($row) {
             return [
-                'Month' => $row->month,
+                'Date' => $row->data,
                 'Total Spent (€)' => $row->total,
             ];
         });
@@ -25,6 +25,6 @@ class UserSpendingExport implements \Maatwebsite\Excel\Concerns\FromCollection, 
 
     public function headings(): array
     {
-        return ['Month', 'Total Spent (€)'];
+        return ['Date', 'Total Spent (€)'];
     }
 }

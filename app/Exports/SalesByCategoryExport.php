@@ -17,7 +17,7 @@ class SalesByCategoryExport implements \Maatwebsite\Excel\Concerns\FromCollectio
     {
         return $this->data->map(function ($row) {
             return [
-                'Month'    => $row->month,
+                'Date'    => $row->data,
                 'Category' => $row->category,
                 'Total'    => $row->totalS,
             ];
@@ -26,6 +26,6 @@ class SalesByCategoryExport implements \Maatwebsite\Excel\Concerns\FromCollectio
 
     public function headings(): array
     {
-        return ['Month', 'Category', 'Total (€)'];
+        return ['Date', 'Category', 'Total (€)'];
     }
 }

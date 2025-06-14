@@ -77,31 +77,52 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const rawDataFlat = {!! json_encode($data['sales_by_category']) !!};
+        const rawDataShipping = {!! json_encode($data['shipping']) !!};
 
         // Agrupa dados por categoria
         const rawData = {};
+        rawData['Total'] = [];
         rawDataFlat.forEach(item => {
             if (!rawData[item.category]) rawData[item.category] = [];
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             rawData[item.category].push({
-                month: monthNames[item.month - 1] || item.month,
+                year: item.year,
+                month: item.month,
                 totalS: parseFloat(item.totalS)
             });
+
+            // Soma para o total dependendo do ano e mês, sumando o custo do shipping
+            const existing = rawData['Total'].find(objeto => objeto.year === item.year && objeto.month === item.month);
+            const index = rawDataShipping.findIndex(objeto => objeto.year === item.year && objeto.month === item.month);
+            let shipping = 0;
+            if (index !== -1) {
+                shipping = parseFloat(rawDataShipping[index].totalS);
+                rawDataShipping.splice(index, 1); // Remove depois de usar, para nao duplicar
+            }
+            if (existing) {
+                existing.totalS += parseFloat(item.totalS) + shipping;
+            } else {
+                rawData['Total'].push({
+                    year: item.year,
+                    month: item.month,
+                    totalS: parseFloat(item.totalS) + shipping
+                });
+            }
         });
 
-        // Função que calcula o total por mês somando todas as categorias
-        function getTotalByMonth() {
-            const totalsByMonth = {};
-            // percorre cada categoria e seus dados
-            Object.values(rawData).forEach(categoryData => {
-                categoryData.forEach(({month, totalS}) => {
-                    totalsByMonth[month] = (totalsByMonth[month] || 0) + totalS;
-                });
+        // Ordena por ano e mês dentro de cada categoria, e cria o label "Mes Ano"
+        for (const category in rawData) {
+            rawData[category].sort((a, b) => {
+                if (a.year === b.year) return a.month - b.month;
+                return a.year - b.year;
             });
-            // transforma em array ordenada
-            const months = Object.keys(totalsByMonth);
-            const totals = months.map(m => totalsByMonth[m]);
-            return {months, totals};
+
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            rawData[category] = rawData[category].map(entry => {
+                return {
+                    month: `${monthNames[entry.month - 1]} ${entry.year}`,
+                    totalS: entry.totalS
+                };
+            });
         }
 
         const ctx = document.getElementById('categoryChart').getContext('2d');
@@ -110,15 +131,9 @@
         function updateCategoryChart(category) {
             let months = [], totals = [];
 
-            if (category === 'Total') {
-                const totalData = getTotalByMonth();
-                months = totalData.months;
-                totals = totalData.totals;
-            } else {
-                const dataPoints = rawData[category] || [];
-                months = dataPoints.map(entry => entry.month);
-                totals = dataPoints.map(entry => entry.totalS);
-            }
+            const dataPoints = rawData[category] || [];
+            months = dataPoints.map(entry => entry.month);
+            totals = dataPoints.map(entry => entry.totalS);
 
             if (totals.length === 0) return;
 
@@ -146,25 +161,22 @@
                 },
                 options: {
                     scales: {
-                        y: { beginAtZero: true }
+                        y: { beginAtZero: true },
+                        x: {
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#ccc' : '#333'
+                            }
+                        }
                     }
                 }
             });
         }
 
-        // Cria botões dinamicamente, adicionando o botão "Total" no início
+        // Cria botões dinamicamente, incluindo botão Total
         function createCategoryButtons() {
             const container = document.getElementById('categoryButtons');
             container.innerHTML = '';
 
-            // Botão Total
-            const totalBtn = document.createElement('button');
-            totalBtn.textContent = "Total";
-            totalBtn.className = "px-4 py-2 bg-gray-200 hover:bg-blue-500 hover:text-white rounded dark:bg-gray-700 dark:hover:bg-blue-500 dark:text-white";
-            totalBtn.addEventListener('click', () => updateCategoryChart('Total'));
-            container.appendChild(totalBtn);
-
-            // Botões por categoria
             Object.keys(rawData).forEach(category => {
                 const btn = document.createElement('button');
                 btn.textContent = category.charAt(0).toUpperCase() + category.slice(1);
@@ -176,7 +188,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             createCategoryButtons();
-            // Exibe o gráfico com "Total" inicialmente
             updateCategoryChart('Total');
         });
     </script>

@@ -22,9 +22,9 @@ class StatisticsController extends Controller
 
         if ($user->type === 'member') {
             $data = [
-                'total_orders' => Order::where('member_id', $user->id)->count(),
-                'last_order' => Order::where('member_id', $user->id)->latest('date')->first(),
-                'total_spent' => Order::where('member_id', $user->id)->sum('total')
+                'total_orders' => Order::where('member_id', $user->id)->where('status', 'completed')->count(),
+                'last_order' => Order::where('member_id', $user->id)->where('status', 'completed')->latest('date')->first(),
+                'total_spent' => Order::where('member_id', $user->id)->where('status', 'completed')->sum('total')
             ];
             return view('statistics.member_basic', compact('data'));
         } elseif ($user->type === 'board' || $user->type === 'employee')  {
@@ -48,14 +48,19 @@ class StatisticsController extends Controller
         $user = auth()->user();
 
         if ($user->type === 'member') {
-            $ordersData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
+            $ordersData = Order::selectRaw('YEAR(orders.created_at) as year, MONTH(orders.created_at) as month, categories.name as category, SUM(items_orders.subtotal) as totalS')
                 ->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
                 ->join('products', 'items_orders.product_id', '=', 'products.id')
                 ->join('categories', 'products.category_id', '=', 'categories.id')
-                ->where('orders.member_id', $user->id)         // filtra pelo membro logado
+                ->where('orders.member_id', $user->id)
                 ->where('orders.status', 'completed')
-                ->groupBy('month', 'categories.name')
-                ->orderBy('month')
+                ->groupBy('year', 'month', 'categories.name')
+                ->get();
+            
+            $shipping = Order::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(shipping_cost) as totalS')
+                ->where('member_id', $user->id)
+                ->where('status', 'completed')
+                ->groupBy('year', 'month')
                 ->get();
 
             $frequentProducts = Product::select('products.name')
@@ -70,18 +75,24 @@ class StatisticsController extends Controller
                 ->get();
 
             $data = [
-                'sales_by_category' => $ordersData,
-                'frequent_products' => $frequentProducts,
+                'orders_by_category' => $ordersData,
+                'shipping' => $shipping,
+                'frequent_products' => $frequentProducts
             ];
 
             return view('statistics.member_advanced', compact('data'));
         } elseif ($user->type === 'board' || $user->type === 'employee') {
-            $salesData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
+            $salesData = Order::selectRaw('YEAR(orders.created_at) as year, MONTH(orders.created_at) as month, categories.name as category, SUM(items_orders.subtotal) as totalS')
                 ->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
                 ->join('products', 'items_orders.product_id', '=', 'products.id')
                 ->join('categories', 'products.category_id', '=', 'categories.id')
-                ->groupBy('month', 'categories.name')
-                ->orderBy('month')
+                ->where('orders.status', 'completed')
+                ->groupBy('year', 'month', 'categories.name')
+                ->get();
+            
+            $shipping = Order::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(shipping_cost) as totalS')
+                ->where('status', 'completed')
+                ->groupBy('year', 'month')
                 ->get();
 
             $topProducts = Product::select('products.name')
@@ -105,6 +116,7 @@ class StatisticsController extends Controller
 
             $data = [
                 'sales_by_category' => $salesData,
+                'shipping' => $shipping,
                 'top_products'   => $topProducts,
                 'top_spenders'   => $topSpenders
             ];
@@ -114,36 +126,36 @@ class StatisticsController extends Controller
         return abort(403, 'This action is unauthorized.');
     }
 
-	public function exportSalesByCategory()
-	{
-		$user = auth()->user();
-		if ($user != null && $user->type === 'board') {
-			$salesData = Order::selectRaw('MONTH(orders.created_at) as month, categories.name as category, SUM(total) as totalS')
-				->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
-				->join('products', 'items_orders.product_id', '=', 'products.id')
-				->join('categories', 'products.category_id', '=', 'categories.id')
-				->groupBy('month', 'categories.name')
-				->orderBy('month')
-				->get();
-
-			return Excel::download(new SalesByCategoryExport($salesData), 'sales_by_category.xlsx');
-		}
-        return abort(403, 'This action is unauthorized.');
-	}
-	
 	public function exportUserSpending()
 	{
 		$user = auth()->user();
 		if ($user != null && $user->type === 'member') {
-			$ordersByMonth = \App\Models\Order::selectRaw("DATE_FORMAT(`date`, '%Y-%m') as month")
-				->selectRaw("SUM(`total`) as total")
+			$ordersByMonth = Order::selectRaw("DATE_FORMAT(date, '%Y-%m') as data, SUM(total) as total")
 				->where('member_id', $user->id)
 				->where('status', 'completed')
-				->groupBy('month')
-				->orderBy('month')
+				->groupBy('data')
+				->orderBy('data')
 				->get();
 
 			return Excel::download(new UserSpendingExport($ordersByMonth), 'user_spending.xlsx');
+		}
+        return abort(403, 'This action is unauthorized.');
+	}
+
+    public function exportSalesByCategory()
+	{
+		$user = auth()->user();
+		if ($user != null && $user->type === 'board') {
+			$salesData = Order::selectRaw("DATE_FORMAT(date, '%Y-%m') as data, categories.name as category, SUM(items_orders.subtotal) as totalS")
+				->join('items_orders', 'orders.id', '=', 'items_orders.order_id')
+				->join('products', 'items_orders.product_id', '=', 'products.id')
+				->join('categories', 'products.category_id', '=', 'categories.id')
+                ->where('status', 'completed')
+				->groupBy('data', 'category')
+				->orderBy('data')
+				->get();
+
+			return Excel::download(new SalesByCategoryExport($salesData), 'sales_by_category.xlsx');
 		}
         return abort(403, 'This action is unauthorized.');
 	}
