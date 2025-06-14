@@ -156,7 +156,7 @@
 
                             @if($showDelete)
                                 @if($product->trashed())
-                                    <form method="POST" action="{{ route('products.restore', ['product' => $product->id]) }}" class="inline-flex">
+                                    <form method="POST" action="{{ route('products.restore', ['id' => $product->id]) }}" class="inline-flex">
                                         @csrf
                                         <button type="submit" title="Restore product" class="inline-flex">
                                             <flux:icon.arrow-path-rounded-square class="size-5 hover:text-green-600" />

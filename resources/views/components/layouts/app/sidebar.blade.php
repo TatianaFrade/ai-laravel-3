@@ -50,17 +50,22 @@
         </flux:navlist.group>
     </flux:navlist>
  
-    <flux:navlist variant="outline">
-        @can('viewAny', App\Models\MembershipFee::class)
-            <flux:navlist.group :heading="__('Managing Board')" class="grid">
+    @if(auth()->check() && in_array(auth()->user()->type, ['board', 'employee']))
+        <flux:navlist variant="outline">
+            <flux:navlist.group :heading="__('Management')" class="grid">
+                {{-- Todos os funcionários (board e employee) podem ver --}}
                 <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')" :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
-                <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('supplyorders.index')" :current="request()->routeIs('supplyorders.index')" wire:navigate>Supply Orders</flux:navlist.item>
-                <flux:navlist.item icon="academic-cap" :href="route('categories.index')" :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>Users</flux:navlist.item>
+                
+                {{-- Apenas o board pode ver --}}
+                @if(auth()->user()->type === 'board')
+                    <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
+                    <flux:navlist.item icon="academic-cap" :href="route('categories.index')" :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
+                @endif
             </flux:navlist.group>
-        @endcan
-    </flux:navlist>
+        </flux:navlist>
+    @endif
  
     {{-- Desktop User Menu --}}
     @auth
