@@ -22,7 +22,6 @@
     <div class="flex justify-start">
       <div class="my-4 p-6 w-full">
 
-        {{-- Exibir filtros para todos os usuários, mesmo não registrados --}}
         <x-products.filter-card 
           class="mb-6"
           :filterAction="request('view') === 'public' ? route('products.index', ['view' => 'public']) : route('products.index')" 
@@ -33,7 +32,7 @@
         />
 
         @if (request('view') === 'public')
-          {{-- Always show card layout for view=public, regardless of user type --}}
+ 
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @foreach ($allProducts as $product)
               @include('components.products.card', ['product' => $product])

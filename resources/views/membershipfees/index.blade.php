@@ -46,7 +46,7 @@
                       @endcan
 
 
-                    {{-- Nota: botão "Pay" está acima --}}
+                 
                   </div>
                 </td>
               </tr>

@@ -1,4 +1,4 @@
-{{-- Variables are now passed from the controller --}}
+
 
 <div class="w-full sm:w-96">
     <flux:input 

@@ -1,8 +1,5 @@
-{{-- All variables are now passed from the controller --}}
 
 
-
-{{-- Name --}}
 <div class="w-full sm:w-96">
     @if ($readonly || (!$canEditAll && !$canEditStockOnly))
         <flux:input name="name" label="Name" value="{{ old('name', $product->name ?? '') }}" readonly required placeholder="Required" />
@@ -13,7 +10,7 @@
 </div>
 
 @if($canEditAll || $readonly)
-    {{-- Category --}}
+
     <div class="w-full sm:w-96">
         @if ($forceReadonly || !$canEditAll)
             <flux:select name="category_id" label="Category" disabled>
@@ -36,7 +33,6 @@
         @endif
     </div>
 
-    {{-- Price --}}
     <div class="w-full sm:w-96">
         @if ($forceReadonly || !$canEditAll)
             <flux:input name="price" label="Price" value="{{ old('price', $product->price ?? '') }}" readonly type="number" step="0.01" placeholder="Required" />
@@ -46,7 +42,7 @@
         @endif
     </div>
 
-    {{-- Description --}}
+
     <div class="w-full sm:w-96 flex-grow">
         @if ($forceReadonly || !$canEditAll)
             <flux:textarea name="description" label="Description" readonly class="h-full" rows="10">{{ old('description', $product->description_translated ?? '') }}</flux:textarea>
@@ -57,7 +53,7 @@
     </div>
 @endif
 
-{{-- Stock --}}
+
 <div class="w-full sm:w-96">
     @if ($readonly || (!$canEditAll && !$canEditStockOnly))
         <flux:input name="stock" label="Stock Quantity" value="{{ old('stock', $product->stock ?? '') }}" readonly type="number" step="1" placeholder="Required" />
@@ -68,7 +64,7 @@
 </div>
 
 @if($canEditAll || $readonly)
-    {{-- Stock Lower Limit --}}
+ 
     <div class="w-full sm:w-96">
         @if ($forceReadonly || !$canEditAll)
             <flux:input name="stock_lower_limit" label="Stock Lower Limit" value="{{ old('stock_lower_limit', $product->stock_lower_limit ?? '') }}" readonly type="number" step="1" placeholder="Required" />
@@ -78,7 +74,7 @@
         @endif
     </div>
 
-    {{-- Stock Upper Limit --}}
+   
     <div class="w-full sm:w-96">
         @if ($forceReadonly || !$canEditAll)
             <flux:input name="stock_upper_limit" label="Stock Upper Limit" value="{{ old('stock_upper_limit', $product->stock_upper_limit ?? '') }}" readonly type="number" step="1" placeholder="Required" />
@@ -88,7 +84,7 @@
         @endif
     </div>
 
-    {{-- Optional fields --}}
+
     <div class="w-full sm:w-96">
         @if ($forceReadonly || !$canEditAll)
             <flux:input name="discount_min_qty" label="Minimum quantity for discount" value="{{ old('discount_min_qty', $product->discount_min_qty ?? '') }}" readonly type="number" step="1" min="0" placeholder="Optional" />

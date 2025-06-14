@@ -118,10 +118,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Operation::class, 'card_id', 'id'); // Ajusta conforme necessário
     }
 
-    /**
-     * Get the date of the last membership payment
-     * @return \DateTime|null
-     */
     public function lastMembershipPaymentDate(): ?\DateTime
     {
         $lastPayment = $this->operations()
@@ -145,18 +141,18 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isMembershipExpired(): bool
     {
-        // First check if membership was ever paid
+       
         if (!$this->hasPaidMembership()) {
-            // All users (including board and employee) need to pay the membership fee at least once
+          
             return true;
         }
 
-        // For board and employee users, they only need to pay once
+       
         if (in_array($this->type, ['board', 'employee'])) {
             return false;
         }
 
-        // For regular members, check if it's been more than a year since last payment
+       
         $lastPayment = $this->lastMembershipPaymentDate();
         if (!$lastPayment) {
             return true;
@@ -171,12 +167,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function showMembershipPayButton(): bool
     {
-        // Show for all users who haven't paid at all
+      
         if (!$this->hasPaidMembership()) {
             return true;
         }
         
-        // For regular members, also show if the membership is expired
+ 
         if ($this->type === 'member') {
             $lastPayment = $this->lastMembershipPaymentDate();
             if (!$lastPayment) {
@@ -190,7 +186,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return $now > $expiryDate;
         }
         
-        // For board and employee users, don't show the button once they've paid
+        
         return false;
     }
 

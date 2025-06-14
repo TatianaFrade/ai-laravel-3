@@ -18,8 +18,7 @@ class ProductController extends Controller
     
     public function __construct()
     {
-        // Only authorize for non-public routes
-        // We'll handle authorization for index and show separately to allow public access
+        
         $this->authorizeResource(Product::class, 'product', [
             'except' => ['index', 'show']
         ]);
@@ -27,9 +26,9 @@ class ProductController extends Controller
     
     public function index(Request $request): View
     {
-        // Skip policy check for public access
+       
         if (!auth()->check()) {
-            // No need to authorize for guests
+         
         } else {
             $this->authorize('viewAny', Product::class);
         }
@@ -38,12 +37,12 @@ class ProductController extends Controller
         $orderPrice = $request->get('order_price');
         $orderStock = $request->get('order_stock');
  
-        // Only show trashed products to staff members and on non-public routes
+      
         $userType = auth()->check() ? auth()->user()->type : 'member';
         $isPublicView = request('view') === 'public';
         $productQuery = Product::query()->with('category');
         
-        // Nunca mostrar produtos soft-deleted na rota pública
+
         if (in_array($userType, ['employee', 'board']) && !$isPublicView) {
             $productQuery->withTrashed();
         }
@@ -80,7 +79,7 @@ class ProductController extends Controller
         $categories = Category::all();
         $product = new Product();
         
-        // Prepare variables for the view
+      
         $mode = 'create';
         $readonly = false;
         $isCreate = true;
@@ -111,7 +110,7 @@ class ProductController extends Controller
     {
         $validated = $this->validateProduct($request);
         
-        // Validação adicional específica do produto
+     
         $errorMessage = $this->validateProductData($validated);
         if ($errorMessage !== null) {
             return back()
@@ -126,7 +125,7 @@ class ProductController extends Controller
             $this->storePhoto($request->file('photo'), $product, 'photo', 'products');
         }
         
-        // Verifica se precisa criar supply order
+    
         $this->createSupplyOrderIfNeeded($product);
  
         return redirect()->route('products.index')
@@ -140,8 +139,7 @@ class ProductController extends Controller
  
         $tr = new GoogleTranslate('en');
         $product->description_translated = $tr->translate($product->description);
-        
-        // Prepare variables for the view
+      
         $mode = 'edit';
         $readonly = false;
         $isCreate = false;
@@ -170,8 +168,7 @@ class ProductController extends Controller
     public function update(Request $request, Product $product): RedirectResponse
     {
         $this->authorize('update', $product);
-        
-        // For employees, only allow stock updates
+      
         $userType = auth()->user()->type;
         if ($userType === 'employee') {
             $validated = $request->validate([
@@ -182,14 +179,14 @@ class ProductController extends Controller
             $newStock = $validated['stock'];
             
             try {
-                // Use a transaction to ensure both operations succeed
+         
                 \DB::beginTransaction();
                 
-                // Update product stock
+           
                 $product->stock = $newStock;
                 $product->save();
                 
-                // Record in stock_adjustments table
+            
                 $product->stockAdjustments()->create([
                     'registered_by_user_id' => auth()->id(),
                     'quantity_changed' => $newStock - $oldStock
@@ -197,7 +194,7 @@ class ProductController extends Controller
                 
                 \DB::commit();
                 
-                // Verifica se precisa criar supply order 
+      
                 $this->createSupplyOrderIfNeeded($product);
                 
                 return redirect()->route('products.index')
@@ -213,10 +210,10 @@ class ProductController extends Controller
             }
         }
         
-        // Board user - full product update
+
         $validated = $this->validateProduct($request, $product->id);
         
-        // Validação adicional específica do produto
+  
         $errorMessage = $this->validateProductData($validated);
         if ($errorMessage !== null) {
             return back()
@@ -235,11 +232,11 @@ class ProductController extends Controller
         try {
             \DB::beginTransaction();
             
-            // Check if stock is being updated
+     
             $oldStock = $product->stock;
             $newStock = $validated['stock'] ?? $oldStock;
             
-            // Update product
+       
             $product->update($validated);                // If stock was changed, record it in stock_adjustments
             if ($oldStock != $newStock) {
                 $product->stockAdjustments()->create([
@@ -250,7 +247,7 @@ class ProductController extends Controller
             
             \DB::commit();
             
-            // Verifica se precisa criar supply order
+       
             $this->createSupplyOrderIfNeeded($product);
             
             return redirect()->route('products.index')
@@ -269,32 +266,32 @@ class ProductController extends Controller
     public function destroy(Product $product): RedirectResponse
     {
         try {
-            // Verifica se o produto já foi vendido (existe na tabela items_orders)
+          
             $hasSales = \DB::table('items_orders')
                 ->where('product_id', $product->id)
                 ->exists();
  
             if ($hasSales) {
-                // Se já foi vendido, faz soft delete
+             
                 $product->delete();
                 $alertType = 'success';
                 $alertMsg = "Product {$product->name} has associated sales and has been moved to trash.";
             } else {
-                // Se nunca foi vendido, tenta remover permanentemente (mesmo que tenha supply orders)
+            
                 try {
-                    // Primeiro removemos qualquer ordem de fornecimento associada
+          
                     \DB::table('supply_orders')->where('product_id', $product->id)->delete();
                     
-                    // Removemos a foto associada ao produto
+                
                     $this->deletePhoto($product, 'photo', 'products');
                     
-                    // Agora podemos excluir permanentemente
+                  
                     $product->forceDelete();
                     
                     $alertType = 'success';
                     $alertMsg = "Product {$product->name} has been permanently deleted.";
                 } catch (\Exception $e) {
-                    // Se ocorrer algum erro na exclusão permanente, fazemos soft delete como fallback
+                  
                     $product->delete();
                     $alertType = 'warning';
                     $alertMsg = "Product {$product->name} could not be permanently deleted and was moved to trash. Details: " . $e->getMessage();
@@ -312,14 +309,14 @@ class ProductController extends Controller
  
     public function showcase(): View
     {
-        // Skip policy check for public access
+       
         if (!auth()->check()) {
-            // No need to authorize for guests
+          
         } else {
             $this->authorize('viewShowCase', Product::class);
         }
         
-        // Forward to the index view with public view parameter
+
         $products = Product::with('category')->orderBy('name')->paginate(15);
         return view('products.index', [
             'products' => $products,
@@ -329,9 +326,9 @@ class ProductController extends Controller
  
     public function show(Product $product): View
     {
-        // Skip policy check for public access
+       
         if (!auth()->check()) {
-            // No need to authorize for guests
+            
         } else {
             $this->authorize('view', $product);
         }
@@ -341,7 +338,7 @@ class ProductController extends Controller
         $tr = new GoogleTranslate('en');
         $product->description_translated = $tr->translate($product->description);
         
-        // Prepare variables for the view
+   
         $mode = 'show';
         $readonly = true;
         $isCreate = false;
@@ -391,13 +388,13 @@ class ProductController extends Controller
         try {
             $product = Product::withTrashed()->findOrFail($id);
             
-            // Primeiro verificamos e removemos todas as relações com supply_orders
+     
             \DB::table('supply_orders')->where('product_id', $id)->delete();
             
-            // Removemos a foto associada ao produto
+     
             $this->deletePhoto($product, 'photo', 'products');
             
-            // Agora podemos excluir permanentemente
+    
             $product->forceDelete();
             
             return redirect()->route('products.index')
@@ -411,9 +408,6 @@ class ProductController extends Controller
         }
     }
  
-    /**
-     * This method is no longer needed as the stock update logic is in the main update method
-     */
     private function validateProduct(Request $request, ?int $productId = null): array
     {
         return $request->validate([
@@ -430,17 +424,13 @@ class ProductController extends Controller
         ]);
     }
  
-    /**
-     * Validate stock against upper limit
-     */
+
     private function validateStockAgainstLimit(int $stock, int $upperLimit): bool
     {
         return $stock <= $upperLimit;
     }
  
-    /**
-     * Validate if discount can be applied based on stock
-     */
+
     private function validateDiscountStock(int $stock, ?int $minQty, ?float $discount): bool
     {
         if (!$discount) {
@@ -450,9 +440,7 @@ class ProductController extends Controller
         return $stock >= ($minQty ?? 0);
     }
  
-    /**
-     * Validate product data before saving
-     */
+
     private function validateProductData(array $data): ?string
     {
         $stock = (int)($data['stock'] ?? 0);
@@ -460,12 +448,12 @@ class ProductController extends Controller
         $minQty = (int)($data['discount_min_qty'] ?? 0);
         $discount = (float)($data['discount'] ?? 0);
  
-        // Validate stock upper limit
+    
         if (!$this->validateStockAgainstLimit($stock, $upperLimit)) {
             return "The stock ({$stock}) cannot exceed the maximum stock limit ({$upperLimit}) for this product.";
         }
  
-        // Validate discount conditions
+ 
         if (!$this->validateDiscountStock($stock, $minQty, $discount)) {
             return "Discounts can only be applied if stock is greater than or equal to minimum quantity.";
         }
@@ -473,13 +461,11 @@ class ProductController extends Controller
         return null;
     }
  
-    /**
-     * Create a supply order if stock is below or equal to lower limit
-     */
+
     private function createSupplyOrderIfNeeded(Product $product): void
     {
         if ($product->stock <= $product->stock_lower_limit) {
-            // Check if a pending supply order already exists
+         
             $existingOrder = \App\Models\SupplyOrder::where('product_id', $product->id)
                 ->where('status', 'requested')
                 ->exists();

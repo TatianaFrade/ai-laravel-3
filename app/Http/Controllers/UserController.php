@@ -5,6 +5,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -208,12 +209,31 @@ class UserController extends Controller
     }
 
 
-    public function update(UserFormRequest $request, User $user): RedirectResponse
+    public function update(Request $request, User $user): RedirectResponse
     {
         $this->authorize('update', $user);
-
-        $data = $request->validated();
         
+        // Depuração - vamos registrar os dados do formulário
+        \Log::info('Form data submitted:', $request->all());
+        
+        // Executar a validação e verificar se falhou
+        $formRequest = new UserFormRequest();
+        $rules = $formRequest->rules();
+        $validator = \Validator::make($request->all(), $rules);
+        
+        if ($validator->fails()) {
+            \Log::info('Validation errors:', $validator->errors()->toArray());
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', 'Validation failed: ' . implode(', ', $validator->errors()->all()));
+        }
+        
+        // Se chegou aqui, a validação foi bem-sucedida
+        $data = $validator->validated();
+        
+        // Processando os dados validados
         if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
@@ -221,18 +241,15 @@ class UserController extends Controller
         }
 
         if ($request->hasFile('photo')) {
-
             $this->deletePhoto($user, 'photo', 'users');
-
-
             $filename = $this->storePhoto($request->file('photo'), $user, 'photo', 'users');
-
             $data['photo'] = $filename;
         }
 
         $user->update($data);
         
-
+        \Log::info('User updated successfully', ['user_id' => $user->id]);
+        
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
 

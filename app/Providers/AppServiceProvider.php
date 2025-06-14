@@ -39,7 +39,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Register controller-based policies
+ 
         Gate::policy(Card::class, CardControllerPolicy::class);
         Gate::policy(Category::class, CategoryControllerPolicy::class);
         Gate::policy(MembershipFee::class, MembershipFeeControllerPolicy::class);
@@ -51,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(SupplyOrder::class, SupplyOrderControllerPolicy::class);
         Gate::policy(User::class, UserControllerPolicy::class);
         
-        // 1. Essential gates for user types - core gates
+  
         Gate::define('board', function (User $user) { 
             return $user->type === 'board';
         }); 
@@ -64,15 +64,15 @@ class AppServiceProvider extends ServiceProvider
             return $user->type === 'member';
         });
         
-        // Staff gate for combined board and employee permissions
+    
         Gate::define('staff', function (User $user) {
             return in_array($user->type, ['board', 'employee']);
         });
         
-        // 2. Special case gates that can't be easily replaced by the core gates
+    
         Gate::define('edit-user', function (User $user, User $userToEdit) {
             if ($user->id === $userToEdit->id) {
-                return false; // Users can't edit themselves
+                return false;
             }
             return $user->can('board');
         });
@@ -81,7 +81,7 @@ class AppServiceProvider extends ServiceProvider
             return $user->can('board') && $user->id !== $userToDelete->id;
         });
         
-        // Keep this gate since it's used in the front-end
+   
         Gate::define('update-profile', function ($user, $targetUser = null) {
             return $user->can('board') || $user->isRegular(); 
         });

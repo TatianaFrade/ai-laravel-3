@@ -17,13 +17,7 @@
  
     @if(session('cart'))
         <flux:navlist variant="outline">
-            <!-- <flux:navlist.group :heading="__('Services')" class="grid">
-                <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                <flux:navlist.item icon="academic-cap" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>Products</flux:navlist.item>
-                <flux:navlist.item icon="academic-cap" :href="route('orders.index')" :current="request()->routeIs('orders.index')" wire:navigate>Orders</flux:navlist.item>
-                <flux:navlist.item icon="academic-cap" :href="route('card.show')" :current="request()->routeIs('card.show')" wire:navigate>Virtual Card</flux:navlist.item>
-                <flux:navlist.item icon="academic-cap" :href="route('operations.index')" :current="request()->routeIs('operations.show')" wire:navigate>Operations</flux:navlist.item>
-            </flux:navlist.group> -->
+          
             <div class="relative inline-flex items-center mr-4">
                 <div class="-top-0.5 absolute left-6 z-10">
                     <p class="flex p-3 h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs text-white">
@@ -61,7 +55,7 @@
                 <flux:navlist.item icon="academic-cap" :href="route('statistics.basic')" :current="request()->routeIs('statistics.*')" wire:navigate>Statistics</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>Users</flux:navlist.item>
                 
-                {{-- Apenas o board pode ver --}}
+              
                 @if(auth()->user()->type === 'board')
                     <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
                     <flux:navlist.item icon="academic-cap" :href="route('categories.index')" :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
@@ -71,7 +65,7 @@
     @endif
     </div>
     
-    {{-- Desktop User Menu --}}
+  
     <div class="flex-none mt-auto pt-4 border-t border-zinc-200 dark:border-zinc-700">
         @auth
             <flux:dropdown position="bottom" align="start">
@@ -122,7 +116,7 @@
  
 </flux:sidebar>
  
-<!-- Mobile User Menu -->
+
 <flux:header class="lg:hidden">
     <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
     <flux:spacer />

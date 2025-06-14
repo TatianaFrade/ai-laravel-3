@@ -34,7 +34,7 @@ class UserFormRequest extends FormRequest
             'gender' => 'required|in:F,M,O',
             'default_delivery_address' => 'nullable|string|max:255',
             'nif' => 'nullable|digits_between:8,14',
-            'default_payment_type' => 'nullable|in:visa,paypal,mb_way',
+            //'default_payment_type' => 'nullable|in:visa,paypal,mb_way',
             //'payment_details' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             
