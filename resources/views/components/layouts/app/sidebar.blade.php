@@ -38,15 +38,15 @@
             <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
         </flux:navlist.group>
     </flux:navlist>
- 
+
     <flux:navlist variant="outline">
         <flux:navlist.group :heading="__('Services')" class="grid">
-            <flux:navlist.item icon="academic-cap" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>Products</flux:navlist.item>
-            <flux:navlist.item icon="academic-cap" :href="route('orders.index')" :current="request()->routeIs('orders.index')" wire:navigate>Orders</flux:navlist.item>
-            <flux:navlist.item icon="academic-cap" :href="route('card.show')" :current="request()->routeIs('card.show')" wire:navigate>Virtual Card</flux:navlist.item>
-            <flux:navlist.item icon="academic-cap" :href="route('operations.index')" :current="request()->routeIs('operations.index')" wire:navigate>Operations</flux:navlist.item>
-            <flux:navlist.item icon="academic-cap" :href="route('favorites.index')" :current="request()->routeIs('favorites.index')" wire:navigate>Favorites</flux:navlist.item>
-            <flux:navlist.item icon="academic-cap" :href="route('statistics.basic')" :current="request()->routeIs('statistics.*')" wire:navigate>Statistics</flux:navlist.item>
+            <flux:navlist.item icon="cube" :href="route('products.index')" :current="request()->routeIs('products.index')" wire:navigate>Products</flux:navlist.item>
+            <flux:navlist.item icon="receipt-refund" :href="route('orders.index')" :current="request()->routeIs('orders.index')" wire:navigate>Orders</flux:navlist.item>
+            <flux:navlist.item icon="credit-card" :href="route('card.show')" :current="request()->routeIs('card.show')" wire:navigate>Virtual Card</flux:navlist.item>
+            <flux:navlist.item icon="arrows-right-left" :href="route('operations.index')" :current="request()->routeIs('operations.index')" wire:navigate>Operations</flux:navlist.item>
+            <flux:navlist.item icon="heart" :href="route('favorites.index')" :current="request()->routeIs('favorites.index')" wire:navigate>Favorites</flux:navlist.item>
+            <flux:navlist.item icon="chart-bar" :href="route('statistics.basic')" :current="request()->routeIs('statistics.*')" wire:navigate>Statistics</flux:navlist.item>
         </flux:navlist.group>
     </flux:navlist>
  
@@ -54,14 +54,14 @@
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Management')" class="grid">
                 {{-- Todos os funcionários (board e employee) podem ver --}}
-                <flux:navlist.item icon="academic-cap" :href="route('membershipfees.index')" :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
-                <flux:navlist.item icon="academic-cap" :href="route('supplyorders.index')" :current="request()->routeIs('supplyorders.index')" wire:navigate>Supply Orders</flux:navlist.item>
-                <flux:navlist.item icon="academic-cap" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>Users</flux:navlist.item>
-                
+                <flux:navlist.item icon="currency-euro" :href="route('membershipfees.index')" :current="request()->routeIs('membershipfees.index')" wire:navigate>Membership fees</flux:navlist.item>
+                <flux:navlist.item icon="truck" :href="route('supplyorders.index')" :current="request()->routeIs('supplyorders.index')" wire:navigate>Supply Orders</flux:navlist.item>
+                <flux:navlist.item icon="users" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>Users</flux:navlist.item>
+
                 {{-- Apenas o board pode ver --}}
                 @if(auth()->user()->type === 'board')
-                    <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
-                    <flux:navlist.item icon="academic-cap" :href="route('categories.index')" :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
+                    <flux:navlist.item icon="map-pin" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
+                    <flux:navlist.item icon="tag" :href="route('categories.index')" :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
                 @endif
             </flux:navlist.group>
         </flux:navlist>
