@@ -315,22 +315,7 @@ class OrderController extends Controller
         if ($statusChangedToCompleted) {
             // Check if the order can be completed
             if (!$order->canBeCompleted()) {
-                // Check if there are products exceeding upper limit
-                $exceededProducts = $order->getStockUpperLimitExceededProducts();
-                
-                if (!empty($exceededProducts)) {
-                    $productList = [];
-                    foreach ($exceededProducts as $item) {
-                        $productList[] = "{$item['product']->name} (current: {$item['current_stock']}, upper limit: {$item['upper_limit']})";
-                    }
-                    
-                    $errorMessage = 'Cannot mark as completed: the following products would exceed the upper stock limit: ' . 
-                                   implode(', ', $productList);
-                    
-                    return back()->withErrors(['status' => $errorMessage]);
-                } else {
-                    return back()->withErrors(['status' => 'Cannot mark as completed: insufficient stock in some products.']);
-                }
+                return back()->withErrors(['status' => 'Cannot mark as completed: insufficient stock in some products.']);
             }
         }
 

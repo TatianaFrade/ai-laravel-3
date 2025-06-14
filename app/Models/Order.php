@@ -38,12 +38,6 @@ class Order extends Model
             if ($item->product->stock < $item->quantity) {
                 return false;
             }
-            
-            // Check if this will exceed the product's upper limit
-            if ($item->product->stock_upper_limit && 
-                ($item->product->stock > $item->product->stock_upper_limit)) {
-                return false;
-            }
         }
         return true;
     }
