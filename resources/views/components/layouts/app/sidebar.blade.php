@@ -55,11 +55,26 @@
                 <flux:navlist.item icon="academic-cap" :href="route('statistics.basic')" :current="request()->routeIs('statistics.*')" wire:navigate>Statistics</flux:navlist.item>
                 <flux:navlist.item icon="academic-cap" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>Users</flux:navlist.item>
                 
-              
-                @if(auth()->user()->type === 'board')
+
+
+                {{-- aplicação de policies em rotas --}}
+                @can('viewAny', App\Models\ShippingCost::class)
                     <flux:navlist.item icon="academic-cap" :href="route('shippingcosts.index')" :current="request()->routeIs('shippingcosts.index')" wire:navigate>Shipping costs</flux:navlist.item>
+                @endcan
+                
+                @can('viewAny', App\Models\Category::class)
                     <flux:navlist.item icon="academic-cap" :href="route('categories.index')" :current="request()->routeIs('categories.index')" wire:navigate>Categories</flux:navlist.item>
-                @endif
+                @endcan
+
+              
+                
+                {{-- implentacao de restricao a pagina com gate --}}
+                {{-- @can('board')
+                    <flux:navlist.item icon="academic-cap" :href="route('exercises.index')" :current="request()->routeIs('exercises.index')" wire:navigate>Exercises</flux:navlist.item>
+                @endcan
+             --}}
+
+
             </flux:navlist.group>
         </flux:navlist>
     @endif

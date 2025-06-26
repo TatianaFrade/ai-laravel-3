@@ -11,6 +11,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 use App\Traits\PhotoFileStorage;
+
+use App\Http\Controllers\DB;
  
 class ProductController extends Controller
 {
@@ -32,29 +34,88 @@ class ProductController extends Controller
         } else {
             $this->authorize('viewAny', Product::class);
         }
-    
+
+        $cart = session('cart', collect());
+
+        $latestProducts = Product::latest()
+            ->take(value: 5)
+            ->get();
+
+            
+
+      
         $filterByName = $request->get('name');
+        $orderName = $request->get('order_name');
         $orderPrice = $request->get('order_price');
         $orderStock = $request->get('order_stock');
- 
-      
+        $orderDiscount = $request->get('order_discount');
+
+
+        //filtrar pela categoria
+        $filterByCategoria = $request->get('category_id');
+        $categories = Category::all();
+
+
+        // 1. Obter os produtos mais vendidos (IDs e quantidades)
+        $rawMostSold = DB::table('items_orders')
+             ->select('product_id', DB::raw('SUM(quantity) as total_sold'))
+             ->groupBy('product_id')
+             ->orderByDesc('total_sold')
+             ->limit(5)
+             ->get();
+
+         // 2. Prevenir caso $rawMostSold esteja vazio
+         $productIds = $rawMostSold->pluck('product_id');
+
+         $mostSoldProducts = Product::whereIn('id', $productIds)
+             ->get()
+             ->map(function ($product) use ($rawMostSold) {
+                 $match = $rawMostSold->firstWhere('product_id', $product->id);
+                 $product->total_sold = $match ? $match->total_sold : 0;
+                 return $product;
+             });
+
+
+
+
+
+
         $userType = auth()->check() ? auth()->user()->type : 'member';
         $isPublicView = request('view') === 'public';
         $productQuery = Product::query()->with('category');
         
 
+
+
         if (in_array($userType, ['employee', 'board']) && !$isPublicView) {
             $productQuery->withTrashed();
         }
  
-        if ($filterByName) {
-            $productQuery->where(function ($query) use ($filterByName) {
-                $query->where('name', 'LIKE', "%$filterByName%")
-                    ->orWhereHas('category', function ($query) use ($filterByName) {
-                        $query->where('name', 'LIKE', "%$filterByName%");
-                    });
-            });
+         if ($filterByName) {
+             $productQuery->where(function ($query) use ($filterByName) {
+                 $query->where('name', 'LIKE', "%$filterByName%")
+                     ->orWhereHas('category', function ($query) use ($filterByName) {
+                         $query->where('name', 'LIKE', "%$filterByName%");
+                     });
+             });
         }
+
+
+        if ($filterByCategoria) {
+              $productQuery->where('category_id', $filterByCategoria);
+        }
+
+        
+
+          // Filtro por produtos com OU sem desconto
+        if ($orderDiscount === 'apenas_com_desconto') {
+             $productQuery->where('discount', '>', 0);
+         } elseif ($orderDiscount === 'sem_desconto') {
+             $productQuery->where(function ($query) {
+                 $query->whereNull('discount')->orWhere('discount', '<=', 0);
+         });
+         }
+
  
         if (in_array($orderPrice, ['asc', 'desc'])) {
             $productQuery->orderByRaw("CASE WHEN discount > 0 THEN price - discount ELSE price END {$orderPrice}");
@@ -63,7 +124,13 @@ class ProductController extends Controller
         if (in_array($orderStock, ['asc', 'desc'])) {
             $productQuery->orderBy('stock', $orderStock);
         }
- 
+
+         if (in_array($orderName, ['asc', 'desc'])) {
+             $productQuery->orderBy('name', $orderName);
+        }
+
+
+    
         $allProducts = $productQuery->paginate(20)->withQueryString();
  
         $tr = new GoogleTranslate('en');
@@ -71,7 +138,35 @@ class ProductController extends Controller
             $product->description_translated = $tr->translate($product->description);
         }
  
-        return view('products.index', compact('allProducts', 'orderPrice', 'orderStock', 'filterByName', 'userType'));
+        return view('products.index', compact(
+            'allProducts',
+             'orderPrice',
+            'orderStock',
+            'filterByName', 
+            'userType',
+            'filterByCategoria',
+            'categories',
+            'latestProducts',
+            'cart',
+            'orderDiscount',
+            'orderName',
+
+            ));
+
+            // orderName
+    }
+
+
+    //criar uma nova página para mostrar apenas os produtos com baixo stock
+    public function stockBelowLimit()
+    {
+
+        //tava a dar erro porque na pagina tenho links no final.
+        //e aqui tinha ->get() , pelo que sao incompativeis logo dava erro do =. Tem de ser links com o paginate
+
+        $products = Product::whereColumn('stock', '<', 'stock_lower_limit')->paginate(20);
+
+        return view('products.stock-level', compact('products'));
     }
  
     public function create(): View

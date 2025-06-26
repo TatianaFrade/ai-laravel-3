@@ -50,9 +50,26 @@
  
                     {{-- Name --}}
                     <td class="px-2 py-2 text-left">
-                        <span class="{{ $product->trashed() ? 'text-red-600 font-semibold' : (request('view') !== 'public' && $userType !== 'board' && $product->has_active_discount ? ($product->stock <= $product->stock_lower_limit ? 'text-amber-700 font-semibold' : 'text-green-700 font-semibold') : '') }}">
+                        <span  title="{{ $product->description }}" class="{{ $product->trashed() ? 'text-red-600 font-semibold' : (request('view') !== 'public' && $userType !== 'board' && $product->has_active_discount ? ($product->stock <= $product->stock_lower_limit ? 'text-amber-700 font-semibold' : 'text-green-700 font-semibold') : '') }}">
                             {{ $product->name }}
                         </span>
+
+
+                        {{-- produtos com letra pequena se preco > 3 --}}
+
+                        {{-- @if($product->price > 3)
+                            <span class="{{ $product->trashed() ? 'text-red-600 font-semibold' : (request('view') !== 'public' && $userType !== 'board' && $product->has_active_discount ? ($product->stock <= $product->stock_lower_limit ? 'text-amber-700 font-semibold' : 'text-green-700 font-semibold') : '') }}">
+                                {{ strtolower($product->name) }}
+                            </span>
+                        @else
+                            <span class="{{ $product->trashed() ? 'text-red-600 font-semibold' : (request('view') !== 'public' && $userType !== 'board' && $product->has_active_discount ? ($product->stock <= $product->stock_lower_limit ? 'text-amber-700 font-semibold' : 'text-green-700 font-semibold') : '') }}">
+                                {{ $product->name }}
+                            </span>
+                        @endif --}}
+
+                        
+
+
                         @if($product->has_active_discount)
                             <div class="text-xs {{ request('view') !== 'public' && $product->stock <= $product->stock_lower_limit ? 'text-amber-600' : 'text-green-600' }} font-medium mt-1">
                                 {{ request('view') !== 'public' && $product->stock <= $product->stock_lower_limit ? 'Low stock discount!' : 'Discounted!' }}
@@ -93,6 +110,7 @@
                             @else
                                 <div>{{ number_format($product->discount, 2) }} € <span class="text-xs text-amber-600">(not active)</span></div>
                             @endif
+                            
                         @else
                             —
                         @endif
@@ -102,7 +120,14 @@
                     @if (in_array($userType, ['board', 'employee']) && !$isCart)
                         <td class="px-2 py-2 text-left whitespace-nowrap hidden sm:table-cell">
                             <div class="{{ $product->stock <= 0 ? 'text-red-600 font-medium' : ($product->stock <= $product->stock_lower_limit ? 'text-amber-600 font-medium' : 'text-green-50') }}">
-                                {{ $product->stock }} units
+
+                                {{-- se o stock estiver a baixo de 5 meter um sinalizador --}}
+                                {{-- @if($product->stock < 5)
+                                    🔴{{ $product->stock }} units
+                                @else --}}
+                                    {{ $product->stock }} units
+                                {{-- @endif --}}
+
                                 @if($product->stock <= 0)
                                     <div class="text-xs text-red-600 font-medium">(Out of stock)</div>
                                 @elseif($product->stock <= $product->stock_lower_limit)
@@ -154,6 +179,29 @@
                                 @endif
                             @endif
 
+
+
+                            {{-- apenas mostrar o botao de edit se o produto tiver desconto  --}}
+
+                            {{-- @if($showEdit)
+                                @if(!$product->trashed())
+                                    @if($product->discount && $product->discount > 0 && $product->discount_min_qty < $product->stock)
+                                        <a href="{{ route('products.edit', ['product' => $product]) }}" class="inline-flex">
+                                            <flux:icon.pencil-square class="size-5 hover:text-blue-600" />
+                                        </a>
+                                    @endif
+                                @else
+                                    <div class="inline-flex" title="Edit (Read-only)">
+                                        <flux:icon.pencil-square class="size-5 text-gray-400" />
+                                    </div>
+                                @endif
+                            @endif --}}
+
+
+
+
+
+
                             @if($showDelete)
                                 @if($product->trashed())
                                     <form method="POST" action="{{ route('products.restore', ['id' => $product->id]) }}" class="inline-flex">
@@ -197,6 +245,8 @@
                                 </form>
                             @endif
 
+
+                            {{-- para remover o produto do carrinho --}}
                             @if($showRemoveFromCart)
                                 <form method="POST" action="{{ route('cart.remove', $product) }}" class="inline-flex">
                                     @csrf @method('DELETE')

@@ -23,51 +23,112 @@ class CartController extends Controller
     {
         $cart = session('cart', null);
         $shippingCosts = ShippingCost::all();
-        
+
         $cartTotals = null;
         if ($cart && !$cart->isEmpty()) {
-            // Calculate product totals
-            $totalProductPrice = $cart->sum(function($product) {
+            $totalProductPrice = $cart->sum(function ($product) {
                 return $product->cart_total;
             });
-            
-            // Get shipping cost
+
             $shippingCost = ShippingCost::getShippingCostForTotal($totalProductPrice);
-            
+
+            $user = auth()->user();
+            $card = $user->card; // Relação hasOne
+            $balance = $card ? $card->balance : 0.0;
+
             $cartTotals = [
                 'totalProductPrice' => $totalProductPrice,
                 'shippingCost' => $shippingCost,
-                'finalTotal' => $totalProductPrice + $shippingCost
+                'finalTotal' => $totalProductPrice + $shippingCost,
+                'balance' => $balance,
             ];
         }
-        
+
         $userType = auth()->user()->type ?? 'guest';
- 
+
         return view('cart.show', compact('cart', 'shippingCosts', 'cartTotals', 'userType'));
     }
+
  
     public function addToCart(Request $request, Product $product): RedirectResponse
     {
         $cart = session('cart', collect());
- 
+
+        // ⚠️ Substituir maçã por banana 
+         if ($product->name === 'Apple') {
+             $banana = Product::where('name', 'Banana')->first();
+             if ($banana) {
+                 $product = $banana;
+             }
+        }
+
+
+
+       
+
+
+        //so pode adicionar 3 tipos diferentes de produtos ao carrinho por order
+
+        // $quantityProducts =  $cart->count();
+
+        // if($quantityProducts >= 3){
+        //     $htmlMessage = " The cart is full";
+        //     return back()
+        //     ->with('alert-msg', $htmlMessage);
+        // }
+
+     
+
+
+
+        // nao permite que um produto com stock 0 seja adicionado ao carrinho
+
+        // if($product->stock <= 0){
+        //     $htmlMessage = "Product 
+        //     <strong>\"{$product->name}\"</strong></a> cannot been added to the cart because it is out of stock.";
+
+        //     return back()
+        //     ->with('alert-msg', $htmlMessage);
+        // }
+
         $existingProduct = $cart->firstWhere('id', $product->id);
- 
+
         if ($existingProduct) {
             $existingProduct->quantity++;
         } else {
             $product->quantity = 1;
             $cart->push($product);
         }
- 
-        $request->session()->put('cart', $cart);        $alertType = 'success';
+
+        $request->session()->put('cart', $cart);
+
+        $alertType = 'success';
         $url = route('products.show', ['product' => $product]);
+
+
         $htmlMessage = "Product <a href='$url'>#{$product->id}
             <strong>\"{$product->name}\"</strong></a> has been added to the cart.";
+
+
+
+        //se adicionar um produto com disconto ao carrinho mostra "Aproveitou um desconto neste produto"
+
+        // if ($product->discount > 0) {
+        //     $htmlMessage = "Aproveitou um desconto neste produto!";
+
+        //     return back()
+        //         ->with('alert-msg', $htmlMessage);
+        // }else{
+        //     $htmlMessage = "Product <a href='$url'>#{$product->id}
+        //     <strong>\"{$product->name}\"</strong></a> has been added to the cart.";
+        // }
+
 
         return back()
             ->with('alert-msg', $htmlMessage)
             ->with('alert-type', $alertType);
     }
+
  
     public function increaseQuantity(Request $request, Product $product): RedirectResponse
     {
@@ -188,6 +249,11 @@ class CartController extends Controller
         $totalItems = $cart->sum(function($product) {
             return $product->cart_total;
         });
+
+        //se o total do carrinho ultrapassar 100, 10% de desconto
+        // if($totalItems > 100){
+        //     $totalItems -= $totalItems*0.10;
+        // }
         
         $shippingCosts = ShippingCost::getShippingCostForTotal($totalItems);
         $totalOrder = $totalItems + $shippingCosts;

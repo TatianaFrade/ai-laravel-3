@@ -34,6 +34,11 @@ class OrderController extends Controller
         $user = Auth::user();
         $onlyOwnOrders = $request->boolean('mine');
 
+        $lastOrderData = Order::where('member_id', $user->id)->latest()->first();
+
+         // Total absoluto (sem filtros)
+        $totalOrders = Order::count();
+
        if ($user->type === 'employee') {
             $orders = Order::query()
                 ->with('user')  // Eager load user relationship
@@ -69,6 +74,8 @@ class OrderController extends Controller
         return view('orders.index', [
             'allOrders' => $orders,
             'isMember' => $isMember,
+            'totalOrders' => $totalOrders,
+            'lastOrderData' => $lastOrderData,
         ]);
     }
 

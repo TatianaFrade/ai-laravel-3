@@ -7,14 +7,35 @@
         <flux:button variant="primary" href="{{ route('users.create') }}">Create a new employee</flux:button>
       </div>
     @endcan
+
+
+    {{-- Mostrar os 3 clientes que gastaram mais-> o user ainda nao tinha a relacao no model com order --}}
+
+     {{-- <div class="my-6">
+      <h2 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200"> Best Clients</h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @foreach ($userMostSpend as $user)
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-gray-100">{{ $user->name }}</p>
+             
+            </div>
+         @endforeach 
+    </div>
+ --}}
+
+
  
     <div class="flex justify-start ">
-      <div class="my-4 p-6 w-full">        <x-users.filter-card 
+      <div class="my-4 p-6 w-full">        
+        
+        <x-users.filter-card 
               :filterAction="route('users.index')" 
               :resetUrl="route('users.index')"
               :filter-by-name="$filterByName"
               :filter-by-gender="$filterByGender"
               :filter-by-type="$filterByType"
+            :order-blocked="$orderBlocked"
         />
 
         <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
@@ -26,31 +47,84 @@
                 <th class="px-2 py-2 text-left">Email</th>
                 <th class="px-2 py-2 text-left">Type</th>
                 <th class="px-2 py-2 text-left">Gender</th>
+             
+
+                {{-- <th class="px-2 py-2 text-left">Payment Type</th> --}}
                   @can('viewBlockedStatus', auth()->user())
                     <th class="px-2 py-2 text-left">Blocked</th>
-                  @endcan                <th class="px-2 py-2 text-right">Actions</th>
+                  @endcan                
+                  <th class="px-2 py-2 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
                @foreach ($allUsers as $user)
-              <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
-                 <td class="px-2 py-2 text-left">
+                <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
+                  <td class="px-2 py-2 text-left">
+                    <div class="h-20 w-20 rounded-full object-cover">
+                      <img src="{{ $user->image_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover rounded" />
+                    </div>
+                    </td>
+
+
+
+                    <td class="px-2 py-2 text-left {{ $user->trashed() ? 'text-red-600 font-semibold' : '' }}">
+                        @if ($user->type === 'board')
+                            {{ $user->name }}
+                        @elseif ($user->blocked)
+                            {{-- <span class="text-gray-900 font-semibold">--}}
+                                {{ $user->name }}
+                            {{--</span> --}}
+                        @else
+                            {{ $user->name }}
+                        @endif
+                      </td>
+
+
+
+
+
                   
-
-                   <div class="h-20 w-20 rounded-full object-cover">
-                    <img src="{{ $user->image_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover rounded" />
-                  </div>
-
-   
-                  </td>
-                  <td class="{{ $user->trashed() ? 'text-red-600 font-semibold' : '' }}">
-                    {{ $user->name }}
-                  </td>
                   <td class="px-2 py-2 text-left">{{ $user->email }}</td>
                   <td class="px-2 py-2 text-left">{{ $user->type }}</td>
-                  <td class="px-2 py-2 text-left">{{ $user->gender }}</td>
 
-               <td class="px-2 py-2 text-left">                    @can('update', $user)
+
+                  {{-- alterar a cor do type consoante o tipo de user --}}
+
+                  {{-- <td class="px-2 py-2 text-left">
+                    
+                        @if ($user->type === 'board')
+                            <span class="text-gray-900 font-semibold">
+                                {{ $user->type  }}
+                            </span>
+                        @elseif ($user->type === 'employee')
+                            <span class="text-green-600 font-semibold">
+                                {{ $user->type  }}
+                            </span>
+                        @else
+                            <span class="text-blue-600 font-semibold">
+                                {{ $user->type  }}
+                            </span>
+                        @endif
+                  </td> --}}
+
+
+                  
+                   <td class="px-2 py-2 text-left">{{ $user->gender }}</td>
+
+                  {{-- @if($user->gender === 'F')
+                    <td class="px-2 py-2 text-left"> 👩{{ $user->gender }}</td>
+                  @elseif($user->gender === 'M')
+                    <td class="px-2 py-2 text-left">👨{{ $user->gender }}</td>
+                  @else
+                    <td class="px-2 py-2 text-left">⚪{{ $user->gender }}</td>
+                  @endif --}}
+
+                  {{-- mostrar a quanto tempo o user foi criado --}}
+                  {{-- <td class="px-2 py-2 text-left">{{ $user->created_at->diffForHumans() }}</td> --}}
+                   {{-- <td class="px-2 py-2 text-left">{{ $user->default_payment_type }}</td> --}}
+
+               <td class="px-2 py-2 text-left">                    
+                @can('update', $user)
                         @if ($user->id !== Auth::id() && $user->type === 'member')
                             @if(Auth::user()->type === 'board')
                                 <form action="{{ route('users.toggleBlocked', $user->id) }}" method="POST">

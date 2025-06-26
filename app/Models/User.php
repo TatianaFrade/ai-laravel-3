@@ -95,7 +95,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->type === 'board';
     }
  
- 
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'member_id', 'id');
+    }
  
     public function card()
     {

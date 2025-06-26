@@ -5,6 +5,38 @@
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <div class="flex justify-start">
             <div class="my-4 p-6 w-full">
+
+
+
+                {{-- mostra a data da ultima encomenda do user--}}
+                @if()
+                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
+                    <div class="bg-white dark:bg-gray-800 shadow rounded p-4">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Last Order</p>
+                        <p class="text-xl font-bold text-gray-800 dark:text-white">{{ $lastOrderData ?? 'No orders found' }}</p>
+                    </div>
+                </div> 
+
+
+
+
+
+
+                {{-- mostra o total de orders e uma mensagem caso tenham sido mais de 10 --}}
+
+                {{-- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
+                    @if($totalOrders > 10)
+                        <th class="px-3 py-2 text-left">Good Job</th>
+                    @endif
+                    <div class="bg-white dark:bg-gray-800 shadow rounded p-4">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Number of orders</p>
+                        <p class="text-xl font-bold text-gray-800 dark:text-white">{{ $totalOrders ?? 0 }}</p>
+                    </div>
+                </div> --}}
+
+
+
+
                 <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
                     @if ($allOrders->count() > 0)
                         <table class="table w-full border-collapse">
@@ -29,7 +61,11 @@
                                         
                                         @if (!$isMember)
                                             <td class="px-3 py-2">
-                                                {{ optional($order->user)->email ?? 'Email não disponível' }}
+                                                {{-- {{ optional($order->user)->email ?? 'Email não disponível' }} --}}
+
+                                                {{-- mostra o primeiro nome do user --}}
+                                                {{ optional($order->user)->name ? explode(' ', optional($order->user)->name)[0] : 'Nome não disponível' }}
+
                                             </td>
                                         @endif
  

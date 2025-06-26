@@ -1,4 +1,6 @@
-@props(['filterAction', 'resetUrl', 'filterByName' => '', 'filterByGender' => '', 'filterByType' => ''])
+@props(['filterAction', 'resetUrl', 'filterByName' => '', 'filterByGender' => '', 'filterByType' => '', 'orderBlocked' => ''])
+
+{{-- 'orderName' => '' --}}
 
 <div {{ $attributes }}>
     <form method="GET" action="{{ $filterAction }}">
@@ -6,7 +8,8 @@
 
           
             <div class="grow flex flex-col space-y-2">
-                <label for="name" class="block text-sm font-medium text-gray-300">Search by name or email</label>                <input 
+                <label for="name" class="block text-sm font-medium text-gray-300">Search by name or email</label>                
+                <input 
                     type="text" 
                     name="name" 
                     id="name"
@@ -14,7 +17,39 @@
                     placeholder="All"
                     class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-            </div>
+            </div> 
+
+            {{-- Ordenacao por nome asc e desc --}}
+
+            {{-- <div class="grow flex flex-col space-y-2">
+                <label for="name" class="block text-sm font-medium text-gray-300">Name</label>                
+                <select 
+                    name="name" 
+                    id="name" 
+                    class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500">                    
+                    <option value="">All</option>
+                    <option value="Asc" {{ $orderName === 'Asc' ? 'selected' : '' }} class="bg-gray-800 text-gray-100">Asc</option>
+                    <option value="Desc" {{ $orderName === 'Desc' ? 'selected' : '' }} class="bg-gray-800 text-gray-100">Desc</option>
+
+                </select>
+            </div> --}}
+
+ 
+            {{-- Filtro so dos bloqueados ou so dos nao bloqueados --}}
+
+            {{--  <div class="grow flex flex-col space-y-2">
+                <label for="orderBlocked" class="block text-sm font-medium text-gray-300">Blocked</label>                
+                <select 
+                    name="orderBlocked" 
+                    id="orderBlocked" 
+                    class="border border-gray-600 bg-gray-800 text-gray-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500">                    
+                    <option value="">All</option>
+                    <option value="1" {{ $orderBlocked === '1' ? 'selected' : '' }} class="bg-gray-800 text-gray-100">Sim</option>
+                    <option value="0" {{ $orderBlocked === '0' ? 'selected' : '' }} class="bg-gray-800 text-gray-100">Nao</option>
+
+                </select>
+            </div>   --}}
+
 
 
             <div class="w-48 flex flex-col space-y-2">

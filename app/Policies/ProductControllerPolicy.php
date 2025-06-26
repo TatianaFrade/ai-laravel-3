@@ -54,6 +54,10 @@ class ProductControllerPolicy
         return $user->type === 'board' || $user->type === 'employee';
     }
 
+
+
+
+
     /**
      * Custom policy for updating product stock.
      */

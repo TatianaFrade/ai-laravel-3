@@ -13,14 +13,18 @@ use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\CardController;
 use App\Http\Controllers\OperationController;
 
+
+
 use App\Http\Controllers\MembershipFeeController;
 
 use App\Http\Controllers\CartController;
 
 use App\Http\Controllers\StatisticsController;
 
-use App\Models\Product;
+
+
 use App\Models\User;
+
 
 
 
@@ -60,6 +64,9 @@ Route::post('cart', [CartController::class, 'confirm'])->name('cart.confirm');
 Route::delete('cart', [CartController::class, 'destroy'])->name('cart.destroy');
 Route::post('cart/{product}/increase', [CartController::class, 'increaseQuantity'])->name('cart.increase');
 Route::post('cart/{product}/decrease', [CartController::class, 'decreaseQuantity'])->name('cart.decrease');
+
+
+
 
 /* ----- VERIFIED USERS ONLY ----- */
 Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckIfUserBlocked::class])->group(function () {
@@ -201,12 +208,31 @@ Route::post('shippingcosts/{shippingcost}/restore', [ShippingCostController::cla
 
 // Define public product routes explicitly without auth requirement
 Route::get('products', [ProductController::class, 'index'])->name('products.index')->withoutMiddleware(['auth']);
-Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show')->withoutMiddleware(['auth']);
 
+
+
+
+// Rota pública para produtos com stock abaixo do limite
+Route::get('products/stock-level', [ProductController::class, 'stockBelowLimit'])
+    ->name('products.stock-level')
+    ->withoutMiddleware(['auth']);
+
+// 2️⃣ Só depois a genérica
+Route::get('products/{product}', [ProductController::class, 'show'])
+    ->name('products.show')
+    ->withoutMiddleware(['auth']);
+
+
+    
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware('web')->name('dashboard');
 
+
+
+
+
+//Route::get('/products/stock', [ProductController::class, 'stockBelowLimit']);
 
 
 

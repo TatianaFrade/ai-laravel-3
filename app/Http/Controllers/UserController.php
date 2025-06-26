@@ -34,9 +34,24 @@ class UserController extends Controller
 
         $usersQuery = User::withTrashed();
 
+        //mostrar os users que mais gastaram
+        $userMostSpend = User::select('id', 'name')
+            ->withSum('orders', 'total')
+            ->orderByDesc('orders_sum_total')
+            ->take(3)
+            ->get();
+
+
+        //$members = User::where('type', 'member')              para restringir aos members 
+
+
+
+
         $filterByName = $request->get('name');
         $filterByGender = $request->get('gender', '');
         $filterByType = $request->get('type', '');
+
+        $orderBlocked = $request->get('orderBlocked', '');
 
         if (!empty($filterByName)) {
             $usersQuery->where(function($query) use ($filterByName) {
@@ -53,8 +68,13 @@ class UserController extends Controller
             $usersQuery->where('type', $filterByType);
         }
 
+        if (in_array($orderBlocked, ['1', '0'])) {
+            $usersQuery->where('blocked', $orderBlocked);
+        }
+
+
         $allUsers = $usersQuery
-            ->orderByRaw('CASE WHEN photo IS NOT NULL THEN 0 ELSE 1 END')
+            ->orderByRaw('CASE WHEN photo IS NOT NULL THEN 0 ELSE 1 END') //ordenar pelo created_at
             ->orderBy('name')
             ->orderBy('type')
             ->orderBy('gender')
@@ -80,6 +100,9 @@ class UserController extends Controller
             'filterByType' => $filterByType,
             'listGenders' => $listGenders,
             'listTypes' => $listTypes,
+            'orderBlocked' => $orderBlocked,
+            'userMostSpend' => $userMostSpend,
+            
         ]);
     }
 

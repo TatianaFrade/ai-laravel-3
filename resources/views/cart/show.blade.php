@@ -11,18 +11,37 @@
                         <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
                             <div class="my-4 font-base text-sm text-gray-700 dark:text-gray-300">
                                 <x-products.table 
-                                :products="$cart" 
-                                :showView="false"
-                                :showEdit="false" 
-                                :showDelete="false" 
-                                :showAddToCart="false" 
-                                :showRemoveFromCart="true"
-                                :isCart="true"
-                                :userType="$userType" />
+                                    :products="$cart" 
+                                    :showView="false"
+                                    :showEdit="false" 
+                                    :showDelete="false" 
+                                    :showAddToCart="false" 
+                                    :showRemoveFromCart="true"
+                                    :isCart="true"
+                                    :userType="$userType" />
                             </div>
                         </div>
                         <div class="mt-12">
                             <div class="mb-6 flex flex-col gap-2">
+
+
+                                {{-- mostrar a quantidade de produtos no carrinho --}}
+
+                                 <div class="flex justify-between text-base">
+                                    <span>Total Products:</span>
+                                    <span>{{ $cart->sum('quantity') }}</span>
+                                </div>
+
+
+
+
+                                {{-- mostrar o subtotal dos produtos --}}
+
+                                 {{-- <div class="flex justify-between text-base">
+                                    <span>Subtotal Price:</span>
+                                    <span>{{ number_format($cartTotals['totalProductPrice'], 2) }} €</span>
+                                </div> --}}
+
                                 <div class="flex justify-between text-lg font-semibold">
                                     <span>Total Price:</span>
                                     <span>{{ number_format($cartTotals['finalTotal'], 2) }} €</span>
@@ -35,6 +54,16 @@
                             <div>
                                 <h3 class="mb-4 text-xl">Shopping Cart Confirmation</h3>
                             </div>
+
+                            {{-- mostrar o saldo do cartao no carrinho de compras --}}
+                            
+                            {{-- <div class="flex justify-between text-base">
+                                <span>Card balance:</span>
+                                <span>{{ number_format($cartTotals['balance'], 2) }} €</span>
+                            </div>  --}}
+
+
+
                             <div class="flex justify-between items-start space-x-4">
                                 <form action="{{ route('cart.confirm') }}" method="post" class="flex space-x-4">
                                     @csrf

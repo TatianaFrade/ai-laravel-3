@@ -26,8 +26,12 @@ use App\Policies\ShippingCostControllerPolicy;
 use App\Policies\StockAdjustmentControllerPolicy;
 use App\Policies\SupplyOrderControllerPolicy;
 use App\Policies\UserControllerPolicy;
+
 use Illuminate\Support\Facades\Auth;
 
+
+
+ 
 class AppServiceProvider extends ServiceProvider
 {
     
@@ -50,8 +54,16 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(StockAdjustment::class, StockAdjustmentControllerPolicy::class);
         Gate::policy(SupplyOrder::class, SupplyOrderControllerPolicy::class);
         Gate::policy(User::class, UserControllerPolicy::class);
-        
-  
+
+        //declaração da nova policy para poder ser usada na rota e nas vistas
+       
+
+
+
+
+
+
+       
         Gate::define('board', function (User $user) { 
             return $user->type === 'board';
         }); 
