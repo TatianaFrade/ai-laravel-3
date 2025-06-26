@@ -58,8 +58,9 @@
             </thead>
             <tbody>
                @foreach ($allUsers as $user)
-                <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
+                <tr class="border-b border-b-gray-400 dark:border-b-gray-500 {{  $user->blocked ? 'bg-amber-50 dark:bg-amber-900/20' : '' }}">
                   <td class="px-2 py-2 text-left">
+
                     <div class="h-20 w-20 rounded-full object-cover">
                       <img src="{{ $user->image_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover rounded" />
                     </div>

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 use App\Traits\PhotoFileStorage;
 
-use App\Http\Controllers\DB;
+
  
 class ProductController extends Controller
 {
@@ -57,8 +57,8 @@ class ProductController extends Controller
 
 
         // 1. Obter os produtos mais vendidos (IDs e quantidades)
-        $rawMostSold = DB::table('items_orders')
-             ->select('product_id', DB::raw('SUM(quantity) as total_sold'))
+        $rawMostSold = \DB::table('items_orders')
+             ->select('product_id', \DB::raw('SUM(quantity) as total_sold'))
              ->groupBy('product_id')
              ->orderByDesc('total_sold')
              ->limit(5)
@@ -150,6 +150,7 @@ class ProductController extends Controller
             'cart',
             'orderDiscount',
             'orderName',
+            'mostSoldProducts',
 
             ));
 

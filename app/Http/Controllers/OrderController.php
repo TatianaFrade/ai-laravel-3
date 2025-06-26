@@ -34,7 +34,7 @@ class OrderController extends Controller
         $user = Auth::user();
         $onlyOwnOrders = $request->boolean('mine');
 
-        $lastOrderData = Order::where('member_id', $user->id)->latest()->first();
+        
 
          // Total absoluto (sem filtros)
         $totalOrders = Order::count();
@@ -75,7 +75,7 @@ class OrderController extends Controller
             'allOrders' => $orders,
             'isMember' => $isMember,
             'totalOrders' => $totalOrders,
-            'lastOrderData' => $lastOrderData,
+            
         ]);
     }
 

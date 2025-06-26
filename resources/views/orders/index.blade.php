@@ -8,18 +8,6 @@
 
 
 
-                {{-- mostra a data da ultima encomenda do user--}}
-                @if()
-                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
-                    <div class="bg-white dark:bg-gray-800 shadow rounded p-4">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Last Order</p>
-                        <p class="text-xl font-bold text-gray-800 dark:text-white">{{ $lastOrderData ?? 'No orders found' }}</p>
-                    </div>
-                </div> 
-
-
-
-
 
 
                 {{-- mostra o total de orders e uma mensagem caso tenham sido mais de 10 --}}
