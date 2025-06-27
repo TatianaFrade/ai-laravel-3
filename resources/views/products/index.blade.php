@@ -59,7 +59,7 @@
 
 
        {{-- mostrar os produtos mais comprados --}}
-      <div class="my-6">
+      {{-- <div class="my-6">
         <h2 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">Most Sold Products</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           @foreach ($mostSoldProducts as $product)
@@ -68,7 +68,7 @@
               </div>
           @endforeach
         </div> 
-      </div> 
+      </div>  --}}
 
 
 
