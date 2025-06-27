@@ -52,7 +52,22 @@
                     <td class="px-2 py-2 text-left">
                         <span  title="{{ $product->description }}" class="{{ $product->trashed() ? 'text-red-600 font-semibold' : (request('view') !== 'public' && $userType !== 'board' && $product->has_active_discount ? ($product->stock <= $product->stock_lower_limit ? 'text-amber-700 font-semibold' : 'text-green-700 font-semibold') : '') }}">
                             {{ $product->name }}
-                        </span>
+                        </span> 
+
+
+                        {{-- se stock < 5 nome a vermelho --}}
+
+                        {{-- @if($product->stock < 5)
+                            <span  class="{{ $product->stock < 5 ? 'text-red-700 font-semibold' : 'text-white-700 font-semibold' }}">
+                                {{ $product->name }}
+                            </span>
+                        @else
+                            <span class="{{ $product->trashed() ? 'text-red-600 font-semibold' : (request('view') !== 'public' && $userType !== 'board' && $product->has_active_discount ? ($product->stock <= $product->stock_lower_limit ? 'text-amber-700 font-semibold' : 'text-green-700 font-semibold') : '') }}">
+                                {{ $product->name }}
+                            </span>
+                        @endif --}}
+
+
 
 
                         {{-- produtos com letra pequena se preco > 3 --}}

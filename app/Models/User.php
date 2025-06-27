@@ -99,6 +99,8 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Order::class, 'member_id', 'id');
     }
+
+    
  
     public function card()
     {

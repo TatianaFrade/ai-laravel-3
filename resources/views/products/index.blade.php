@@ -40,7 +40,17 @@
 
       @else
         {{-- Se for vista pública, podemos mostrar apenas o espaço em branco ou ocultar os botões --}}
-        <div></div>
+
+          @if (!auth()->check())
+            <div class="bg-yellow-100 text-white-800 p-4 rounded">
+              Regista-te e paga a tua quota para poderes comprar!
+            </div>
+          @else
+            <div></div>
+          @endif
+
+
+        
       @endif
     </div>
 

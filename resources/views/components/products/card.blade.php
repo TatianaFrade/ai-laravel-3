@@ -9,6 +9,8 @@
     // ($product->discount && $product->discount > 0 && $product->discount_min_qty < $product->stock
     //     ? 'bg-green-50 dark:bg-green-900'
     //     : 'bg-white dark:bg-gray-900')
+    
+    
     'bg-white dark:bg-gray-900'
 
     : (
@@ -57,7 +59,16 @@
     </div>
 
     {{-- Nome e categoria --}}
-    <div title="{{ e($product->description) }}" class="text-sm font-semibold mb-1">{{ $product->name }}</div>
+
+    {{-- produtos com desconto com o nome a verde --}}
+
+    {{-- <div title="{{ e($product->description) }}" class="text-sm font-semibold mb-1 {{ $product->discount && $product->discount > 0 && $product->discount_min_qty < $product->stock ? 'text-green-600' : 'text-white' }}">
+        {{ $product->name }}</div> --}}
+
+
+
+    <div title="{{ e($product->description) }}" class="text-sm font-semibold mb-1 ">{{ $product->name }}</div>
+    
     <div class="text-xs text-gray-600 mb-2">{{ $product->category->name ?? '—' }}</div>
 
     {{-- Preço e desconto --}}
@@ -98,8 +109,9 @@
         </form>
     {{-- @endif --}}
 
+    
     {{-- Botão remover do carrinho (só se estiver no carrinho) --}}
-    @if($cart->contains('id', $product->id))
+    {{-- @if($cart->contains('id', $product->id))
         <form method="POST" action="{{ route('cart.remove', ['product' => $product]) }}">
             @csrf
             @method('DELETE')
@@ -107,6 +119,6 @@
                 <flux:icon.minus-circle class="size-5 hover:text-red-600" />
             </button>
         </form>
-    @endif
+    @endif  --}}
 
 </div>

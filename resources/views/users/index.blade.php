@@ -58,7 +58,11 @@
             </thead>
             <tbody>
                @foreach ($allUsers as $user)
-                <tr class="border-b border-b-gray-400 dark:border-b-gray-500">
+                <tr class="border-b border-b-gray-400 dark:border-b-gray-500"> 
+
+                {{--Realcar users que nao tenham pago a membership fee a vermelho --}}
+                 {{-- <tr class="border-b border-b-gray-400 dark:border-b-gray-500 {{ !$user->hasPaidMembership() ? 'bg-red-500 dark:bg-red-900/20' : 'bg-green-600 dark:bg-green-900/20' }}">  --}}
+
 
                   {{-- Realcar os users blocked --}}
                 {{-- <tr class="border-b border-b-gray-400 dark:border-b-gray-500 {{  $user->blocked ? 'bg-amber-50 dark:bg-amber-900/20' : '' }}"> --}}
@@ -117,7 +121,7 @@
                    <td class="px-2 py-2 text-left">{{ $user->gender }}</td>
 
                   {{-- @if($user->gender === 'F')
-                    <td class="px-2 py-2 text-left"> 👩{{ $user->gender }}</td>
+                    <td class="px-2 py-2 text-left">👩{{ $user->gender }}</td>
                   @elseif($user->gender === 'M')
                     <td class="px-2 py-2 text-left">👨{{ $user->gender }}</td>
                   @else

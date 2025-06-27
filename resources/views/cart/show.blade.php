@@ -24,13 +24,24 @@
                         <div class="mt-12">
                             <div class="mb-6 flex flex-col gap-2">
 
+                                {{-- mostrar uma mensagem caso o total for superior a 20 --}}
+                                
+                                {{-- @if($cartTotals['finalTotal'] > 20)
+                                    <div class="text-red-500">
+                                        <p class="font-semibold">Total exceeds 20 €.</p>
+                                        <p>Please confirm your cart to proceed.</p>
+                                    </div>
+                                @endif --}}
+                               
+
+
 
                                 {{-- mostrar a quantidade de produtos no carrinho --}}
 
-                                 <div class="flex justify-between text-base">
+                                 {{-- <div class="flex justify-between text-base">
                                     <span>Total Products:</span>
                                     <span>{{ $cart->sum('quantity') }}</span>
-                                </div>
+                                </div> --}}
 
 
 

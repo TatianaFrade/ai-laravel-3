@@ -31,8 +31,14 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
+       
+
 
         $usersQuery = User::withTrashed();
+
+        //->with('card.operations');
+
+        
 
         //mostrar os users que mais gastaram
         $userMostSpend = User::select('id', 'name')

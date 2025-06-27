@@ -55,12 +55,12 @@ class CartController extends Controller
         $cart = session('cart', collect());
 
         // ⚠️ Substituir maçã por banana 
-         if ($product->name === 'Apple') {
-             $banana = Product::where('name', 'Banana')->first();
-             if ($banana) {
-                 $product = $banana;
-             }
-        }
+        //  if ($product->name === 'Apple') {
+        //      $banana = Product::where('name', 'Banana')->first();
+        //      if ($banana) {
+        //          $product = $banana;
+        //      }
+        // }
 
 
 
