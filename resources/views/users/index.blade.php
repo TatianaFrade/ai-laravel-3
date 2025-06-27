@@ -44,7 +44,7 @@
    
                   </td>
                   <td class="{{ $user->trashed() ? 'text-red-600 font-semibold' : '' }}">
-                    {{ $user->name }}
+                    {{ $user->type === 'board' ? strtoupper($user->name) : $user->name }}
                   </td>
                   <td class="px-2 py-2 text-left">{{ $user->email }}</td>
                   <td class="px-2 py-2 text-left">{{ $user->type }}</td>

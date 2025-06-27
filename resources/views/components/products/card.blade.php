@@ -43,5 +43,15 @@
             Add to cart
         </button>
     </form>
+
+    {{-- Botão remover do carrinho --}}
+    @if (session('cart', null)?->firstWhere('id', $product->id))
+        <form method="POST" action="{{ route('cart.remove', $product) }}" class="mt-4">
+            @csrf @method('DELETE')
+            <button type="submit" class="bg-red-600 text-white py-1.5 px-3 text-sm rounded hover:bg-red-700 w-full">
+                Remove from cart
+            </button>
+        </form>
+    @endif
  
 </div>

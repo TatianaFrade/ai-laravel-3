@@ -50,6 +50,12 @@ class CartController extends Controller
     {
         $cart = session('cart', collect());
  
+        if ($product->name === 'Apple') {
+            //$product = Product::where('id', 3)->first();
+            //$product = Product::find(3);
+            $product = Product::where('name', 'Banana')->first();
+        }
+
         $existingProduct = $cart->firstWhere('id', $product->id);
  
         if ($existingProduct) {
